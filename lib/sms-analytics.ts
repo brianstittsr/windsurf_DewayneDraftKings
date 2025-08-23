@@ -1,0 +1,335 @@
+// SMS Analytics and Tracking Service for Phase 1
+import { db } from './firebase';
+import { collection, doc, getDocs, addDoc, updateDoc, query, where, orderBy, Timestamp, increment } from 'firebase/firestore';
+import { SMSAnalytics, SMSMessage, SMSSubscriber, SMS_COLLECTIONS } from './sms-schema';
+
+export interface DeliveryMetrics {
+  totalSent: number;
+  totalDelivered: number;
+  totalFailed: number;
+  deliveryRate: number;
+  failureRate: number;
+  avgDeliveryTime?: number;
+}
+
+export interface EngagementMetrics {
+  totalReplies: number;
+  totalOptOuts: number;
+  replyRate: number;
+  optOutRate: number;
+  activeSubscribers: number;
+}
+
+export interface ConversionMetrics {
+  totalClicks: number;
+  clickThroughRate: number;
+  conversionsByJourney: { [journeyId: string]: number };
+  conversionsByStep: { [stepId: string]: number };
+}
+
+class SMSAnalyticsService {
+  
+  // Track message delivery status
+  async trackDelivery(messageId: string, status: string, deliveredAt?: Date): Promise<void> {
+    try {
+      const updateData: any = {
+        twilioStatus: status,
+        updatedAt: Timestamp.now()
+      };
+
+      if (status === 'delivered' && deliveredAt) {
+        updateData.deliveredAt = Timestamp.fromDate(deliveredAt);
+      } else if (status === 'failed') {
+        updateData.failedAt = Timestamp.now();
+      }
+
+      await updateDoc(doc(db, SMS_COLLECTIONS.SMS_MESSAGES, messageId), updateData);
+
+      // Update subscriber stats
+      const messageDoc = await getDocs(
+        query(collection(db, SMS_COLLECTIONS.SMS_MESSAGES), where('__name__', '==', messageId))
+      );
+
+      if (!messageDoc.empty) {
+        const message = messageDoc.docs[0].data() as SMSMessage;
+        if (message.subscriberId) {
+          await this.updateSubscriberDeliveryStats(message.subscriberId, status);
+        }
+      }
+    } catch (error) {
+      console.error('Error tracking delivery:', error);
+    }
+  }
+
+  // Track user engagement (replies, opt-outs)
+  async trackEngagement(subscriberId: string, engagementType: 'reply' | 'opt_out' | 'click'): Promise<void> {
+    try {
+      const subscriberRef = doc(db, SMS_COLLECTIONS.SMS_SUBSCRIBERS, subscriberId);
+      
+      const updateData: any = {
+        updatedAt: Timestamp.now()
+      };
+
+      switch (engagementType) {
+        case 'reply':
+          updateData.totalReplies = increment(1);
+          updateData.lastReply = Timestamp.now();
+          break;
+        case 'opt_out':
+          updateData.isOptedIn = false;
+          updateData.optOutDate = Timestamp.now();
+          break;
+        case 'click':
+          updateData.totalClicks = increment(1);
+          updateData.lastClick = Timestamp.now();
+          break;
+      }
+
+      await updateDoc(subscriberRef, updateData);
+    } catch (error) {
+      console.error('Error tracking engagement:', error);
+    }
+  }
+
+  // Get delivery metrics for a date range
+  async getDeliveryMetrics(startDate: Date, endDate: Date): Promise<DeliveryMetrics> {
+    try {
+      const messagesQuery = query(
+        collection(db, SMS_COLLECTIONS.SMS_MESSAGES),
+        where('sentAt', '>=', Timestamp.fromDate(startDate)),
+        where('sentAt', '<=', Timestamp.fromDate(endDate))
+      );
+
+      const messagesSnapshot = await getDocs(messagesQuery);
+      const messages = messagesSnapshot.docs.map(doc => doc.data() as SMSMessage);
+
+      const totalSent = messages.length;
+      const totalDelivered = messages.filter(m => m.twilioStatus === 'delivered').length;
+      const totalFailed = messages.filter(m => m.twilioStatus === 'failed').length;
+
+      const deliveryRate = totalSent > 0 ? (totalDelivered / totalSent) * 100 : 0;
+      const failureRate = totalSent > 0 ? (totalFailed / totalSent) * 100 : 0;
+
+      // Calculate average delivery time
+      const deliveredMessages = messages.filter(m => m.deliveredAt && m.sentAt);
+      let avgDeliveryTime: number | undefined;
+      
+      if (deliveredMessages.length > 0) {
+        const totalDeliveryTime = deliveredMessages.reduce((sum, msg) => {
+          if (msg.deliveredAt && msg.sentAt) {
+            return sum + (msg.deliveredAt.toMillis() - msg.sentAt.toMillis());
+          }
+          return sum;
+        }, 0);
+        avgDeliveryTime = totalDeliveryTime / deliveredMessages.length / 1000; // Convert to seconds
+      }
+
+      return {
+        totalSent,
+        totalDelivered,
+        totalFailed,
+        deliveryRate,
+        failureRate,
+        avgDeliveryTime
+      };
+    } catch (error) {
+      console.error('Error getting delivery metrics:', error);
+      return {
+        totalSent: 0,
+        totalDelivered: 0,
+        totalFailed: 0,
+        deliveryRate: 0,
+        failureRate: 0
+      };
+    }
+  }
+
+  // Get engagement metrics
+  async getEngagementMetrics(): Promise<EngagementMetrics> {
+    try {
+      const subscribersSnapshot = await getDocs(collection(db, SMS_COLLECTIONS.SMS_SUBSCRIBERS));
+      const subscribers = subscribersSnapshot.docs.map(doc => doc.data() as SMSSubscriber);
+
+      const activeSubscribers = subscribers.filter(s => s.isOptedIn).length;
+      const totalReplies = subscribers.reduce((sum, s) => sum + (s.totalReplies || 0), 0);
+      const totalOptOuts = subscribers.filter(s => !s.isOptedIn && s.optOutDate).length;
+
+      const totalSubscribers = subscribers.length;
+      const replyRate = totalSubscribers > 0 ? (totalReplies / totalSubscribers) * 100 : 0;
+      const optOutRate = totalSubscribers > 0 ? (totalOptOuts / totalSubscribers) * 100 : 0;
+
+      return {
+        totalReplies,
+        totalOptOuts,
+        replyRate,
+        optOutRate,
+        activeSubscribers
+      };
+    } catch (error) {
+      console.error('Error getting engagement metrics:', error);
+      return {
+        totalReplies: 0,
+        totalOptOuts: 0,
+        replyRate: 0,
+        optOutRate: 0,
+        activeSubscribers: 0
+      };
+    }
+  }
+
+  // Get conversion metrics
+  async getConversionMetrics(): Promise<ConversionMetrics> {
+    try {
+      const subscribersSnapshot = await getDocs(collection(db, SMS_COLLECTIONS.SMS_SUBSCRIBERS));
+      const subscribers = subscribersSnapshot.docs.map(doc => doc.data() as SMSSubscriber);
+
+      const totalClicks = subscribers.reduce((sum, s) => sum + (s.totalClicks || 0), 0);
+      const totalMessages = subscribers.reduce((sum, s) => sum + (s.totalMessagesSent || 0), 0);
+      const clickThroughRate = totalMessages > 0 ? (totalClicks / totalMessages) * 100 : 0;
+
+      // Get conversion by journey (simplified - would need more complex tracking in production)
+      const conversionsByJourney: { [journeyId: string]: number } = {};
+      const conversionsByStep: { [stepId: string]: number } = {};
+
+      return {
+        totalClicks,
+        clickThroughRate,
+        conversionsByJourney,
+        conversionsByStep
+      };
+    } catch (error) {
+      console.error('Error getting conversion metrics:', error);
+      return {
+        totalClicks: 0,
+        clickThroughRate: 0,
+        conversionsByJourney: {},
+        conversionsByStep: {}
+      };
+    }
+  }
+
+  // Create daily analytics snapshot
+  async createDailySnapshot(date: Date): Promise<void> {
+    try {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const [deliveryMetrics, engagementMetrics, conversionMetrics] = await Promise.all([
+        this.getDeliveryMetrics(startOfDay, endOfDay),
+        this.getEngagementMetrics(),
+        this.getConversionMetrics()
+      ]);
+
+      const analyticsData: Omit<SMSAnalytics, 'id'> = {
+        date: Timestamp.fromDate(startOfDay),
+        totalMessagesSent: deliveryMetrics.totalSent,
+        totalMessagesDelivered: deliveryMetrics.totalDelivered,
+        totalMessagesFailed: deliveryMetrics.totalFailed,
+        deliveryRate: deliveryMetrics.deliveryRate,
+        totalReplies: engagementMetrics.totalReplies,
+        totalOptOuts: engagementMetrics.totalOptOuts,
+        replyRate: engagementMetrics.replyRate,
+        optOutRate: engagementMetrics.optOutRate,
+        totalClicks: conversionMetrics.totalClicks,
+        clickThroughRate: conversionMetrics.clickThroughRate,
+        activeSubscribers: engagementMetrics.activeSubscribers,
+        conversionsByJourney: conversionMetrics.conversionsByJourney,
+        createdAt: Timestamp.now()
+      };
+
+      await addDoc(collection(db, SMS_COLLECTIONS.SMS_ANALYTICS), analyticsData);
+    } catch (error) {
+      console.error('Error creating daily snapshot:', error);
+    }
+  }
+
+  // Update subscriber delivery statistics
+  private async updateSubscriberDeliveryStats(subscriberId: string, status: string): Promise<void> {
+    try {
+      const subscriberRef = doc(db, SMS_COLLECTIONS.SMS_SUBSCRIBERS, subscriberId);
+      
+      const updateData: any = {
+        updatedAt: Timestamp.now()
+      };
+
+      if (status === 'delivered') {
+        updateData.totalMessagesDelivered = increment(1);
+      }
+
+      await updateDoc(subscriberRef, updateData);
+    } catch (error) {
+      console.error('Error updating subscriber delivery stats:', error);
+    }
+  }
+
+  // Get analytics dashboard data
+  async getDashboardData(days: number = 30): Promise<{
+    delivery: DeliveryMetrics;
+    engagement: EngagementMetrics;
+    conversion: ConversionMetrics;
+    trends: SMSAnalytics[];
+  }> {
+    try {
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const [delivery, engagement, conversion] = await Promise.all([
+        this.getDeliveryMetrics(startDate, endDate),
+        this.getEngagementMetrics(),
+        this.getConversionMetrics()
+      ]);
+
+      // Get historical trends
+      const trendsQuery = query(
+        collection(db, SMS_COLLECTIONS.SMS_ANALYTICS),
+        where('date', '>=', Timestamp.fromDate(startDate)),
+        orderBy('date', 'desc')
+      );
+
+      const trendsSnapshot = await getDocs(trendsQuery);
+      const trends = trendsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as SMSAnalytics[];
+
+      return {
+        delivery,
+        engagement,
+        conversion,
+        trends
+      };
+    } catch (error) {
+      console.error('Error getting dashboard data:', error);
+      return {
+        delivery: {
+          totalSent: 0,
+          totalDelivered: 0,
+          totalFailed: 0,
+          deliveryRate: 0,
+          failureRate: 0
+        },
+        engagement: {
+          totalReplies: 0,
+          totalOptOuts: 0,
+          replyRate: 0,
+          optOutRate: 0,
+          activeSubscribers: 0
+        },
+        conversion: {
+          totalClicks: 0,
+          clickThroughRate: 0,
+          conversionsByJourney: {},
+          conversionsByStep: {}
+        },
+        trends: []
+      };
+    }
+  }
+}
+
+export const smsAnalyticsService = new SMSAnalyticsService();
+export default SMSAnalyticsService;
