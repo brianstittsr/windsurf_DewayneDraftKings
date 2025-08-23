@@ -1,34 +1,5 @@
+// Firestore Database Schema for DraftKings League Management System
 import { Timestamp } from 'firebase/firestore';
-
-// Enums
-export enum UserRole {
-  PLAYER = 'PLAYER',
-  TRAINER = 'TRAINER',
-  COACH = 'COACH',
-  TEAM_CAPTAIN = 'TEAM_CAPTAIN',
-  PLATFORM_ADMIN = 'PLATFORM_ADMIN'
-}
-
-export enum PlayerTag {
-  FREE_AGENT = 'FREE_AGENT',
-  DRAFT_PICK = 'DRAFT_PICK',
-  PROSPECT = 'PROSPECT',
-  MEET_GREET = 'MEET_GREET',
-  CLIENT = 'CLIENT'
-}
-
-export enum SportType {
-  FLAG_FOOTBALL = 'FLAG_FOOTBALL',
-  VOLLEYBALL = 'VOLLEYBALL',
-  KICKBALL = 'KICKBALL',
-  BASKETBALL = 'BASKETBALL'
-}
-
-export enum NotificationType {
-  SMS = 'SMS',
-  EMAIL = 'EMAIL',
-  PUSH = 'PUSH'
-}
 
 // Base interface for all documents
 interface BaseDocument {
@@ -37,134 +8,515 @@ interface BaseDocument {
   updatedAt: Timestamp;
 }
 
-// User document (users collection)
-export interface User extends BaseDocument {
+export interface Player extends BaseDocument {
+  // Personal Information
+  firstName: string;
+  lastName: string;
   email: string;
-  name?: string;
-  phone?: string;
-  role: UserRole;
-  avatar?: string;
+  phone: string;
+  dateOfBirth: Timestamp;
+  profilePhoto?: string;
   
-  // Player specific fields
-  playerTag?: PlayerTag;
-  height?: number;
-  weight?: number;
-  dateOfBirth?: Timestamp;
-  emergencyContact?: string;
+  // Registration Information
+  registrationDate: Timestamp;
+  registrationStatus: 'pending' | 'confirmed' | 'cancelled';
+  paymentStatus: 'pending' | 'paid' | 'partial' | 'overdue';
   
-  // Relations (stored as document references)
-  trainerId?: string;
-  accountabilityPartnerId?: string;
+  // Player Classification
+  playerTag: 'free-agent' | 'draft-pick' | 'prospect' | 'meet-greet' | 'client';
+  position: 'quarterback' | 'rusher' | 'receiver' | 'defender' | 'flex';
   
-  // Billing
-  stripeCustomerId?: string;
+  // Team Assignment
+  teamId?: string;
+  draftRound?: number;
+  draftPick?: number;
+  isDrafted: boolean;
+  
+  // Stats and Performance
+  stats: {
+    gamesPlayed: number;
+    touchdowns: number;
+    yards: number;
+    tackles: number;
+    interceptions: number;
+    attendance: number;
+  };
+  
+  // Health and Fitness Tracking
+  metrics: {
+    currentWeight: number;
+    targetWeight?: number;
+    weighIns: WeighIn[];
+    workouts: Workout[];
+    totalWeightLoss: number;
+  };
+  
+  // Referral System
+  referredBy?: string; // Player ID who referred this player
+  referrals: string[]; // Array of Player IDs this player referred
+  referralRewards: number; // Points/credits earned from referrals
+  referralLevel: number; // Level in referral tree
+  
+  // QR Code
+  qrCode: string;
+  qrCodeUrl: string; // URL that QR code points to
+  
+  // Marketing Automation
+  funnelStatus: {
+    currentFunnelId?: string;
+    currentStep: number;
+    lastInteraction: Timestamp;
+    isOptedOut: boolean;
+  };
 }
 
-// Player Profile document (playerProfiles collection)
-export interface PlayerProfile extends BaseDocument {
-  userId: string;
-  bio?: string;
-  experience?: string;
-  achievements?: string;
-  goals?: string;
-  qrCode?: string;
-}
-
-// Team document (teams collection)
 export interface Team extends BaseDocument {
   name: string;
-  sport: SportType;
-  description?: string;
-  avatar?: string;
+  division: 'men' | 'women' | 'mixed';
   coachId: string;
-  captainId: string;
+  coachName: string;
+  
+  // Roster Management
+  players: string[]; // Array of Player IDs
+  maxRosterSize: number;
+  currentRosterSize: number;
+  rosterLocked: boolean;
+  
+  // Team Performance
+  stats: {
+    wins: number;
+    losses: number;
+    ties: number;
+    pointsFor: number;
+    pointsAgainst: number;
+    gamesPlayed: number;
+  };
+  
+  // Social Media Integration
+  facebookPageUrl?: string;
+  socialMediaStats: {
+    followers: number;
+    engagement: number;
+  };
+  
+  // Draft Information
+  draftOrder: number;
+  draftPicks: DraftPick[];
+  availableTrades: number;
+  
+  // Team Colors and Branding
+  primaryColor: string;
+  secondaryColor: string;
+  logoUrl?: string;
 }
 
-// Team Member document (teamMembers collection)
-export interface TeamMember {
-  id: string;
-  teamId: string;
-  userId: string;
-  joinedAt: Timestamp;
+export interface DraftPick {
+  round: number;
+  pick: number;
+  playerId: string;
+  playerName: string;
+  timestamp: Timestamp;
+  tradedFrom?: string; // Team ID if pick was traded
 }
 
-// Match document (matches collection)
-export interface Match extends BaseDocument {
-  homeTeamId: string;
-  awayTeamId: string;
-  sport: SportType;
-  homeScore?: number;
-  awayScore?: number;
-  scheduledAt: Timestamp;
-  playedAt?: Timestamp;
-  location?: string;
-}
-
-// Workout document (workouts collection)
-export interface Workout extends BaseDocument {
-  userId: string;
-  type: string;
-  duration: number; // in minutes
-  intensity?: string;
-  caloriesBurned?: number;
+export interface WeighIn {
+  date: Timestamp;
+  weight: number;
+  bodyFatPercentage?: number;
   notes?: string;
-  date: Timestamp;
+  recordedBy: string; // Staff ID
 }
 
-// Player Metric document (playerMetrics collection)
-export interface PlayerMetric {
-  id: string;
-  userId: string;
-  weight?: number;
-  bodyFat?: number;
-  muscleMass?: number;
-  steps?: number;
-  sleepHours?: number;
-  waterIntake?: number; // in liters
+export interface Workout {
   date: Timestamp;
-  createdAt: Timestamp;
+  type: 'cardio' | 'strength' | 'flexibility' | 'sports-specific' | 'group-class';
+  duration: number; // minutes
+  caloriesBurned?: number;
+  intensity: 'low' | 'medium' | 'high';
+  notes?: string;
+  instructorId?: string; // Staff ID
 }
 
-// Notification document (notifications collection)
-export interface Notification {
+export interface Payment extends BaseDocument {
+  playerId: string;
+  playerName: string;
+  
+  // Payment Details
+  amount: number;
+  currency: 'USD';
+  type: 'registration' | 'meal-plan' | 'merchandise' | 'fitness-class' | 'jersey' | 'late-fee';
+  description: string;
+  
+  // Payment Status
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded' | 'disputed';
+  paymentMethod: 'card' | 'cash' | 'check' | 'bank-transfer' | 'venmo' | 'paypal';
+  
+  // Stripe Integration
+  stripePaymentIntentId?: string;
+  stripeCustomerId?: string;
+  stripeChargeId?: string;
+  
+  // Auto-draft Information
+  isRecurring: boolean;
+  recurringSchedule?: 'weekly' | 'monthly' | 'quarterly';
+  nextChargeDate?: Timestamp;
+  autoPayEnabled: boolean;
+  
+  // Staff Attribution
+  processedBy?: string; // Staff ID
+  revenueAttribution: {
+    staffId: string;
+    percentage: number;
+  }[];
+  
+  // Timestamps
+  dueDate: Timestamp;
+  paidDate?: Timestamp;
+}
+
+export interface MarketingFunnel extends BaseDocument {
+  name: string;
+  type: 'lead-nurturing' | 'upsell' | 'retention' | 'referral' | 'payment-reminder';
+  
+  // Funnel Configuration
+  steps: FunnelStep[];
+  triggers: FunnelTrigger[];
+  targetAudience: string[]; // Player tags or conditions
+  
+  // Performance Metrics
+  stats: {
+    totalEntered: number;
+    totalCompleted: number;
+    conversionRate: number;
+    revenue: number;
+    avgTimeToComplete: number; // hours
+  };
+  
+  // A/B Testing
+  variants?: {
+    name: string;
+    percentage: number;
+    steps: FunnelStep[];
+  }[];
+  
+  // Status
+  isActive: boolean;
+}
+
+export interface FunnelStep {
   id: string;
-  userId: string;
+  order: number;
+  type: 'email' | 'sms' | 'call' | 'appointment' | 'payment' | 'upsell-offer';
+  title: string;
+  content: string;
+  delayHours: number;
+  conditions?: string[]; // Conditions to proceed to next step
+  
+  // Call-to-Action
+  cta?: {
+    text: string;
+    url: string;
+    type: 'button' | 'link' | 'phone';
+  };
+  
+  // Performance
+  stats: {
+    sent: number;
+    opened: number;
+    clicked: number;
+    converted: number;
+  };
+}
+
+export interface FunnelTrigger {
+  event: 'registration' | 'payment-due' | 'workout-missed' | 'referral-made' | 'weigh-in-missed' | 'team-drafted';
+  conditions: string[];
+  delayHours?: number;
+}
+
+export interface Leaderboard extends BaseDocument {
+  name: string;
+  type: 'referrals' | 'signups' | 'performance' | 'weight-loss' | 'participation' | 'revenue-generated';
+  
+  // Leaderboard Configuration
+  period: 'daily' | 'weekly' | 'monthly' | 'season' | 'all-time';
+  maxEntries: number;
+  minValue?: number; // Minimum value to appear on leaderboard
+  
+  // Entries
+  entries: LeaderboardEntry[];
+  
+  // Display Settings
+  isPublic: boolean;
+  displayOnHomepage: boolean;
+  showPlayerPhotos: boolean;
+  
+  // Rewards
+  rewards?: {
+    rank: number;
+    reward: string;
+    value: number;
+  }[];
+  
+  // Timestamps
+  lastUpdated: Timestamp;
+}
+
+export interface LeaderboardEntry {
+  playerId: string;
+  playerName: string;
+  playerPhoto?: string;
+  value: number;
+  rank: number;
+  change: number; // Change from previous period
+  trend: 'up' | 'down' | 'same';
+  additionalInfo?: string; // Extra context for the entry
+}
+
+export interface Staff extends BaseDocument {
+  // Personal Information
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  profilePhoto?: string;
+  
+  // Role and Permissions
+  role: 'admin' | 'coach' | 'trainer' | 'staff' | 'manager';
+  permissions: string[];
+  department: string;
+  
+  // Revenue Assignments
+  revenueStreams: {
+    registrations: boolean;
+    jerseys: boolean;
+    mealPlans: boolean;
+    fitnessClasses: boolean;
+    merchandise: boolean;
+  };
+  
+  // Performance Tracking
+  kpis: {
+    signupsTarget: number;
+    signupsActual: number;
+    revenueTarget: number;
+    revenueActual: number;
+    conversionRate: number;
+    customerSatisfaction: number;
+  };
+  
+  // Job Description
+  jobTitle: string;
+  jobDescription: string;
+  goals: string[];
+  responsibilities: string[];
+  
+  // Commission Structure
+  commissionRate: number; // Percentage
+  bonusStructure?: {
+    threshold: number;
+    bonus: number;
+  }[];
+  
+  // Timestamps
+  hireDate: Timestamp;
+  lastLogin?: Timestamp;
+}
+
+export interface Event extends BaseDocument {
+  name: string;
+  type: 'game' | 'practice' | 'draft' | 'weigh-in' | 'meeting' | 'jamboree' | 'tournament';
+  
+  // Event Details
+  description: string;
+  location: string;
+  address?: string;
+  startTime: Timestamp;
+  endTime: Timestamp;
+  
+  // Participants
+  teams?: string[]; // Team IDs
+  players?: string[]; // Player IDs
+  staff?: string[]; // Staff IDs
+  expectedAttendance: number;
+  actualAttendance?: number;
+  
+  // Status
+  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled' | 'postponed';
+  
+  // Results (for games)
+  results?: {
+    homeTeamId: string;
+    awayTeamId: string;
+    homeScore: number;
+    awayScore: number;
+    playerStats: { [playerId: string]: any };
+    mvpPlayerId?: string;
+  };
+  
+  // Media and Social
+  photos?: string[];
+  videos?: string[];
+  socialMediaPosts?: string[];
+}
+
+export interface Notification extends BaseDocument {
+  // Recipient Information
+  recipientId: string;
+  recipientType: 'player' | 'staff' | 'coach' | 'team';
+  
+  // Notification Content
   title: string;
   message: string;
-  type: NotificationType;
-  sent: boolean;
+  type: 'reminder' | 'alert' | 'update' | 'promotion' | 'achievement' | 'payment-due';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  
+  // Delivery Methods
+  channels: {
+    email: boolean;
+    sms: boolean;
+    push: boolean;
+    inApp: boolean;
+  };
+  
+  // Status
+  status: 'pending' | 'sent' | 'delivered' | 'failed' | 'read';
+  scheduledFor?: Timestamp;
+  
+  // Related Data
+  relatedEntity?: {
+    type: 'payment' | 'event' | 'registration' | 'funnel' | 'leaderboard';
+    id: string;
+  };
+  
+  // Interaction Tracking
+  openedAt?: Timestamp;
+  clickedAt?: Timestamp;
+  
+  // Timestamps
   sentAt?: Timestamp;
-  createdAt: Timestamp;
 }
 
-// Subscription document (subscriptions collection)
-export interface Subscription extends BaseDocument {
-  userId: string;
-  stripeSubscriptionId: string;
-  status: string;
-  priceId: string;
-  currentPeriodEnd: Timestamp;
+export interface ReferralTree extends BaseDocument {
+  rootPlayerId: string; // The original referrer
+  
+  // Tree Structure
+  levels: {
+    level: number;
+    players: {
+      playerId: string;
+      playerName: string;
+      referredBy: string;
+      referralDate: Timestamp;
+      isActive: boolean;
+    }[];
+  }[];
+  
+  // Metrics
+  totalReferrals: number;
+  activeReferrals: number;
+  totalRevenue: number;
+  
+  // Rewards Distributed
+  rewardsDistributed: {
+    playerId: string;
+    amount: number;
+    type: 'cash' | 'credit' | 'merchandise';
+    date: Timestamp;
+  }[];
 }
 
-// Leaderboard Entry document (leaderboardEntries collection)
-export interface LeaderboardEntry extends BaseDocument {
-  userId: string;
-  sport: SportType;
-  category: string; // e.g., "most_workouts", "weight_loss", "calories_burned"
-  value: number;
-  period: string; // "weekly", "monthly", "all_time"
+export interface SystemSettings extends BaseDocument {
+  // Registration Settings
+  registrationOpen: boolean;
+  maxPlayers: number;
+  maxTeams: number;
+  registrationDeadline: Timestamp;
+  
+  // Draft Settings
+  draftDate: Timestamp;
+  draftRounds: number;
+  draftTimePerPick: number; // seconds
+  
+  // Payment Settings
+  registrationFee: number;
+  lateFee: number;
+  refundPolicy: string;
+  
+  // Season Settings
+  seasonStartDate: Timestamp;
+  seasonEndDate: Timestamp;
+  jamboreeDate: Timestamp;
+  
+  // Feature Flags
+  features: {
+    autoPayEnabled: boolean;
+    referralProgramActive: boolean;
+    leaderboardsPublic: boolean;
+    qrCodesEnabled: boolean;
+    marketingAutomationActive: boolean;
+  };
+  
+  // Timestamps
+  updatedBy: string; // Staff ID
 }
 
-// Collection names constants
+// Collection names for Firestore
 export const COLLECTIONS = {
-  USERS: 'users',
-  PLAYER_PROFILES: 'playerProfiles',
+  PLAYERS: 'players',
   TEAMS: 'teams',
-  TEAM_MEMBERS: 'teamMembers',
-  MATCHES: 'matches',
-  WORKOUTS: 'workouts',
-  PLAYER_METRICS: 'playerMetrics',
+  PAYMENTS: 'payments',
+  MARKETING_FUNNELS: 'marketing-funnels',
+  LEADERBOARDS: 'leaderboards',
+  STAFF: 'staff',
+  EVENTS: 'events',
   NOTIFICATIONS: 'notifications',
-  SUBSCRIPTIONS: 'subscriptions',
-  LEADERBOARD_ENTRIES: 'leaderboardEntries'
+  DRAFT_HISTORY: 'draft-history',
+  REFERRAL_TREES: 'referral-trees',
+  SYSTEM_SETTINGS: 'system-settings',
+  AUDIT_LOGS: 'audit-logs'
 } as const;
+
+// Subcollections
+export const SUBCOLLECTIONS = {
+  PLAYER_STATS: 'stats',
+  PLAYER_PAYMENTS: 'payments',
+  PLAYER_NOTIFICATIONS: 'notifications',
+  TEAM_GAMES: 'games',
+  FUNNEL_PARTICIPANTS: 'participants'
+} as const;
+
+// Helper types for common operations
+export type PlayerWithTeam = Player & {
+  team?: Team;
+};
+
+export type TeamWithPlayers = Team & {
+  playerDetails?: Player[];
+};
+
+export type PaymentWithPlayer = Payment & {
+  player?: Player;
+};
+
+// Database query helpers
+export const getPlayersByTeam = (teamId: string) => ({
+  collection: COLLECTIONS.PLAYERS,
+  where: [['teamId', '==', teamId]]
+});
+
+export const getActiveLeaderboards = () => ({
+  collection: COLLECTIONS.LEADERBOARDS,
+  where: [['isPublic', '==', true], ['displayOnHomepage', '==', true]]
+});
+
+export const getPendingPayments = () => ({
+  collection: COLLECTIONS.PAYMENTS,
+  where: [['status', '==', 'pending']]
+});
+
+export const getUpcomingEvents = () => ({
+  collection: COLLECTIONS.EVENTS,
+  where: [['status', '==', 'scheduled']],
+  orderBy: [['startTime', 'asc']]
+});
