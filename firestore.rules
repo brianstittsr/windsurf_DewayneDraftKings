@@ -1,0 +1,114 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isAdmin() {
+      return getUserRole() == 'PLATFORM_ADMIN';
+    }
+    
+    function isTrainer() {
+      return getUserRole() in ['TRAINER', 'PLATFORM_ADMIN'];
+    }
+    
+    function isCoach() {
+      return getUserRole() in ['COACH', 'PLATFORM_ADMIN'];
+    }
+    
+    function isTeamCaptain() {
+      return getUserRole() in ['TEAM_CAPTAIN', 'PLATFORM_ADMIN'];
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin() || 
+                      (isTrainer() && resource.data.role == 'PLAYER');
+      allow delete: if isAdmin();
+    }
+
+    // Player profiles collection
+    match /playerProfiles/{profileId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && 
+                              (isOwner(resource.data.userId) || isAdmin() || isTrainer());
+      allow delete: if isAdmin();
+    }
+
+    // Teams collection
+    match /teams/{teamId} {
+      allow read: if isAuthenticated();
+      allow create: if isCoach() || isAdmin();
+      allow update: if isOwner(resource.data.coachId) || 
+                      isOwner(resource.data.captainId) || 
+                      isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Team members collection
+    match /teamMembers/{memberId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && 
+                      (isOwner(resource.data.userId) || isCoach() || isTeamCaptain() || isAdmin());
+      allow update, delete: if isCoach() || isTeamCaptain() || isAdmin();
+    }
+
+    // Matches collection
+    match /matches/{matchId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isCoach() || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Workouts collection
+    match /workouts/{workoutId} {
+      allow read: if isAuthenticated() && 
+                    (isOwner(resource.data.userId) || isTrainer() || isAdmin());
+      allow create, update: if isAuthenticated() && isOwner(resource.data.userId);
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // Player metrics collection
+    match /playerMetrics/{metricId} {
+      allow read: if isAuthenticated() && 
+                    (isOwner(resource.data.userId) || isTrainer() || isAdmin());
+      allow create, update: if isAuthenticated() && isOwner(resource.data.userId);
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isTrainer() || isCoach() || isAdmin();
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Subscriptions collection
+    match /subscriptions/{subscriptionId} {
+      allow read: if isAuthenticated() && 
+                    (isOwner(resource.data.userId) || isAdmin());
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Leaderboard entries collection
+    match /leaderboardEntries/{entryId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin();
+    }
+  }
+}

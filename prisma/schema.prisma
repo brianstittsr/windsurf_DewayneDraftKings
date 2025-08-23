@@ -1,0 +1,234 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PLAYER
+  TRAINER
+  COACH
+  TEAM_CAPTAIN
+  PLATFORM_ADMIN
+}
+
+enum PlayerTag {
+  FREE_AGENT
+  DRAFT_PICK
+  PROSPECT
+  MEET_GREET
+  CLIENT
+}
+
+enum SportType {
+  FLAG_FOOTBALL
+  VOLLEYBALL
+  KICKBALL
+  BASKETBALL
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  phone         String?
+  role          UserRole  @default(PLAYER)
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Player specific fields
+  playerTag     PlayerTag?
+  height        Float?
+  weight        Float?
+  dateOfBirth   DateTime?
+  emergencyContact String?
+  
+  // Relations
+  playerProfile PlayerProfile?
+  trainedPlayers User[] @relation("TrainerPlayers")
+  trainer       User?  @relation("TrainerPlayers", fields: [trainerId], references: [id])
+  trainerId     String?
+  
+  coachedTeams  Team[] @relation("CoachTeams")
+  captainedTeams Team[] @relation("CaptainTeams")
+  teamMemberships TeamMember[]
+  
+  workouts      Workout[]
+  metrics       PlayerMetric[]
+  notifications Notification[]
+  
+  // Accountability partner
+  accountabilityPartner User? @relation("AccountabilityPartners", fields: [accountabilityPartnerId], references: [id])
+  accountabilityPartnerId String?
+  accountabilityPartners User[] @relation("AccountabilityPartners")
+  
+  // Billing
+  stripeCustomerId String?
+  subscriptions    Subscription[]
+  
+  @@map("users")
+}
+
+model PlayerProfile {
+  id          String @id @default(cuid())
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  bio         String?
+  experience  String?
+  achievements String?
+  goals       String?
+  qrCode      String? @unique
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("player_profiles")
+}
+
+model Team {
+  id          String    @id @default(cuid())
+  name        String
+  sport       SportType
+  description String?
+  avatar      String?
+  
+  coach       User   @relation("CoachTeams", fields: [coachId], references: [id])
+  coachId     String
+  
+  captain     User   @relation("CaptainTeams", fields: [captainId], references: [id])
+  captainId   String
+  
+  members     TeamMember[]
+  matches     Match[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String @id @default(cuid())
+  teamId   String
+  userId   String
+  
+  team     Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user     User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  joinedAt DateTime @default(now())
+  
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+model Match {
+  id          String    @id @default(cuid())
+  homeTeamId  String
+  awayTeamId  String
+  sport       SportType
+  
+  homeTeam    Team @relation(fields: [homeTeamId], references: [id])
+  awayTeam    Team @relation(fields: [awayTeamId], references: [id])
+  
+  homeScore   Int?
+  awayScore   Int?
+  scheduledAt DateTime
+  playedAt    DateTime?
+  location    String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("matches")
+}
+
+model Workout {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type        String
+  duration    Int      // in minutes
+  intensity   String?
+  caloriesBurned Int?
+  notes       String?
+  date        DateTime @default(now())
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("workouts")
+}
+
+model PlayerMetric {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  weight      Float?
+  bodyFat     Float?
+  muscleMass  Float?
+  steps       Int?
+  sleepHours  Float?
+  waterIntake Float?   // in liters
+  
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  
+  @@map("player_metrics")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  message   String
+  type      String   // SMS, EMAIL, PUSH
+  sent      Boolean  @default(false)
+  sentAt    DateTime?
+  
+  createdAt DateTime @default(now())
+  
+  @@map("notifications")
+}
+
+model Subscription {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  stripeSubscriptionId String @unique
+  status          String
+  priceId         String
+  currentPeriodEnd DateTime
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("subscriptions")
+}
+
+model LeaderboardEntry {
+  id        String    @id @default(cuid())
+  userId    String
+  sport     SportType
+  category  String    // e.g., "most_workouts", "weight_loss", "calories_burned"
+  value     Float
+  period    String    // "weekly", "monthly", "all_time"
+  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  @@unique([userId, sport, category, period])
+  @@map("leaderboard_entries")
+}
