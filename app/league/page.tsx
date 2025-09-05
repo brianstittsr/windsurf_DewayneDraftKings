@@ -2,42 +2,119 @@
 
 import { useState, useEffect } from 'react';
 
+interface TeamStanding {
+  teamId: string;
+  teamName: string;
+  rank: number;
+  wins: number;
+  losses: number;
+  ties: number;
+  gamesPlayed: number;
+  pointsFor: number;
+  pointsAgainst: number;
+  pointsDifferential: number;
+  winPercentage: number;
+  record: string;
+}
+
+interface LeagueLeader {
+  playerId: string;
+  playerName: string;
+  teamName: string;
+  stat: string;
+  category: string;
+}
+
+interface UpcomingGame {
+  date: string;
+  teams: string;
+  time: string;
+  venue: string;
+}
+
+interface LeagueData {
+  name: string;
+  season: string;
+  totalTeams: number;
+  totalPlayers: number;
+  gamesPlayed: number;
+  totalTouchdowns: number;
+  standings: TeamStanding[];
+  topPlayers: LeagueLeader[];
+  upcomingGames: UpcomingGame[];
+}
+
 export default function LeaguePage() {
   const [loading, setLoading] = useState(true);
-
-  // Sample league data - in production this would come from Firestore
-  const leagueData = {
+  const [leagueData, setLeagueData] = useState<LeagueData>({
     name: 'All Pro Sports',
     season: '2024 Fall Season',
-    totalTeams: 6,
-    totalPlayers: 48,
-    gamesPlayed: 21,
-    totalTouchdowns: 156,
-    standings: [
-      { rank: 1, team: 'Lightning Strikes', record: '6-1', points: 189 },
-      { rank: 2, team: 'Thunder Bolts', record: '5-2', points: 245 },
-      { rank: 3, team: 'Storm Chasers', record: '4-3', points: 198 },
-      { rank: 4, team: 'Wind Warriors', record: '3-4', points: 167 },
-      { rank: 5, team: 'Fire Dragons', record: '2-5', points: 143 },
-      { rank: 6, team: 'Ice Wolves', record: '1-6', points: 134 }
-    ],
-    topPlayers: [
-      { name: 'Marcus Johnson', team: 'Lightning Strikes', stat: '18 TDs', category: 'Touchdowns' },
-      { name: 'Alex Smith', team: 'Thunder Bolts', stat: '1,240 yards', category: 'Passing Yards' },
-      { name: 'Chris Davis', team: 'Storm Chasers', stat: '32 tackles', category: 'Tackles' },
-      { name: 'Mike Wilson', team: 'Wind Warriors', stat: '6 INTs', category: 'Interceptions' }
-    ],
-    upcomingGames: [
-      { date: 'Oct 22', teams: 'Lightning Strikes vs Thunder Bolts', time: '7:00 PM' },
-      { date: 'Oct 23', teams: 'Storm Chasers vs Wind Warriors', time: '6:30 PM' },
-      { date: 'Oct 24', teams: 'Fire Dragons vs Ice Wolves', time: '7:30 PM' }
-    ]
-  };
+    totalTeams: 0,
+    totalPlayers: 0,
+    gamesPlayed: 0,
+    totalTouchdowns: 0,
+    standings: [],
+    topPlayers: [],
+    upcomingGames: []
+  });
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => setLoading(false), 1000);
+    fetchLeagueData();
   }, []);
+
+  const fetchLeagueData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch dynamic standings data
+      const standingsResponse = await fetch('/api/standings?seasonId=2024-fall');
+      let standingsData = null;
+      
+      if (standingsResponse.ok) {
+        standingsData = await standingsResponse.json();
+      }
+
+      // Fetch teams data for league stats
+      const teamsResponse = await fetch('/api/teams?seasonId=2024-fall');
+      let teamsData = null;
+      
+      if (teamsResponse.ok) {
+        teamsData = await teamsResponse.json();
+      }
+
+      // Fetch games data for league stats
+      const gamesResponse = await fetch('/api/games?seasonId=2024-fall&status=completed');
+      let gamesData = null;
+      
+      if (gamesResponse.ok) {
+        gamesData = await gamesResponse.json();
+      }
+
+      // Calculate league statistics
+      const totalTeams = teamsData?.teams?.length || 0;
+      const totalGames = gamesData?.games?.length || 0;
+      const totalTouchdowns = gamesData?.games?.reduce((sum: number, game: any) => 
+        sum + (game.score?.home || 0) + (game.score?.away || 0), 0) || 0;
+
+      setLeagueData({
+        name: 'All Pro Sports',
+        season: '2024 Fall Season',
+        totalTeams,
+        totalPlayers: totalTeams * 8, // Estimate 8 players per team
+        gamesPlayed: totalGames,
+        totalTouchdowns,
+        standings: standingsData?.standings || [],
+        topPlayers: standingsData?.leagueLeaders || [],
+        upcomingGames: standingsData?.upcomingGames || []
+      });
+
+    } catch (error) {
+      console.error('Error fetching league data:', error);
+      // Keep default empty state on error
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -118,12 +195,11 @@ export default function LeaguePage() {
                             #{team.rank}
                           </span>
                         </td>
-                        <td><strong>{team.team}</strong></td>
+                        <td><strong>{team.teamName}</strong></td>
                         <td>{team.record}</td>
-                        <td>{team.points}</td>
+                        <td>{team.pointsFor}</td>
                         <td>
-                          {Math.round((parseInt(team.record.split('-')[0]) / 
-                            (parseInt(team.record.split('-')[0]) + parseInt(team.record.split('-')[1]))) * 100)}%
+                          {Math.round(team.winPercentage * 100)}%
                         </td>
                       </tr>
                     ))}
@@ -144,8 +220,8 @@ export default function LeaguePage() {
                   <div key={index} className="col-md-6 mb-3">
                     <div className="card border-0 bg-light">
                       <div className="card-body">
-                        <h6 className="card-title mb-1">{player.name}</h6>
-                        <p className="text-muted mb-1">{player.team}</p>
+                        <h6 className="card-title mb-1">{player.playerName}</h6>
+                        <p className="text-muted mb-1">{player.teamName}</p>
                         <div className="d-flex justify-content-between align-items-center">
                           <span className="badge bg-primary">{player.category}</span>
                           <strong className="text-success">{player.stat}</strong>

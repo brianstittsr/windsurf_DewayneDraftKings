@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import ModernNavbar from '@/components/ModernNavbar';
 import ProfileManagement from '@/components/ProfileManagement';
 import PaymentManagement from '@/components/PaymentManagement';
+import TeamManagement from '@/components/TeamManagement';
 
 interface DashboardData {
   delivery: {
@@ -116,57 +117,7 @@ export default function AdminPage() {
       case 'teams':
         return (
           <div className="fade-in">
-            <div className="row mb-4">
-              <div className="col-12">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h3>🏈 Team Management</h3>
-                  <button className="btn btn-primary">
-                    <i className="fas fa-plus-circle me-2"></i>
-                    Create New Team
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-md-4 mb-3">
-                <div className="dk-card text-center">
-                  <div className="card-body">
-                    <h5 className="text-primary">Total Teams</h5>
-                    <h2 className="mb-0">0</h2>
-                    <small className="text-muted">Active teams</small>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4 mb-3">
-                <div className="dk-card text-center">
-                  <div className="card-body">
-                    <h5 className="text-success">Complete Rosters</h5>
-                    <h2 className="mb-0">0</h2>
-                    <small className="text-muted">Teams ready to play</small>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4 mb-3">
-                <div className="dk-card text-center">
-                  <div className="card-body">
-                    <h5 className="text-warning">Need Players</h5>
-                    <h2 className="mb-0">0</h2>
-                    <small className="text-muted">Teams recruiting</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="dk-card">
-              <div className="card-header">
-                <h5 className="mb-0">Team List</h5>
-              </div>
-              <div className="card-body">
-                <div className="text-center py-5">
-                  <i className="fas fa-users-cog fa-3x text-muted mb-3"></i>
-                  <p className="text-muted">No teams created yet. Create teams to organize players and schedule games.</p>
-                </div>
-              </div>
-            </div>
+            <TeamManagement />
           </div>
         );
       

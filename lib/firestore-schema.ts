@@ -154,7 +154,13 @@ export interface Team extends BaseDocument {
     pointsFor: number;
     pointsAgainst: number;
     gamesPlayed: number;
+    winPercentage: number;
+    pointsDifferential: number;
   };
+  
+  // Season Information
+  seasonId: string;
+  leagueId: string;
   
   // Social Media Integration
   facebookPageUrl?: string;
@@ -172,6 +178,125 @@ export interface Team extends BaseDocument {
   primaryColor: string;
   secondaryColor: string;
   logoUrl?: string;
+}
+
+export interface Game extends BaseDocument {
+  // Game Identification
+  gameNumber: number;
+  week: number;
+  seasonId: string;
+  leagueId: string;
+  
+  // Teams
+  homeTeamId: string;
+  awayTeamId: string;
+  homeTeamName: string;
+  awayTeamName: string;
+  
+  // Scheduling
+  scheduledDate: Timestamp;
+  actualDate?: Timestamp;
+  venue: string;
+  
+  // Game Status
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'postponed';
+  
+  // Score Information
+  score: {
+    home: number;
+    away: number;
+    quarter1?: { home: number; away: number };
+    quarter2?: { home: number; away: number };
+    quarter3?: { home: number; away: number };
+    quarter4?: { home: number; away: number };
+    overtime?: { home: number; away: number };
+  };
+  
+  // Game Statistics
+  stats: {
+    homeTeamStats: TeamGameStats;
+    awayTeamStats: TeamGameStats;
+  };
+  
+  // Officials and Administration
+  referees?: string[];
+  recordedBy: string; // Admin user ID
+  notes?: string;
+  
+  // Weather (for outdoor games)
+  weather?: {
+    temperature: number;
+    conditions: string;
+    windSpeed?: number;
+  };
+}
+
+export interface TeamGameStats {
+  totalYards: number;
+  passingYards: number;
+  rushingYards: number;
+  touchdowns: number;
+  fieldGoals: number;
+  turnovers: number;
+  penalties: number;
+  penaltyYards: number;
+  timeOfPossession?: string; // MM:SS format
+}
+
+export interface Season extends BaseDocument {
+  name: string;
+  year: number;
+  leagueId: string;
+  
+  // Season Configuration
+  startDate: Timestamp;
+  endDate: Timestamp;
+  regularSeasonWeeks: number;
+  playoffWeeks: number;
+  
+  // Season Status
+  status: 'upcoming' | 'active' | 'completed' | 'cancelled';
+  currentWeek: number;
+  
+  // Playoff Configuration
+  playoffTeams: number;
+  championshipDate?: Timestamp;
+  
+  // Season Statistics
+  stats: {
+    totalGames: number;
+    completedGames: number;
+    totalTeams: number;
+    totalPlayers: number;
+  };
+}
+
+export interface League extends BaseDocument {
+  name: string;
+  sport: 'flag_football' | 'basketball' | 'soccer' | 'volleyball' | 'other';
+  
+  // League Configuration
+  maxTeams: number;
+  maxPlayersPerTeam: number;
+  gameLength: number; // minutes
+  
+  // Current Season
+  currentSeasonId?: string;
+  
+  // League Rules
+  rules: {
+    overtimeRules?: string;
+    scoringSystem: string;
+    playerEligibility: string;
+  };
+  
+  // League Statistics
+  stats: {
+    totalSeasons: number;
+    totalGamesPlayed: number;
+    allTimeWins: { [teamId: string]: number };
+    allTimeLosses: { [teamId: string]: number };
+  };
 }
 
 export interface DraftPick {
@@ -556,6 +681,8 @@ export const COLLECTIONS = {
   COACHES: 'coaches',
   TEAMS: 'teams',
   GAMES: 'games',
+  SEASONS: 'seasons',
+  LEAGUES: 'leagues',
   PAYMENTS: 'payments',
   SUBSCRIPTIONS: 'subscriptions',
   PAYMENT_METHODS: 'payment_methods',
@@ -598,9 +725,14 @@ export const getPlayersByTeam = (teamId: string) => ({
   where: [['teamId', '==', teamId]]
 });
 
-export const getActiveLeaderboards = () => ({
-  collection: COLLECTIONS.LEADERBOARDS,
-  where: [['isPublic', '==', true], ['displayOnHomepage', '==', true]]
+export const getTeamsByLeague = (leagueId: string) => ({
+  collection: COLLECTIONS.TEAMS,
+  where: [['leagueId', '==', leagueId]]
+});
+
+export const getGamesBySeason = (seasonId: string) => ({
+  collection: COLLECTIONS.GAMES,
+  where: [['seasonId', '==', seasonId]]
 });
 
 export const getPendingPayments = () => ({
@@ -608,8 +740,8 @@ export const getPendingPayments = () => ({
   where: [['status', '==', 'pending']]
 });
 
-export const getUpcomingEvents = () => ({
-  collection: COLLECTIONS.EVENTS,
-  where: [['status', '==', 'scheduled']],
-  orderBy: [['startTime', 'asc']]
+export const getCompletedGames = (seasonId: string) => ({
+  collection: COLLECTIONS.GAMES,
+  where: [['seasonId', '==', seasonId], ['status', '==', 'completed']],
+  orderBy: [['actualDate', 'desc']]
 });
