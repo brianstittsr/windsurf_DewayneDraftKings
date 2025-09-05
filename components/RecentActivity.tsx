@@ -1,7 +1,6 @@
 'use client'
 
 import { Card, ListGroup, Badge } from 'react-bootstrap'
-import { FaRunning, FaWeight, FaTrophy, FaUsers } from 'react-icons/fa'
 
 export function RecentActivity() {
   const activities = [
@@ -11,7 +10,7 @@ export function RecentActivity() {
       user: 'John Doe',
       action: 'completed a 45-minute basketball training session',
       time: '2 hours ago',
-      icon: <FaRunning />,
+      icon: '🏃',
       color: 'var(--dk-primary)'
     },
     {
@@ -20,7 +19,7 @@ export function RecentActivity() {
       user: 'Sarah Johnson',
       action: 'updated weight metrics - lost 2.5 lbs this week',
       time: '4 hours ago',
-      icon: <FaWeight />,
+      icon: '⚖️',
       color: 'var(--dk-orange)'
     },
     {
@@ -29,7 +28,7 @@ export function RecentActivity() {
       user: 'Mike Wilson',
       action: 'reached top 10 in Flag Football leaderboard',
       time: '6 hours ago',
-      icon: <FaTrophy />,
+      icon: '🏆',
       color: '#ffd700'
     },
     {
@@ -38,7 +37,7 @@ export function RecentActivity() {
       user: 'Lightning Bolts',
       action: 'won their volleyball match 3-1',
       time: '8 hours ago',
-      icon: <FaUsers />,
+      icon: '👥',
       color: 'var(--dk-blue)'
     },
     {
@@ -47,7 +46,7 @@ export function RecentActivity() {
       user: 'Emma Davis',
       action: 'logged 500 calories burned in kickball practice',
       time: '12 hours ago',
-      icon: <FaRunning />,
+      icon: '🏃',
       color: 'var(--dk-primary)'
     }
   ]

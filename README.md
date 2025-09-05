@@ -1,24 +1,28 @@
-# DraftKings League SMS Automation System
+# All Pro Sports SMS Automation System
 
-## Phase 1: SMS Automation & Tracking
+## Phase 1: SMS Automation & Player Registration System
 
-A complete SMS automation system for the DraftKings League with automated message journeys, deliverability tracking, and conversion measurement.
+A complete SMS automation system for All Pro Sports with comprehensive player registration, automated message journeys, QR code generation, and payment integration.
 
 ## Features
 
 ### ✅ Completed (Phase 1)
-- **User Registration**: SMS opt-in with phone validation
-- **Twilio Integration**: SMS sending with delivery tracking
-- **Automated Journeys**: Welcome sequence, registration reminders, feedback collection
+- **Mobile Registration Form**: Comprehensive player information collection with mobile-optimized interface
+- **Player Profile System**: Complete player profiles with stats, emergency contacts, and medical information
+- **QR Code Generation**: Auto-generated QR codes for players, teams, and league with profile linking
+- **Payment Integration**: Payment page with multiple options and SMS confirmation
+- **SMS Automation**: Welcome sequence, registration reminders, feedback collection, and payment confirmations
+- **Admin QR Management**: Interface for generating and managing league/team QR codes
+- **Player Profile Pages**: Individual player profiles accessible via QR codes with stats and information
+- **Team & League Pages**: Dedicated pages for team rosters/stats and league standings/information
 - **Analytics Dashboard**: Real-time metrics and performance tracking
 - **Webhook Handling**: Delivery status updates and reply processing
 
 ### 🚫 Out of Scope (Future Phases)
-- League operations (rosters, drafts, stats)
-- Payment processing
-- QR code jerseys
-- Public player profiles
-- CRM features
+- Advanced league operations (automated drafts, complex stats)
+- Full Stripe payment processing (Phase 2)
+- Advanced CRM features
+- Multi-league management
 
 ## Tech Stack
 
@@ -49,11 +53,16 @@ A complete SMS automation system for the DraftKings League with automated messag
     └── initialize-journeys.js # Setup script
 ```
 
-## Setup Instructions
+## Setup
 
-### 1. Environment Configuration
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Copy `.env.local.example` to `.env.local` and fill in your values
+4. Run the development server: `npm run dev`
 
-Copy `.env.example` to `.env.local` and configure:
+### Environment Configuration
+
+Copy `.env.local.example` to `.env.local` and configure:
 
 ```bash
 # Twilio SMS
@@ -148,4 +157,4 @@ This implementation strictly adheres to the signed proposal:
 
 ## License
 
-Private - DraftKings League Project
+Private - All Pro Sports Project

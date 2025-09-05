@@ -8,8 +8,8 @@ import { Navbar } from '@/components/Navbar'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Sports Tracker - DraftKings Style',
-  description: 'Track players across Flag Football, Volleyball, Kickball, and Basketball',
+  title: 'All Pro Sports - Elite Athletic League',
+  description: 'Join our elite athletic league with automated SMS updates, player profiles, and real-time notifications',
 }
 
 export default function RootLayout({
@@ -19,10 +19,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+      </head>
       <body className={inter.className}>
         <Providers>
-          <Navbar />
-          <main className="container-fluid">
+          <main>
             {children}
           </main>
         </Providers>

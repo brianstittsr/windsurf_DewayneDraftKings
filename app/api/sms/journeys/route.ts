@@ -8,6 +8,15 @@ import { SMS_COLLECTIONS } from '@/lib/sms-schema';
 // GET - List all journeys
 export async function GET() {
   try {
+    // Check if Firebase is properly initialized
+    if (!db) {
+      console.error('Firebase Firestore not initialized');
+      return NextResponse.json(
+        { error: 'Database not available' },
+        { status: 500 }
+      );
+    }
+
     const journeysRef = collection(db, SMS_COLLECTIONS.SMS_JOURNEYS);
     const querySnapshot = await getDocs(journeysRef);
     

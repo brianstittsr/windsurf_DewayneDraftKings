@@ -1,7 +1,6 @@
 'use client'
 
 import { Row, Col, Card } from 'react-bootstrap'
-import { FaUsers, FaRunning, FaTrophy, FaFire } from 'react-icons/fa'
 
 export function StatsOverview() {
   const stats = [
@@ -9,28 +8,28 @@ export function StatsOverview() {
       title: 'Total Players',
       value: '580',
       change: '+12%',
-      icon: <FaUsers />,
+      icon: '👥',
       color: 'var(--dk-primary)'
     },
     {
       title: 'Active Workouts',
       value: '1,234',
       change: '+8%',
-      icon: <FaRunning />,
+      icon: '🏃',
       color: 'var(--dk-orange)'
     },
     {
       title: 'Competitions',
       value: '46',
       change: '+15%',
-      icon: <FaTrophy />,
+      icon: '🏆',
       color: 'var(--dk-blue)'
     },
     {
       title: 'Calories Burned',
       value: '45.2K',
       change: '+22%',
-      icon: <FaFire />,
+      icon: '🔥',
       color: '#dc3545'
     }
   ]

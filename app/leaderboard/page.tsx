@@ -1,6 +1,6 @@
+'use client'
+
 import { Container, Row, Col, Card, Table, Badge, Nav, Button } from 'react-bootstrap'
-import { FaTrophy, FaMedal, FaAward, FaFire, FaRunning, FaWeight } from 'react-icons/fa'
-import { GiMuscleUp } from 'react-icons/gi'
 
 export default function LeaderboardPage() {
   const leaderboardData = {
@@ -42,9 +42,9 @@ export default function LeaderboardPage() {
 
   const getRankIcon = (rank: number) => {
     switch(rank) {
-      case 1: return <FaTrophy style={{ color: '#ffd700' }} />
-      case 2: return <FaMedal style={{ color: '#c0c0c0' }} />
-      case 3: return <FaAward style={{ color: '#cd7f32' }} />
+      case 1: return <span style={{ color: '#ffd700', fontSize: '1.2em' }}>🏆</span>
+      case 2: return <span style={{ color: '#c0c0c0', fontSize: '1.2em' }}>🥈</span>
+      case 3: return <span style={{ color: '#cd7f32', fontSize: '1.2em' }}>🥉</span>
       default: return <span className="text-muted">#{rank}</span>
     }
   }
@@ -68,7 +68,7 @@ export default function LeaderboardPage() {
         <Col>
           <div className="text-center">
             <h1 className="display-5 fw-bold text-white mb-2">
-              <FaTrophy className="me-3" style={{ color: 'var(--dk-primary)' }} />
+              <span className="me-3" style={{ color: 'var(--dk-primary)', fontSize: '1.5em' }}>🏆</span>
               Leaderboards
             </h1>
             <p className="text-muted">Compete and track your progress across all sports</p>
@@ -82,26 +82,22 @@ export default function LeaderboardPage() {
           <Nav variant="pills" className="justify-content-center">
             <Nav.Item>
               <Nav.Link active className="dk-btn-primary">
-                <FaRunning className="me-2" />
-                Most Workouts
+                🏃 Most Workouts
               </Nav.Link>
             </Nav.Item>
             <Nav.Item>
               <Nav.Link className="text-white">
-                <FaWeight className="me-2" />
-                Weight Loss
+                ⚖️ Weight Loss
               </Nav.Link>
             </Nav.Item>
             <Nav.Item>
               <Nav.Link className="text-white">
-                <FaFire className="me-2" />
-                Calories Burned
+                🔥 Calories Burned
               </Nav.Link>
             </Nav.Item>
             <Nav.Item>
               <Nav.Link className="text-white">
-                <GiMuscleUp className="me-2" />
-                Strength Gains
+                💪 Strength Gains
               </Nav.Link>
             </Nav.Item>
           </Nav>
@@ -115,8 +111,7 @@ export default function LeaderboardPage() {
           <Card className="dk-leaderboard h-100">
             <Card.Header className="text-center">
               <h5 className="mb-0 text-white">
-                <FaRunning className="me-2" />
-                Most Workouts This Month
+                🏃 Most Workouts This Month
               </h5>
             </Card.Header>
             <Card.Body className="p-0">
@@ -163,8 +158,7 @@ export default function LeaderboardPage() {
           <Card className="dk-leaderboard h-100">
             <Card.Header className="text-center">
               <h5 className="mb-0 text-white">
-                <FaWeight className="me-2" />
-                Weight Loss Champions
+                ⚖️ Weight Loss Champions
               </h5>
             </Card.Header>
             <Card.Body className="p-0">
@@ -211,8 +205,7 @@ export default function LeaderboardPage() {
           <Card className="dk-leaderboard h-100">
             <Card.Header className="text-center">
               <h5 className="mb-0 text-white">
-                <FaFire className="me-2" />
-                Calories Burned
+                🔥 Calories Burned
               </h5>
             </Card.Header>
             <Card.Body className="p-0">

@@ -32,6 +32,18 @@ export interface Player extends BaseDocument {
   draftPick?: number;
   isDrafted: boolean;
   
+  // Emergency Contact
+  emergencyContact?: {
+    name: string;
+    phone: string;
+  };
+  
+  // Medical Information
+  medicalInfo?: {
+    conditions: string;
+    lastUpdated: Timestamp;
+  };
+  
   // Stats and Performance
   stats: {
     gamesPlayed: number;
@@ -60,6 +72,58 @@ export interface Player extends BaseDocument {
   // QR Code
   qrCode: string;
   qrCodeUrl: string; // URL that QR code points to
+  
+  // Marketing Automation
+  funnelStatus: {
+    currentFunnelId?: string;
+    currentStep: number;
+    lastInteraction: Timestamp;
+    isOptedOut: boolean;
+  };
+}
+
+export interface Coach extends BaseDocument {
+  // Personal Information
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: Timestamp;
+  profilePhoto?: string;
+  
+  // Registration Information
+  registrationDate: Timestamp;
+  registrationStatus: 'pending' | 'confirmed' | 'cancelled';
+  isActive: boolean;
+  
+  // Coaching Information
+  experience: string; // Years of experience or description
+  certifications: string[]; // Array of certification names
+  specialties: string[]; // Areas of expertise
+  coachingLevel: 'assistant' | 'head' | 'coordinator' | 'volunteer';
+  
+  // Team Assignment
+  assignedTeams: string[]; // Array of Team IDs
+  maxTeams: number;
+  
+  // Emergency Contact
+  emergencyContact?: {
+    name: string;
+    phone: string;
+  };
+  
+  // Coaching Stats
+  stats: {
+    seasonsCoached: number;
+    teamsCoached: number;
+    totalWins: number;
+    totalLosses: number;
+    championshipsWon: number;
+  };
+  
+  // QR Code
+  qrCode: string;
+  qrCodeUrl: string;
   
   // Marketing Automation
   funnelStatus: {
@@ -138,40 +202,65 @@ export interface Workout {
 }
 
 export interface Payment extends BaseDocument {
-  playerId: string;
-  playerName: string;
+  // Customer Information
+  playerId?: string;
+  coachId?: string;
+  customerEmail: string;
+  customerName: string;
   
   // Payment Details
   amount: number;
   currency: 'USD';
-  type: 'registration' | 'meal-plan' | 'merchandise' | 'fitness-class' | 'jersey' | 'late-fee';
   description: string;
+  paymentType: 'registration' | 'monthly' | 'equipment' | 'event' | 'other';
   
-  // Payment Status
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded' | 'disputed';
-  paymentMethod: 'card' | 'cash' | 'check' | 'bank-transfer' | 'venmo' | 'paypal';
+  // Payment Method
+  paymentMethod: {
+    type: 'card' | 'klarna' | 'affirm' | 'bank_transfer' | 'cash';
+    last4?: string;
+    brand?: string;
+    expiryMonth?: number;
+    expiryYear?: number;
+  };
   
   // Stripe Integration
   stripePaymentIntentId?: string;
   stripeCustomerId?: string;
-  stripeChargeId?: string;
+  stripeSessionId?: string;
   
-  // Auto-draft Information
-  isRecurring: boolean;
-  recurringSchedule?: 'weekly' | 'monthly' | 'quarterly';
-  nextChargeDate?: Timestamp;
-  autoPayEnabled: boolean;
+  // BNPL Integration
+  klarnaOrderId?: string;
+  affirmChargeId?: string;
   
-  // Staff Attribution
-  processedBy?: string; // Staff ID
-  revenueAttribution: {
-    staffId: string;
-    percentage: number;
-  }[];
+  // Payment Status
+  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'cancelled' | 'refunded' | 'partially_refunded';
+  paidAt?: Timestamp;
+  failureReason?: string;
   
-  // Timestamps
-  dueDate: Timestamp;
-  paidDate?: Timestamp;
+  // Subscription Details (if applicable)
+  subscriptionId?: string;
+  subscriptionPeriod?: {
+    start: Timestamp;
+    end: Timestamp;
+  };
+  
+  // Refund Information
+  refundAmount?: number;
+  refundReason?: string;
+  refundedAt?: Timestamp;
+  
+  // Installment Information (for BNPL)
+  installments?: {
+    total: number;
+    paid: number;
+    nextDueDate?: Timestamp;
+    monthlyAmount: number;
+  };
+  
+  // Metadata
+  metadata?: { [key: string]: string };
+  notes?: string;
+  processedBy?: string; // Admin user ID
 }
 
 export interface MarketingFunnel extends BaseDocument {
@@ -464,12 +553,16 @@ export interface SystemSettings extends BaseDocument {
 // Collection names for Firestore
 export const COLLECTIONS = {
   PLAYERS: 'players',
+  COACHES: 'coaches',
   TEAMS: 'teams',
+  GAMES: 'games',
   PAYMENTS: 'payments',
-  MARKETING_FUNNELS: 'marketing-funnels',
-  LEADERBOARDS: 'leaderboards',
-  STAFF: 'staff',
-  EVENTS: 'events',
+  SUBSCRIPTIONS: 'subscriptions',
+  PAYMENT_METHODS: 'payment_methods',
+  MARKETING_FUNNELS: 'marketing_funnels',
+  FUNNEL_STEPS: 'funnel_steps',
+  PLAYER_FUNNEL_STATUS: 'player_funnel_status',
+  QR_CODES: 'qr_codes',
   NOTIFICATIONS: 'notifications',
   DRAFT_HISTORY: 'draft-history',
   REFERRAL_TREES: 'referral-trees',

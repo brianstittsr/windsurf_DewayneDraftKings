@@ -2,7 +2,6 @@
 
 import { Navbar as BSNavbar, Nav, Container, Button } from 'react-bootstrap'
 import Link from 'next/link'
-import { FaTrophy } from 'react-icons/fa'
 
 export function Navbar() {
   return (
@@ -16,7 +15,7 @@ export function Navbar() {
         <BSNavbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             <Link href="/leaderboard" className="nav-link">
-              <FaTrophy className="me-1" /> Leaderboard
+              🏆 Leaderboard
             </Link>
             <Link href="/register" className="nav-link">
               📱 Register for SMS

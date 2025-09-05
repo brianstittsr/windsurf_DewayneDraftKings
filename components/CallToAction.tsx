@@ -1,7 +1,6 @@
 'use client'
 
 import { Card, Button, Alert } from 'react-bootstrap'
-import { FaRocket, FaUsers, FaTrophy, FaBolt } from 'react-icons/fa'
 import Link from 'next/link'
 
 export function CallToAction() {
@@ -9,7 +8,7 @@ export function CallToAction() {
     {
       title: 'Join a Team',
       description: 'Connect with players in your sport and compete together',
-      icon: <FaUsers />,
+      icon: '👥',
       color: 'var(--dk-primary)',
       link: '/teams',
       buttonText: 'Find Teams'
@@ -17,7 +16,7 @@ export function CallToAction() {
     {
       title: 'Climb the Leaderboard',
       description: 'Track your progress and compete for the top spot',
-      icon: <FaTrophy />,
+      icon: '🏆',
       color: 'var(--dk-orange)',
       link: '/leaderboard',
       buttonText: 'View Rankings'
@@ -25,7 +24,7 @@ export function CallToAction() {
     {
       title: 'Upgrade to Pro',
       description: 'Get advanced analytics and personalized coaching',
-      icon: <FaRocket />,
+      icon: '🚀',
       color: 'var(--dk-blue)',
       link: '/register?plan=pro',
       buttonText: 'Upgrade Now'
@@ -40,7 +39,7 @@ export function CallToAction() {
         border: 'none',
         color: 'white'
       }}>
-        <FaBolt className="mb-2" size={24} />
+        <div className="mb-2" style={{ fontSize: '24px' }}>⚡</div>
         <h6 className="mb-2">⚡ Limited Time Offer</h6>
         <p className="mb-3 small">Get 30% off Pro membership this month!</p>
         <Link href="/register?promo=SAVE30">

@@ -2,6 +2,31 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // SMS Collections - Phase 1 (Allow all operations for development)
+    match /sms-subscribers/{document} {
+      allow read, write: if true;
+    }
+    
+    match /sms-journeys/{document} {
+      allow read, write: if true;
+    }
+    
+    match /sms-messages/{document} {
+      allow read, write: if true;
+    }
+    
+    match /sms-templates/{document} {
+      allow read, write: if true;
+    }
+    
+    match /sms-campaigns/{document} {
+      allow read, write: if true;
+    }
+    
+    match /sms-analytics/{document} {
+      allow read, write: if true;
+    }
+    
     // Helper functions
     function isAuthenticated() {
       return request.auth != null;

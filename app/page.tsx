@@ -1,37 +1,38 @@
+'use client'
+
 import { Container, Row, Col, Card, Button } from 'react-bootstrap'
-import { FaFootballBall, FaVolleyballBall, FaBasketballBall, FaRunning } from 'react-icons/fa'
-import { GiKickScooter } from 'react-icons/gi'
 import Link from 'next/link'
 import { StatsOverview } from '@/components/StatsOverview'
 import { RecentActivity } from '@/components/RecentActivity'
 import { CallToAction } from '@/components/CallToAction'
+import ModernNavbar from '@/components/ModernNavbar'
 
 export default function Home() {
   const sports = [
     { 
       name: 'Flag Football', 
-      icon: <FaFootballBall />, 
+      icon: '🏈', 
       color: 'sport-flag-football',
       players: 156,
       teams: 12
     },
     { 
       name: 'Volleyball', 
-      icon: <FaVolleyballBall />, 
+      icon: '🏐', 
       color: 'sport-volleyball',
       players: 89,
       teams: 8
     },
     { 
       name: 'Kickball', 
-      icon: <GiKickScooter />, 
+      icon: '⚽', 
       color: 'sport-kickball',
       players: 134,
       teams: 10
     },
     { 
       name: 'Basketball', 
-      icon: <FaBasketballBall />, 
+      icon: '🏀', 
       color: 'sport-basketball',
       players: 201,
       teams: 16
@@ -39,111 +40,159 @@ export default function Home() {
   ]
 
   return (
-    <Container fluid className="py-4">
+    <div>
+      <ModernNavbar />
       {/* Hero Section */}
-      <Row className="mb-5">
-        <Col>
-          <div className="text-center py-5" style={{ 
-            background: 'linear-gradient(135deg, #53d337 0%, #45b82e 100%)',
-            borderRadius: '12px',
-            color: 'white'
-          }}>
-            <h1 className="display-4 fw-bold mb-3">Sports Tracker Pro</h1>
-            <p className="lead mb-4">Track, Train, and Dominate across multiple sports</p>
-            <div className="d-flex justify-content-center gap-3">
-              <Link href="/register">
-                <Button size="lg" className="dk-btn-primary px-4">
-                  Join Now
-                </Button>
-              </Link>
-              <Link href="/leaderboard">
-                <Button size="lg" variant="outline-light" className="px-4">
-                  View Leaderboard
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </Col>
-      </Row>
-
-      {/* Sports Overview */}
-      <Row className="mb-5">
-        <Col>
-          <h2 className="text-center mb-4">Sports Categories</h2>
-        </Col>
-      </Row>
-      <Row className="g-4 mb-5">
-        {sports.map((sport, index) => (
-          <Col md={6} lg={3} key={index}>
-            <Card className="dk-card h-100 text-center">
-              <Card.Body className="d-flex flex-column">
-                <div className={`sport-icon ${sport.color} mx-auto mb-3`}>
-                  {sport.icon}
-                </div>
-                <Card.Title className="text-white">{sport.name}</Card.Title>
-                <div className="mt-auto">
-                  <div className="d-flex justify-content-between text-muted mb-3">
-                    <small>{sport.players} Players</small>
-                    <small>{sport.teams} Teams</small>
-                  </div>
-                  <Link href={`/sports/${sport.name.toLowerCase().replace(' ', '-')}`}>
-                    <Button className="dk-btn-primary w-100">
-                      View Details
-                    </Button>
-                  </Link>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-
-      {/* Stats Overview */}
-      <Row className="mb-5">
-        <Col>
-          <StatsOverview />
-        </Col>
-      </Row>
-
-      {/* Main Content Grid */}
-      <Row className="g-4">
-        {/* Recent Activity */}
-        <Col lg={8}>
-          <RecentActivity />
-        </Col>
-        
-        {/* Call to Action Sidebar */}
-        <Col lg={4}>
-          <CallToAction />
-          
-          {/* Quick Actions */}
-          <Card className="dk-card mt-4">
-            <Card.Header>
-              <h5 className="mb-0 text-white">Quick Actions</h5>
-            </Card.Header>
-            <Card.Body>
-              <div className="d-grid gap-2">
-                <Link href="/dashboard/metrics">
-                  <Button className="dk-btn-primary w-100">
-                    <FaRunning className="me-2" />
-                    Log Workout
-                  </Button>
+      <div className="hero-section">
+        <Container>
+          <Row className="align-items-center min-vh-50">
+            <Col lg={6}>
+              <h1 className="display-4 fw-bold mb-4">All Pro Sports</h1>
+              <p className="lead mb-4">
+                Join our elite athletic league with automated SMS updates, player profiles, and real-time notifications.
+              </p>
+              <div className="d-flex gap-3 flex-wrap">
+                <Link href="/register">
+                  <button className="btn btn-light btn-lg px-4 me-3 hover-lift">
+                    <i className="fas fa-user-plus me-2"></i>
+                    Join League Now
+                  </button>
                 </Link>
-                <Link href="/dashboard/profile">
-                  <Button className="dk-btn-secondary w-100">
-                    Update Profile
-                  </Button>
-                </Link>
-                <Link href="/teams">
-                  <Button variant="outline-light" className="w-100">
-                    Find Teams
-                  </Button>
+                <Link href="/leaderboard">
+                  <button className="btn btn-outline-light btn-lg px-4 hover-lift">
+                    <i className="fas fa-trophy me-2"></i>
+                    View Leaderboard
+                  </button>
                 </Link>
               </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+            </Col>
+            <Col lg={6} className="text-center">
+              <div className="feature-icon" style={{ width: '120px', height: '120px', fontSize: '3rem', margin: '0 auto' }}>
+                <i className="fas fa-trophy"></i>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </div>
+
+      {/* Features Section */}
+      <Container className="py-5">
+        <Row className="text-center mb-5">
+          <Col>
+            <h2 className="display-5 fw-bold mb-3">League Sports</h2>
+            <p className="lead text-muted">Choose your sport and join the competition</p>
+          </Col>
+        </Row>
+        
+        <Row className="g-4 mb-5">
+          {sports.map((sport, index) => (
+            <Col md={6} lg={3} key={index}>
+              <div className="dk-card h-100 hover-lift fade-in">
+                <div className="card-body text-center p-4">
+                  <div className={`sport-icon ${sport.color} mx-auto mb-3`}>
+                    {sport.icon}
+                  </div>
+                  <h5 className="card-title mb-3">{sport.name}</h5>
+                  <div className="row text-center mb-4">
+                    <div className="col">
+                      <div className="h6 text-primary mb-0">{sport.players}</div>
+                      <small className="text-muted">Players</small>
+                    </div>
+                    <div className="col">
+                      <div className="h6 text-success mb-0">{sport.teams}</div>
+                      <small className="text-muted">Teams</small>
+                    </div>
+                  </div>
+                  <Link href={`/register`}>
+                    <button className="btn dk-btn-primary w-100">
+                      Join {sport.name}
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </Col>
+          ))}
+        </Row>
+      </Container>
+
+      {/* Stats Section */}
+      <div className="py-5" style={{ backgroundColor: 'var(--gray-50)' }}>
+        <Container>
+          <Row className="text-center mb-4">
+            <Col>
+              <h2 className="display-6 fw-bold">Live League Statistics</h2>
+            </Col>
+          </Row>
+          <StatsOverview />
+        </Container>
+      </div>
+
+      {/* Main Content */}
+      <Container className="py-5">
+        <Row className="g-4">
+          <Col lg={8}>
+            <div className="mb-4">
+              <h3 className="fw-bold">Recent Activity</h3>
+            </div>
+            <RecentActivity />
+          </Col>
+          
+          <Col lg={4}>
+            <div className="mb-4">
+              <h3 className="fw-bold">Quick Actions</h3>
+            </div>
+            <CallToAction />
+            
+            <div className="dk-card mt-4">
+              <div className="card-header">
+                <h5 className="mb-0">League Management</h5>
+              </div>
+              <div className="card-body">
+                <div className="d-grid gap-2">
+                  <Link href="/register">
+                    <button className="btn dk-btn-primary w-100">
+                      <i className="fas fa-mobile-alt me-2"></i>
+                      Player Registration
+                    </button>
+                  </Link>
+                  <Link href="/admin">
+                    <button className="btn dk-btn-secondary w-100">
+                      <i className="fas fa-chart-bar me-2"></i>
+                      Admin Dashboard
+                    </button>
+                  </Link>
+                  <Link href="/leaderboard">
+                    <button className="btn btn-outline-primary w-100">
+                      <i className="fas fa-trophy me-2"></i>
+                      View Rankings
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="stats-card mt-4">
+              <div className="card-header">
+                <h6 className="mb-0">League Statistics</h6>
+              </div>
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <span>Active Players</span>
+                  <span className="modern-badge">580</span>
+                </div>
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <span>SMS Notifications</span>
+                  <span className="modern-badge" style={{ background: 'var(--warning)' }}>1,234</span>
+                </div>
+                <div className="d-flex justify-content-between align-items-center">
+                  <span>Registration Rate</span>
+                  <span className="modern-badge" style={{ background: 'var(--success)' }}>98.5%</span>
+                </div>
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   )
 }
