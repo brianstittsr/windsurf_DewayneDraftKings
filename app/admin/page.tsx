@@ -283,7 +283,7 @@ export default function AdminPage() {
                 <div className="dk-card text-center">
                   <div className="card-body">
                     <h5 className="text-primary">Messages Sent</h5>
-                    <h2 className="mb-0">{dashboardData.delivery.totalSent.toLocaleString()}</h2>
+                    <h2 className="mb-0">{dashboardData?.delivery?.totalSent?.toLocaleString() || '0'}</h2>
                   </div>
                 </div>
               </div>
@@ -291,9 +291,9 @@ export default function AdminPage() {
                 <div className="dk-card text-center">
                   <div className="card-body">
                     <h5 className="text-success">Delivered</h5>
-                    <h2 className="mb-0">{dashboardData.delivery.totalDelivered.toLocaleString()}</h2>
+                    <h2 className="mb-0">{dashboardData?.delivery?.totalDelivered?.toLocaleString() || '0'}</h2>
                     <small className="text-muted">
-                      {dashboardData.delivery.deliveryRate.toFixed(1)}% delivery rate
+                      {dashboardData?.delivery?.deliveryRate?.toFixed(1) || '0.0'}% delivery rate
                     </small>
                   </div>
                 </div>
@@ -302,9 +302,9 @@ export default function AdminPage() {
                 <div className="dk-card text-center">
                   <div className="card-body">
                     <h5 className="text-danger">Failed</h5>
-                    <h2 className="mb-0">{dashboardData.delivery.totalFailed.toLocaleString()}</h2>
+                    <h2 className="mb-0">{dashboardData?.delivery?.totalFailed?.toLocaleString() || '0'}</h2>
                     <small className="text-muted">
-                      {dashboardData.delivery.failureRate.toFixed(1)}% failure rate
+                      {dashboardData?.delivery?.failureRate?.toFixed(1) || '0.0'}% failure rate
                     </small>
                   </div>
                 </div>
@@ -313,7 +313,7 @@ export default function AdminPage() {
                 <div className="dk-card text-center">
                   <div className="card-body">
                     <h5 className="text-primary">Active Subscribers</h5>
-                    <h2 className="mb-0">{dashboardData.engagement.activeSubscribers.toLocaleString()}</h2>
+                    <h2 className="mb-0">{dashboardData?.engagement?.activeSubscribers?.toLocaleString() || '0'}</h2>
                   </div>
                 </div>
               </div>
@@ -328,9 +328,9 @@ export default function AdminPage() {
                 <div className="dk-card text-center">
                   <div className="card-body">
                     <h5 className="text-primary">Total Replies</h5>
-                    <h2 className="mb-0">{dashboardData.engagement.totalReplies.toLocaleString()}</h2>
+                    <h2 className="mb-0">{dashboardData?.engagement?.totalReplies?.toLocaleString() || '0'}</h2>
                     <small className="text-muted">
-                      {dashboardData.engagement.replyRate.toFixed(1)}% reply rate
+                      {dashboardData?.engagement?.replyRate?.toFixed(1) || '0.0'}% reply rate
                     </small>
                   </div>
                 </div>
@@ -339,9 +339,9 @@ export default function AdminPage() {
                 <div className="dk-card text-center">
                   <div className="card-body">
                     <h5 className="text-success">Total Clicks</h5>
-                    <h2 className="mb-0">{dashboardData.engagement.totalClicks.toLocaleString()}</h2>
+                    <h2 className="mb-0">{dashboardData?.engagement?.totalClicks?.toLocaleString() || '0'}</h2>
                     <small className="text-muted">
-                      {dashboardData.engagement.clickRate.toFixed(1)}% click rate
+                      {dashboardData?.engagement?.clickRate?.toFixed(1) || '0.0'}% click rate
                     </small>
                   </div>
                 </div>
@@ -351,7 +351,7 @@ export default function AdminPage() {
                   <div className="card-body">
                     <h5 className="text-info">Engagement Score</h5>
                     <h2 className="mb-0">
-                      {((dashboardData.engagement.replyRate + dashboardData.engagement.clickRate) / 2).toFixed(1)}%
+                      {(((dashboardData?.engagement?.replyRate || 0) + (dashboardData?.engagement?.clickRate || 0)) / 2).toFixed(1)}%
                     </h2>
                     <small className="text-muted">Combined engagement</small>
                   </div>
