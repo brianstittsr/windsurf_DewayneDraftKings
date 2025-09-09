@@ -441,7 +441,11 @@ export default function RegisterPage() {
                     <div className="row g-3">
                       <div className="col-md-6">
                         <div className={`card h-100 border-2 position-relative ${formData.role === 'player' ? 'border-primary bg-primary bg-opacity-5' : 'border-light'}`} 
-                             style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                             style={{ 
+                               cursor: 'pointer', 
+                               transition: 'all 0.2s ease',
+                               opacity: formData.role === 'player' ? '0.15' : '1'
+                             }}
                              onClick={() => setFormData(prev => ({ ...prev, role: 'player' }))}>
                           {formData.role === 'player' && (
                             <div className="position-absolute top-0 end-0 m-2">
@@ -459,7 +463,11 @@ export default function RegisterPage() {
                       </div>
                       <div className="col-md-6">
                         <div className={`card h-100 border-2 position-relative ${formData.role === 'coach' ? 'border-success bg-success bg-opacity-5' : 'border-light'}`}
-                             style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                             style={{ 
+                               cursor: 'pointer', 
+                               transition: 'all 0.2s ease',
+                               opacity: formData.role === 'coach' ? '0.15' : '1'
+                             }}
                              onClick={() => setFormData(prev => ({ ...prev, role: 'coach' }))}>
                           {formData.role === 'coach' && (
                             <div className="position-absolute top-0 end-0 m-2">

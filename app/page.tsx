@@ -26,6 +26,132 @@ export default function Home() {
 
       {/* Masthead */}
       <header className="masthead">
+        {/* Video Background */}
+        <div className="video-background">
+          <video 
+            id="video1" 
+            className="video-slide active" 
+            autoPlay 
+            muted 
+            playsInline
+            loop={false}
+            style={{ display: 'block' }}
+            onLoadedData={() => console.log('Video 1 loaded')}
+            onError={(e) => console.error('Video 1 error:', e)}
+            onEnded={() => {
+              const videos = document.querySelectorAll('.video-slide') as NodeListOf<HTMLVideoElement>;
+              const current = document.querySelector('.video-slide.active') as HTMLVideoElement;
+              const currentIndex = Array.from(videos).indexOf(current);
+              const nextIndex = (currentIndex + 1) % videos.length;
+              
+              // Fade out current video
+              current.style.opacity = '0';
+              
+              setTimeout(() => {
+                current.classList.remove('active');
+                videos[nextIndex].classList.add('active');
+                videos[nextIndex].currentTime = 0;
+                videos[nextIndex].style.opacity = '1';
+                videos[nextIndex].play();
+              }, 1000); // Wait for fade out transition
+            }}
+          >
+            <source src="/img/2249402-uhd_3840_2160_24fps.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <video 
+            id="video2" 
+            className="video-slide" 
+            muted 
+            playsInline
+            loop={false}
+            style={{ display: 'block' }}
+            onLoadedData={() => console.log('Video 2 loaded')}
+            onError={(e) => console.error('Video 2 error:', e)}
+            onEnded={() => {
+              const videos = document.querySelectorAll('.video-slide') as NodeListOf<HTMLVideoElement>;
+              const current = document.querySelector('.video-slide.active') as HTMLVideoElement;
+              const currentIndex = Array.from(videos).indexOf(current);
+              const nextIndex = (currentIndex + 1) % videos.length;
+              
+              // Fade out current video
+              current.style.opacity = '0';
+              
+              setTimeout(() => {
+                current.classList.remove('active');
+                videos[nextIndex].classList.add('active');
+                videos[nextIndex].currentTime = 0;
+                videos[nextIndex].style.opacity = '1';
+                videos[nextIndex].play();
+              }, 1000); // Wait for fade out transition
+            }}
+          >
+            <source src="/img/2249402-uhd_3840_2160_24fps (1).mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <video 
+            id="video3" 
+            className="video-slide" 
+            muted 
+            playsInline
+            loop={false}
+            style={{ display: 'block' }}
+            onLoadedData={() => console.log('Video 3 loaded')}
+            onError={(e) => console.error('Video 3 error:', e)}
+            onEnded={() => {
+              const videos = document.querySelectorAll('.video-slide') as NodeListOf<HTMLVideoElement>;
+              const current = document.querySelector('.video-slide.active') as HTMLVideoElement;
+              const currentIndex = Array.from(videos).indexOf(current);
+              const nextIndex = (currentIndex + 1) % videos.length;
+              
+              // Fade out current video
+              current.style.opacity = '0';
+              
+              setTimeout(() => {
+                current.classList.remove('active');
+                videos[nextIndex].classList.add('active');
+                videos[nextIndex].currentTime = 0;
+                videos[nextIndex].style.opacity = '1';
+                videos[nextIndex].play();
+              }, 1000); // Wait for fade out transition
+            }}
+          >
+            <source src="/img/4112090-hd_1920_1080_25fps.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <video 
+            id="video4" 
+            className="video-slide" 
+            muted 
+            playsInline
+            loop={false}
+            style={{ display: 'block' }}
+            onLoadedData={() => console.log('Video 4 loaded')}
+            onError={(e) => console.error('Video 4 error:', e)}
+            onEnded={() => {
+              const videos = document.querySelectorAll('.video-slide') as NodeListOf<HTMLVideoElement>;
+              const current = document.querySelector('.video-slide.active') as HTMLVideoElement;
+              const currentIndex = Array.from(videos).indexOf(current);
+              const nextIndex = (currentIndex + 1) % videos.length;
+              
+              // Fade out current video
+              current.style.opacity = '0';
+              
+              setTimeout(() => {
+                current.classList.remove('active');
+                videos[nextIndex].classList.add('active');
+                videos[nextIndex].currentTime = 0;
+                videos[nextIndex].style.opacity = '1';
+                videos[nextIndex].play();
+              }, 1000); // Wait for fade out transition
+            }}
+          >
+            <source src="/img/7187055-hd_1920_1080_24fps.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <div className="video-overlay"></div>
+        </div>
+        
         <div className="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
           <div className="d-flex justify-content-center">
             <div className="text-center">
