@@ -1,198 +1,131 @@
 'use client'
 
-import { Container, Row, Col, Card, Button } from 'react-bootstrap'
 import Link from 'next/link'
-import { StatsOverview } from '@/components/StatsOverview'
-import { RecentActivity } from '@/components/RecentActivity'
-import { CallToAction } from '@/components/CallToAction'
-import ModernNavbar from '@/components/ModernNavbar'
 
 export default function Home() {
-  const sports = [
-    { 
-      name: 'Flag Football', 
-      icon: '🏈', 
-      color: 'sport-flag-football',
-      players: 156,
-      teams: 12
-    },
-    { 
-      name: 'Volleyball', 
-      icon: '🏐', 
-      color: 'sport-volleyball',
-      players: 89,
-      teams: 8
-    },
-    { 
-      name: 'Kickball', 
-      icon: '⚽', 
-      color: 'sport-kickball',
-      players: 134,
-      teams: 10
-    },
-    { 
-      name: 'Basketball', 
-      icon: '🏀', 
-      color: 'sport-basketball',
-      players: 201,
-      teams: 16
-    }
-  ]
-
   return (
-    <div>
-      <ModernNavbar />
-      {/* Hero Section */}
-      <div className="hero-section">
-        <Container>
-          <Row className="align-items-center min-vh-50">
-            <Col lg={6}>
-              <h1 className="display-4 fw-bold mb-4">All Pro Sports</h1>
-              <p className="lead mb-4">
-                Join our elite athletic league with automated SMS updates, player profiles, and real-time notifications.
+    <>
+      {/* Navigation */}
+      <nav className="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+        <div className="container px-4 px-lg-5">
+          <Link className="navbar-brand" href="/">All Pro Sports</Link>
+          <button className="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+            Menu
+            <i className="fas fa-bars"></i>
+          </button>
+          <div className="collapse navbar-collapse" id="navbarResponsive">
+            <ul className="navbar-nav ms-auto">
+              <li className="nav-item"><Link className="nav-link" href="/leaderboard">League</Link></li>
+              <li className="nav-item"><Link className="nav-link" href="/leaderboard">Leaderboard</Link></li>
+              <li className="nav-item"><Link className="nav-link" href="/register">Pricing</Link></li>
+              <li className="nav-item"><Link className="nav-link" href="/admin">Admin</Link></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      {/* Masthead */}
+      <header className="masthead">
+        <div className="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
+          <div className="d-flex justify-content-center">
+            <div className="text-center">
+              <h1 className="mx-auto my-0 text-uppercase">All Pro Sports</h1>
+              <h2 className="text-white-50 mx-auto mt-2 mb-5">Elite athletic leagues with automated SMS updates, player profiles, and real-time notifications.</h2>
+              <Link href="/pricing">
+                <button className="btn btn-primary">Join League Now</button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* About */}
+      <section className="about-section text-center" id="about">
+        <div className="container px-4 px-lg-5">
+          <div className="row gx-4 gx-lg-5 justify-content-center">
+            <div className="col-lg-8">
+              <h2 className="text-white mb-4">Professional Sports League Management</h2>
+              <p className="text-white-50">
+                All Pro Sports provides comprehensive league management with automated SMS notifications, 
+                real-time player statistics, team standings, and seamless registration processes. 
+                Join our community of elite athletes and experience sports management at its finest.
               </p>
-              <div className="d-flex gap-3 flex-wrap">
-                <Link href="/register">
-                  <button className="btn btn-light btn-lg px-4 me-3 hover-lift">
-                    <i className="fas fa-user-plus me-2"></i>
-                    Join League Now
-                  </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Signup */}
+      <section className="signup-section" id="signup">
+        <div className="container px-4 px-lg-5">
+          <div className="row gx-4 gx-lg-5">
+            <div className="col-md-10 col-lg-8 mx-auto text-center">
+              <i className="far fa-paper-plane fa-2x mb-2 text-white"></i>
+              <h2 className="text-white mb-5">Ready to Join the League?</h2>
+              <div className="d-flex justify-content-center gap-3">
+                <Link href="/pricing">
+                  <button className="btn btn-primary">Player Registration</button>
                 </Link>
                 <Link href="/leaderboard">
-                  <button className="btn btn-outline-light btn-lg px-4 hover-lift">
-                    <i className="fas fa-trophy me-2"></i>
-                    View Leaderboard
-                  </button>
+                  <button className="btn btn-outline-light">View Leaderboard</button>
                 </Link>
               </div>
-            </Col>
-            <Col lg={6} className="text-center">
-              <div className="feature-icon" style={{ width: '120px', height: '120px', fontSize: '3rem', margin: '0 auto' }}>
-                <i className="fas fa-trophy"></i>
-              </div>
-            </Col>
-          </Row>
-        </Container>
-      </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      {/* Features Section */}
-      <Container className="py-5">
-        <Row className="text-center mb-5">
-          <Col>
-            <h2 className="display-5 fw-bold mb-3">League Sports</h2>
-            <p className="lead text-muted">Choose your sport and join the competition</p>
-          </Col>
-        </Row>
-        
-        <Row className="g-4 mb-5">
-          {sports.map((sport, index) => (
-            <Col md={6} lg={3} key={index}>
-              <div className="dk-card h-100 hover-lift fade-in">
-                <div className="card-body text-center p-4">
-                  <div className={`sport-icon ${sport.color} mx-auto mb-3`}>
-                    {sport.icon}
+      {/* Contact */}
+      <section className="contact-section bg-black">
+        <div className="container px-4 px-lg-5">
+          <div className="row gx-4 gx-lg-5">
+            <div className="col-md-4 mb-3 mb-md-0">
+              <div className="card py-4 h-100">
+                <div className="card-body text-center">
+                  <i className="fas fa-map-marked-alt text-primary mb-2"></i>
+                  <h4 className="text-uppercase m-0">Location</h4>
+                  <hr className="my-4 mx-auto" />
+                  <div className="small text-black-50">Multiple Venues Citywide</div>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-4 mb-3 mb-md-0">
+              <div className="card py-4 h-100">
+                <div className="card-body text-center">
+                  <i className="fas fa-envelope text-primary mb-2"></i>
+                  <h4 className="text-uppercase m-0">Email</h4>
+                  <hr className="my-4 mx-auto" />
+                  <div className="small text-black-50">
+                    <a href="mailto:info@allprosportsnc.com">info@allprosportsnc.com</a>
                   </div>
-                  <h5 className="card-title mb-3">{sport.name}</h5>
-                  <div className="row text-center mb-4">
-                    <div className="col">
-                      <div className="h6 text-primary mb-0">{sport.players}</div>
-                      <small className="text-muted">Players</small>
-                    </div>
-                    <div className="col">
-                      <div className="h6 text-success mb-0">{sport.teams}</div>
-                      <small className="text-muted">Teams</small>
-                    </div>
-                  </div>
-                  <Link href={`/register`}>
-                    <button className="btn dk-btn-primary w-100">
-                      Join {sport.name}
-                    </button>
-                  </Link>
                 </div>
               </div>
-            </Col>
-          ))}
-        </Row>
-      </Container>
+            </div>
+            <div className="col-md-4 mb-3 mb-md-0">
+              <div className="card py-4 h-100">
+                <div className="card-body text-center">
+                  <i className="fas fa-mobile-alt text-primary mb-2"></i>
+                  <h4 className="text-uppercase m-0">Phone</h4>
+                  <hr className="my-4 mx-auto" />
+                  <div className="small text-black-50">336-662-2855</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="social d-flex justify-content-center">
+            <a className="mx-2" href="#!"><i className="fab fa-twitter"></i></a>
+            <a className="mx-2" href="#!"><i className="fab fa-facebook-f"></i></a>
+            <a className="mx-2" href="#!"><i className="fab fa-github"></i></a>
+          </div>
+        </div>
+      </section>
 
-      {/* Stats Section */}
-      <div className="py-5" style={{ backgroundColor: 'var(--gray-50)' }}>
-        <Container>
-          <Row className="text-center mb-4">
-            <Col>
-              <h2 className="display-6 fw-bold">Live League Statistics</h2>
-            </Col>
-          </Row>
-          <StatsOverview />
-        </Container>
-      </div>
-
-      {/* Main Content */}
-      <Container className="py-5">
-        <Row className="g-4">
-          <Col lg={8}>
-            <div className="mb-4">
-              <h3 className="fw-bold">Recent Activity</h3>
-            </div>
-            <RecentActivity />
-          </Col>
-          
-          <Col lg={4}>
-            <div className="mb-4">
-              <h3 className="fw-bold">Quick Actions</h3>
-            </div>
-            <CallToAction />
-            
-            <div className="dk-card mt-4">
-              <div className="card-header">
-                <h5 className="mb-0">League Management</h5>
-              </div>
-              <div className="card-body">
-                <div className="d-grid gap-2">
-                  <Link href="/register">
-                    <button className="btn dk-btn-primary w-100">
-                      <i className="fas fa-mobile-alt me-2"></i>
-                      Player Registration
-                    </button>
-                  </Link>
-                  <Link href="/admin">
-                    <button className="btn dk-btn-secondary w-100">
-                      <i className="fas fa-chart-bar me-2"></i>
-                      Admin Dashboard
-                    </button>
-                  </Link>
-                  <Link href="/leaderboard">
-                    <button className="btn btn-outline-primary w-100">
-                      <i className="fas fa-trophy me-2"></i>
-                      View Rankings
-                    </button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="stats-card mt-4">
-              <div className="card-header">
-                <h6 className="mb-0">League Statistics</h6>
-              </div>
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <span>Active Players</span>
-                  <span className="modern-badge">580</span>
-                </div>
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <span>SMS Notifications</span>
-                  <span className="modern-badge" style={{ background: 'var(--warning)' }}>1,234</span>
-                </div>
-                <div className="d-flex justify-content-between align-items-center">
-                  <span>Registration Rate</span>
-                  <span className="modern-badge" style={{ background: 'var(--success)' }}>98.5%</span>
-                </div>
-              </div>
-            </div>
-          </Col>
-        </Row>
-      </Container>
-    </div>
+      {/* Footer */}
+      <footer className="footer bg-black small text-center text-white-50">
+        <div className="container px-4 px-lg-5">
+          Copyright &copy; All Pro Sports 2024
+        </div>
+      </footer>
+    </>
   )
 }

@@ -29,11 +29,17 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
+    console.log('Received coupon data:', JSON.stringify(data, null, 2));
     
     // Validate required fields
-    if (!data.code || !data.name || !data.discountType || data.discountValue === undefined) {
+    if (!data.code || !data.discountType || data.discountValue === undefined) {
+      console.log('Validation failed:', { 
+        code: data.code, 
+        discountType: data.discountType, 
+        discountValue: data.discountValue 
+      });
       return NextResponse.json(
-        { error: 'Missing required fields: code, name, discountType, discountValue' },
+        { success: false, error: 'Missing required fields: code, discountType, discountValue' },
         { status: 400 }
       );
     }
@@ -53,23 +59,39 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate discount value
-    if (data.discountType === 'percentage' && (data.discountValue < 0 || data.discountValue > 100)) {
+    const discountValue = parseFloat(data.discountValue);
+    if (isNaN(discountValue)) {
       return NextResponse.json(
-        { error: 'Percentage discount must be between 0 and 100' },
+        { success: false, error: 'Invalid discount value - must be a number' },
         { status: 400 }
       );
     }
 
-    if ((data.discountType === 'fixed_amount' || data.discountType === 'set_price') && data.discountValue < 0) {
+    if (data.discountType === 'percentage' && (discountValue < 0 || discountValue > 100)) {
       return NextResponse.json(
-        { error: 'Discount amount must be positive' },
+        { success: false, error: 'Percentage discount must be between 0 and 100' },
         { status: 400 }
       );
     }
 
-    // Validate dates
-    const startDate = new Date(data.startDate);
-    const expirationDate = new Date(data.expirationDate);
+    if ((data.discountType === 'fixed_amount' || data.discountType === 'set_price') && discountValue < 0) {
+      return NextResponse.json(
+        { success: false, error: 'Discount amount must be positive' },
+        { status: 400 }
+      );
+    }
+
+    // Validate dates if provided
+    let startDate = new Date();
+    let expirationDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // Default 1 year
+    
+    if (data.startDate) {
+      startDate = new Date(data.startDate);
+    }
+    
+    if (data.expirationDate) {
+      expirationDate = new Date(data.expirationDate);
+    }
     
     if (expirationDate <= startDate) {
       return NextResponse.json(
@@ -81,13 +103,13 @@ export async function POST(request: NextRequest) {
     // Create coupon object
     const couponData: Omit<Coupon, 'id'> = {
       code: data.code.toUpperCase(),
-      name: data.name,
+      name: data.displayName || data.name || data.code,
       description: data.description || '',
       discountType: data.discountType,
-      discountValue: data.discountValue,
-      maxUses: data.maxUses || undefined,
+      discountValue: parseFloat(data.discountValue),
+      maxUses: data.maxTotalUses && data.maxTotalUses !== '' ? parseInt(data.maxTotalUses) : null,
       usedCount: 0,
-      maxUsesPerCustomer: data.maxUsesPerCustomer || undefined,
+      maxUsesPerCustomer: data.maxUsesPerCustomer && data.maxUsesPerCustomer !== '' ? parseInt(data.maxUsesPerCustomer) : null,
       startDate: Timestamp.fromDate(startDate),
       expirationDate: Timestamp.fromDate(expirationDate),
       applicableItems: data.applicableItems || {
@@ -97,10 +119,10 @@ export async function POST(request: NextRequest) {
         completeSeason: true,
         jamboreeAndSeason: true,
       },
-      minimumAmount: data.minimumAmount || undefined,
+      minimumAmount: data.minimumOrderAmount && data.minimumOrderAmount !== '' ? parseFloat(data.minimumOrderAmount) : null,
       isActive: data.isActive !== undefined ? data.isActive : true,
       usageHistory: [],
-      createdBy: 'admin', // TODO: Get from auth context
+      createdBy: 'admin',
       lastModifiedBy: 'admin',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
@@ -110,13 +132,15 @@ export async function POST(request: NextRequest) {
     const docRef = await addDoc(collection(db, COLLECTIONS.COUPONS), couponData);
     
     return NextResponse.json(
-      { id: docRef.id, ...couponData },
+      { success: true, id: docRef.id, ...couponData },
       { status: 201 }
     );
   } catch (error) {
     console.error('Error creating coupon:', error);
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json(
-      { error: 'Failed to create coupon' },
+      { success: false, error: `Failed to create coupon: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     );
   }

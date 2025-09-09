@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import ModernNavbar from '@/components/ModernNavbar';
-import ProfileManagement from '@/components/ProfileManagement';
-import PaymentManagement from '@/components/PaymentManagement';
-import TeamManagement from '@/components/TeamManagement';
-import CouponManagement from '@/components/CouponManagement';
+import { useSearchParams } from 'next/navigation';
+import AdminLayout from '../../components/AdminLayout';
+import CouponManagement from '../../components/CouponManagement';
+import TeamManagement from '../../components/TeamManagement';
+import PaymentManagement from '../../components/PaymentManagement';
 
 interface DashboardData {
   delivery: {
@@ -25,7 +25,16 @@ interface DashboardData {
 }
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState('sms');
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam || 'sms');
+
+  // Update activeTab when URL parameters change
+  useEffect(() => {
+    const currentTab = searchParams.get('tab') || 'sms';
+    console.log('URL changed, tab parameter:', currentTab);
+    setActiveTab(currentTab);
+  }, [searchParams]);
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     delivery: {
       totalSent: 0,
@@ -85,8 +94,7 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <>
-        <ModernNavbar />
+      <AdminLayout>
         <div className="container my-5">
           <div className="text-center">
             <div className="spinner-border text-primary" role="status">
@@ -95,23 +103,229 @@ export default function AdminPage() {
             <p className="mt-3">Loading dashboard...</p>
           </div>
         </div>
-      </>
+      </AdminLayout>
     );
   }
 
   const renderTabContent = () => {
-    switch (activeTab) {
-      case 'players':
-        return (
-          <div className="fade-in">
-            <ProfileManagement type="player" />
+    console.log('Rendering tab content for activeTab:', activeTab);
+    
+    if (activeTab === 'players') {
+      return (
+        <div>
+          <h1 className="h3 mb-4 text-gray-800">Player Management</h1>
+          
+          <div className="row">
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-primary shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Players</div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-success shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-success text-uppercase mb-1">Active Players</div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-user-check fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-warning shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-user-clock fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-info shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-info text-uppercase mb-1">Revenue</div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">$0</div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        );
+
+          <div className="card shadow mb-4">
+            <div className="card-header py-3">
+              <h6 className="m-0 font-weight-bold text-primary">Player Directory</h6>
+            </div>
+            <div className="card-body">
+              <div className="table-responsive">
+                <table className="table table-bordered" width="100%" cellSpacing="0">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Position</th>
+                      <th>Team</th>
+                      <th>Status</th>
+                      <th>Registration Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colSpan={6} className="text-center text-muted py-4">
+                        No players registered yet. <a href="/pricing">Start registration process</a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    switch (activeTab) {
       
       case 'coaches':
         return (
           <div className="fade-in">
-            <ProfileManagement type="coach" />
+            {/* Page Heading */}
+            <div className="d-sm-flex align-items-center justify-content-between mb-4">
+              <h1 className="h3 mb-0 text-gray-800">Coach Management</h1>
+              <button className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i className="fas fa-user-plus fa-sm text-white-50"></i> Add New Coach
+              </button>
+            </div>
+
+            {/* Content Row */}
+            <div className="row">
+              {/* Total Coaches Card */}
+              <div className="col-xl-3 col-md-6 mb-4">
+                <div className="card border-left-success shadow h-100 py-2">
+                  <div className="card-body">
+                    <div className="row no-gutters align-items-center">
+                      <div className="col mr-2">
+                        <div className="text-xs font-weight-bold text-success text-uppercase mb-1">Total Coaches</div>
+                        <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                      </div>
+                      <div className="col-auto">
+                        <i className="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Active Coaches Card */}
+              <div className="col-xl-3 col-md-6 mb-4">
+                <div className="card border-left-primary shadow h-100 py-2">
+                  <div className="card-body">
+                    <div className="row no-gutters align-items-center">
+                      <div className="col mr-2">
+                        <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">Active Coaches</div>
+                        <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                      </div>
+                      <div className="col-auto">
+                        <i className="fas fa-user-check fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Head Coaches Card */}
+              <div className="col-xl-3 col-md-6 mb-4">
+                <div className="card border-left-warning shadow h-100 py-2">
+                  <div className="card-body">
+                    <div className="row no-gutters align-items-center">
+                      <div className="col mr-2">
+                        <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">Head Coaches</div>
+                        <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                      </div>
+                      <div className="col-auto">
+                        <i className="fas fa-crown fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Assistant Coaches Card */}
+              <div className="col-xl-3 col-md-6 mb-4">
+                <div className="card border-left-info shadow h-100 py-2">
+                  <div className="card-body">
+                    <div className="row no-gutters align-items-center">
+                      <div className="col mr-2">
+                        <div className="text-xs font-weight-bold text-info text-uppercase mb-1">Assistant Coaches</div>
+                        <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                      </div>
+                      <div className="col-auto">
+                        <i className="fas fa-hands-helping fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Coach Directory */}
+            <div className="card shadow mb-4">
+              <div className="card-header py-3">
+                <h6 className="m-0 font-weight-bold text-primary">Coach Directory</h6>
+              </div>
+              <div className="card-body">
+                <div className="table-responsive">
+                  <table className="table table-bordered" width="100%" cellSpacing="0">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Team</th>
+                        <th>Experience</th>
+                        <th>Contact</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colSpan={6} className="text-center text-muted py-4">
+                          No coaches registered yet. <a href="/register">Start coach registration</a>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
         );
       
@@ -139,63 +353,117 @@ export default function AdminPage() {
       case 'qr-codes':
         return (
           <div className="fade-in">
-            <div className="row mb-4">
-              <div className="col-12">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h3>📱 QR Code Management</h3>
-                  <a href="/admin/qr-codes" className="btn btn-primary">
-                    <i className="fas fa-qrcode me-2"></i>
-                    Manage QR Codes
-                  </a>
-                </div>
-              </div>
+            {/* Page Heading */}
+            <div className="d-sm-flex align-items-center justify-content-between mb-4">
+              <h1 className="h3 mb-0 text-gray-800">QR Code Management</h1>
+              <button className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i className="fas fa-qrcode fa-sm text-white-50"></i> Generate QR Code
+              </button>
             </div>
+
+            {/* Content Row */}
             <div className="row">
-              <div className="col-md-4 mb-3">
-                <div className="dk-card text-center">
+              {/* Total QR Codes Card */}
+              <div className="col-xl-3 col-md-6 mb-4">
+                <div className="card border-left-info shadow h-100 py-2">
                   <div className="card-body">
-                    <h5 className="text-primary">Player QR Codes</h5>
-                    <h2 className="mb-0">0</h2>
-                    <small className="text-muted">Individual player codes</small>
+                    <div className="row no-gutters align-items-center">
+                      <div className="col mr-2">
+                        <div className="text-xs font-weight-bold text-info text-uppercase mb-1">Total QR Codes</div>
+                        <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                      </div>
+                      <div className="col-auto">
+                        <i className="fas fa-qrcode fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="col-md-4 mb-3">
-                <div className="dk-card text-center">
+
+              {/* Player QR Codes Card */}
+              <div className="col-xl-3 col-md-6 mb-4">
+                <div className="card border-left-primary shadow h-100 py-2">
                   <div className="card-body">
-                    <h5 className="text-success">Team QR Codes</h5>
-                    <h2 className="mb-0">0</h2>
-                    <small className="text-muted">Team roster codes</small>
+                    <div className="row no-gutters align-items-center">
+                      <div className="col mr-2">
+                        <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">Player QR Codes</div>
+                        <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                      </div>
+                      <div className="col-auto">
+                        <i className="fas fa-user fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="col-md-4 mb-3">
-                <div className="dk-card text-center">
+
+              {/* Team QR Codes Card */}
+              <div className="col-xl-3 col-md-6 mb-4">
+                <div className="card border-left-success shadow h-100 py-2">
                   <div className="card-body">
-                    <h5 className="text-info">League QR Code</h5>
-                    <h2 className="mb-0">1</h2>
-                    <small className="text-muted">Main league code</small>
+                    <div className="row no-gutters align-items-center">
+                      <div className="col mr-2">
+                        <div className="text-xs font-weight-bold text-success text-uppercase mb-1">Team QR Codes</div>
+                        <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                      </div>
+                      <div className="col-auto">
+                        <i className="fas fa-users fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* League QR Codes Card */}
+              <div className="col-xl-3 col-md-6 mb-4">
+                <div className="card border-left-warning shadow h-100 py-2">
+                  <div className="card-body">
+                    <div className="row no-gutters align-items-center">
+                      <div className="col mr-2">
+                        <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">League QR Codes</div>
+                        <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                      </div>
+                      <div className="col-auto">
+                        <i className="fas fa-trophy fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="dk-card">
-              <div className="card-header">
-                <h5 className="mb-0">Quick Actions</h5>
-              </div>
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <button className="btn btn-outline-primary w-100">
-                      <i className="fas fa-download me-2"></i>
-                      Download All Player QR Codes
-                    </button>
+
+            {/* QR Code Actions */}
+            <div className="row">
+              <div className="col-lg-6">
+                <div className="card shadow mb-4">
+                  <div className="card-header py-3">
+                    <h6 className="m-0 font-weight-bold text-primary">Quick Actions</h6>
                   </div>
-                  <div className="col-md-6 mb-3">
-                    <button className="btn btn-outline-success w-100">
-                      <i className="fas fa-qrcode me-2"></i>
-                      Generate League QR Code
-                    </button>
+                  <div className="card-body">
+                    <div className="d-grid gap-2">
+                      <button className="btn btn-primary">
+                        <i className="fas fa-user-plus me-2"></i>Generate Player QR Code
+                      </button>
+                      <button className="btn btn-success">
+                        <i className="fas fa-users me-2"></i>Generate Team QR Code
+                      </button>
+                      <button className="btn btn-warning">
+                        <i className="fas fa-trophy me-2"></i>Generate League QR Code
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="col-lg-6">
+                <div className="card shadow mb-4">
+                  <div className="card-header py-3">
+                    <h6 className="m-0 font-weight-bold text-primary">Recent QR Codes</h6>
+                  </div>
+                  <div className="card-body">
+                    <div className="text-center text-muted py-4">
+                      No QR codes generated yet. Use the quick actions to create your first QR code.
+                    </div>
                   </div>
                 </div>
               </div>
@@ -323,100 +591,10 @@ export default function AdminPage() {
   };
 
   return (
-    <>
-      <ModernNavbar />
-      <div className="container-fluid py-4">
-        <div className="row">
-          <div className="col-12">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <h1 className="h3 mb-0">Admin Dashboard</h1>
-              <div className="text-muted">
-                <i className="fas fa-shield-alt me-2"></i>
-                Administrator Panel
-              </div>
-            </div>
-
-            {/* Tab Navigation */}
-            <ul className="nav nav-pills mb-4" role="tablist">
-              <li className="nav-item" role="presentation">
-                <button
-                  className={`nav-link ${activeTab === 'sms' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('sms')}
-                  type="button"
-                >
-                  <i className="fas fa-sms me-2"></i>
-                  SMS
-                </button>
-              </li>
-              <li className="nav-item" role="presentation">
-                <button
-                  className={`nav-link ${activeTab === 'players' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('players')}
-                  type="button"
-                >
-                  <i className="fas fa-users me-2"></i>
-                  Players
-                </button>
-              </li>
-              <li className="nav-item" role="presentation">
-                <button
-                  className={`nav-link ${activeTab === 'coaches' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('coaches')}
-                  type="button"
-                >
-                  <i className="fas fa-chalkboard-teacher me-2"></i>
-                  Coaches
-                </button>
-              </li>
-              <li className="nav-item" role="presentation">
-                <button
-                  className={`nav-link ${activeTab === 'teams' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('teams')}
-                  type="button"
-                >
-                  <i className="fas fa-users-cog me-2"></i>
-                  Teams
-                </button>
-              </li>
-              <li className="nav-item" role="presentation">
-                <button
-                  className={`nav-link ${activeTab === 'payments' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('payments')}
-                  type="button"
-                >
-                  <i className="fas fa-credit-card me-2"></i>
-                  Payments
-                </button>
-              </li>
-              <li className="nav-item" role="presentation">
-                <button
-                  className={`nav-link ${activeTab === 'coupons' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('coupons')}
-                  type="button"
-                >
-                  <i className="fas fa-tag me-2"></i>
-                  Coupons
-                </button>
-              </li>
-              <li className="nav-item" role="presentation">
-                <button
-                  className={`nav-link ${activeTab === 'qr-codes' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('qr-codes')}
-                  type="button"
-                >
-                  <i className="fas fa-qrcode me-2"></i>
-                  QR Codes
-                </button>
-              </li>
-            </ul>
-
-            {/* Tab Content */}
-            <div className="tab-content">
-              {renderTabContent()}
-            </div>
-          </div>
-        </div>
+    <AdminLayout>
+      <div className="container-fluid">
+        {renderTabContent()}
       </div>
-    </>
+    </AdminLayout>
   );
 }

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create TEST100 Coupon</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .loading { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>Creating TEST100 Coupon</h1>
+    <div id="status" class="loading">Creating coupon...</div>
+
+    <script>
+        async function createCoupon() {
+            try {
+                const couponData = {
+                    code: 'TEST100',
+                    description: 'Test coupon - reduces any registration to $1',
+                    discountType: 'set_price',
+                    discountValue: 1.00,
+                    isActive: true,
+                    expirationDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+                    usageLimit: null,
+                    minimumOrderAmount: 0,
+                    applicableItems: ['jamboree', 'complete_season', 'jamboree_and_season', 'coach_registration'],
+                    notes: 'Test coupon for development and testing purposes'
+                };
+
+                const response = await fetch('/api/coupons', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(couponData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('status').innerHTML = `
+                        <div class="success">
+                            <h2>✅ TEST100 Coupon Created Successfully!</h2>
+                            <p><strong>Coupon ID:</strong> ${result.id}</p>
+                            <p><strong>Code:</strong> TEST100</p>
+                            <p><strong>Type:</strong> Set Price to $1.00</p>
+                            <p><strong>Status:</strong> Active</p>
+                            <p>You can now use TEST100 in checkout to reduce any registration to $1.00</p>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('status').innerHTML = `
+                        <div class="error">
+                            <h2>❌ Failed to Create Coupon</h2>
+                            <p><strong>Error:</strong> ${result.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = `
+                    <div class="error">
+                        <h2>❌ Network Error</h2>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>Make sure the development server is running on localhost:3000</p>
+                    </div>
+                `;
+            }
+        }
+
+        createCoupon();
+    </script>
+</body>
+</html>

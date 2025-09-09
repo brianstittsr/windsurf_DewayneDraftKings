@@ -22,7 +22,9 @@ export interface CouponValidationRequest {
 // POST /api/coupons/validate - Validate coupon code and calculate discount
 export async function POST(request: NextRequest) {
   try {
-    const { code, originalAmount, customerId, customerEmail, itemType }: CouponValidationRequest = await request.json();
+    const { code, orderAmount, applicableItems: requestItems, customerId, customerEmail } = await request.json();
+    const originalAmount = orderAmount;
+    const itemType = requestItems?.[0] || 'registration';
     
     if (!code || originalAmount === undefined) {
       return NextResponse.json({
@@ -164,17 +166,21 @@ export async function POST(request: NextRequest) {
     discountAmount = originalAmount - finalAmount;
 
     return NextResponse.json({
-      isValid: true,
-      coupon,
-      discountAmount: Math.round(discountAmount * 100) / 100, // Round to 2 decimal places
+      success: true,
+      coupon: {
+        code: coupon.code,
+        discountType: coupon.discountType,
+        discountValue: coupon.discountValue
+      },
+      discount: Math.round(discountAmount * 100) / 100, // Round to 2 decimal places
       finalAmount: Math.round(finalAmount * 100) / 100
-    } as CouponValidationResult);
+    });
 
   } catch (error) {
     console.error('Error validating coupon:', error);
     return NextResponse.json({
-      isValid: false,
+      success: false,
       error: 'Failed to validate coupon'
-    } as CouponValidationResult);
+    });
   }
 }

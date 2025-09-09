@@ -1,6 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+// Initialize Stripe
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : Promise.resolve(null);
 
 interface PaymentCheckoutProps {
   planData: any;
@@ -12,6 +19,149 @@ interface PaymentCheckoutProps {
   };
   onPaymentSuccess: () => void;
   onPaymentError: (error: string) => void;
+}
+
+interface CouponData {
+  code: string;
+  type: 'percentage' | 'fixed_amount' | 'set_price';
+  value: number;
+  discount: number;
+  isValid: boolean;
+}
+
+// Credit Card Form Component
+function CreditCardForm({ onPaymentSuccess, onPaymentError, planData, customerData, appliedCoupon }: {
+  onPaymentSuccess: () => void;
+  onPaymentError: (error: string) => void;
+  planData: any;
+  customerData: any;
+  appliedCoupon: CouponData | null;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [processing, setProcessing] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      return;
+    }
+
+    setProcessing(true);
+
+    try {
+      // Create payment intent
+      const amount = Math.round((planData?.pricing?.total || planData?.price || 0) * 100);
+      
+      const response = await fetch('/api/payments/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount,
+          currency: 'usd',
+          description: `All Pro Sports - ${planData?.title || 'Registration'}`,
+          customerEmail: customerData.email,
+          customerName: `${customerData.firstName} ${customerData.lastName}`,
+          appliedCoupon: appliedCoupon?.code || null,
+          metadata: {
+            planTitle: planData?.title,
+            planType: planData?.itemType,
+            customerPhone: customerData.phone
+          }
+        })
+      });
+
+      const { clientSecret, error } = await response.json();
+
+      if (error) {
+        throw new Error(error);
+      }
+
+      // Confirm payment
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: `${customerData.firstName} ${customerData.lastName}`,
+            email: customerData.email,
+            phone: customerData.phone
+          }
+        }
+      });
+
+      if (confirmError) {
+        throw new Error(confirmError.message);
+      }
+
+      if (paymentIntent?.status === 'succeeded') {
+        onPaymentSuccess();
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      onPaymentError(error instanceof Error ? error.message : 'Payment failed');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="card border-light mb-4">
+        <div className="card-header bg-light">
+          <h6 className="mb-0 fw-semibold">
+            <i className="fas fa-credit-card me-2"></i>
+            Credit Card Information
+          </h6>
+        </div>
+        <div className="card-body">
+          <div className="mb-3">
+            <label className="form-label">Card Details</label>
+            <div className="p-3 border rounded" style={{ backgroundColor: '#f8f9fa' }}>
+              <CardElement
+                options={{
+                  style: {
+                    base: {
+                      fontSize: '16px',
+                      color: '#424770',
+                      '::placeholder': {
+                        color: '#aab7c4',
+                      },
+                    },
+                  },
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="d-grid">
+        <button
+          type="submit"
+          className="btn btn-success btn-lg py-3"
+          disabled={!stripe || processing}
+        >
+          {processing ? (
+            <>
+              <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+              Processing Payment...
+            </>
+          ) : (
+            <>
+              <i className="fas fa-lock me-2"></i>
+              Pay ${planData?.pricing?.total?.toFixed(2) || planData?.price?.toFixed(2)} Securely
+            </>
+          )}
+        </button>
+      </div>
+    </form>
+  );
 }
 
 export default function PaymentCheckout({ 
@@ -29,6 +179,111 @@ export default function PaymentCheckout({
     klarna: null,
     affirm: null
   });
+  
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+  const [originalPlanData, setOriginalPlanData] = useState(planData);
+  const [stripeLoaded, setStripeLoaded] = useState(false);
+
+  useEffect(() => {
+    setOriginalPlanData(planData);
+    
+    // Check if Stripe is properly loaded
+    stripePromise.then((stripe) => {
+      if (stripe) {
+        setStripeLoaded(true);
+        console.log('Stripe loaded successfully');
+      } else {
+        console.error('Failed to load Stripe. Check NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY');
+      }
+    });
+  }, []);
+
+  // Coupon validation function
+  const validateCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Please enter a coupon code');
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError('');
+
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCode.trim().toUpperCase(),
+          orderAmount: originalPlanData?.pricing?.subtotal || originalPlanData?.price || 0,
+          applicableItems: [originalPlanData?.itemType || 'registration']
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.coupon) {
+        const couponData: CouponData = {
+          code: result.coupon.code,
+          type: result.coupon.discountType,
+          value: result.coupon.discountValue,
+          discount: result.discount,
+          isValid: true
+        };
+        
+        setAppliedCoupon(couponData);
+        
+        // Calculate new total based on coupon type
+        let newTotal = result.finalAmount;
+        if (originalPlanData.serviceFee) {
+          newTotal = Math.max(0, result.finalAmount + originalPlanData.serviceFee);
+        }
+        
+        // Update plan data with discount
+        const updatedPlanData = {
+          ...originalPlanData,
+          pricing: {
+            ...originalPlanData.pricing,
+            discount: result.discount,
+            total: newTotal
+          },
+          appliedCoupon: couponData
+        };
+        
+        // Update parent component with new pricing
+        Object.assign(planData, updatedPlanData);
+        
+        setCouponCode('');
+      } else {
+        setCouponError(result.error || 'Invalid coupon code');
+      }
+    } catch (error) {
+      setCouponError('Failed to validate coupon. Please try again.');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError('');
+    
+    // Restore original pricing
+    const restoredPlanData = {
+      ...originalPlanData,
+      pricing: {
+        ...originalPlanData.pricing,
+        discount: 0,
+        total: (originalPlanData.pricing?.subtotal || originalPlanData.price) + (originalPlanData.serviceFee || 0)
+      },
+      appliedCoupon: null
+    };
+    
+    Object.assign(planData, restoredPlanData);
+  };
 
   const handlePayment = async () => {
     setLoading(true);
@@ -46,11 +301,14 @@ export default function PaymentCheckout({
           customerEmail: customerData.email,
           customerName: `${customerData.firstName} ${customerData.lastName}`,
           paymentMethod: selectedPaymentMethod,
+          appliedCoupon: appliedCoupon?.code || null,
           metadata: {
             planTitle: planData?.title,
             planType: planData?.itemType,
             customerPhone: customerData.phone,
-            appliedCoupon: planData?.appliedCoupon?.code || null
+            appliedCoupon: appliedCoupon?.code || null,
+            originalAmount: Math.round((originalPlanData?.pricing?.subtotal || originalPlanData?.price || 0) * 100),
+            discountAmount: appliedCoupon ? Math.round(appliedCoupon.discount * 100) : 0
           },
           paymentMethods: selectedPaymentMethod === 'card' ? ['card'] : [selectedPaymentMethod],
           successUrl: `${window.location.origin}/registration-success?session_id={CHECKOUT_SESSION_ID}`,
@@ -111,6 +369,88 @@ export default function PaymentCheckout({
 
   return (
     <div>
+      {/* Coupon Code Section */}
+      <div className="card border-info mb-4">
+        <div className="card-header bg-info bg-opacity-10">
+          <h6 className="mb-0 fw-semibold text-info">
+            <i className="fas fa-tag me-2"></i>
+            Coupon Code
+          </h6>
+        </div>
+        <div className="card-body">
+          {!appliedCoupon ? (
+            <div className="row g-2">
+              <div className="col">
+                <input
+                  type="text"
+                  className={`form-control ${couponError ? 'is-invalid' : ''}`}
+                  placeholder="Enter coupon code"
+                  value={couponCode}
+                  onChange={(e) => {
+                    setCouponCode(e.target.value.toUpperCase());
+                    setCouponError('');
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      validateCoupon();
+                    }
+                  }}
+                  disabled={couponLoading}
+                />
+                {couponError && (
+                  <div className="invalid-feedback">
+                    {couponError}
+                  </div>
+                )}
+              </div>
+              <div className="col-auto">
+                <button
+                  type="button"
+                  className="btn btn-info"
+                  onClick={validateCoupon}
+                  disabled={couponLoading || !couponCode.trim()}
+                >
+                  {couponLoading ? (
+                    <>
+                      <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                      Validating...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-check me-2"></i>
+                      Apply
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="d-flex justify-content-between align-items-center p-3 bg-success bg-opacity-10 rounded">
+              <div>
+                <div className="fw-bold text-success">
+                  <i className="fas fa-check-circle me-2"></i>
+                  Coupon Applied: {appliedCoupon.code}
+                </div>
+                <small className="text-muted">
+                  {appliedCoupon.type === 'percentage' && `${appliedCoupon.value}% discount`}
+                  {appliedCoupon.type === 'fixed_amount' && `$${appliedCoupon.value} off`}
+                  {appliedCoupon.type === 'set_price' && `Set price: $${appliedCoupon.value}`}
+                  {' - '}You save ${appliedCoupon.discount.toFixed(2)}
+                </small>
+              </div>
+              <button
+                type="button"
+                className="btn btn-outline-danger btn-sm"
+                onClick={removeCoupon}
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Plan Summary */}
       {planData && (
         <div className="card border-primary mb-4">
@@ -200,6 +540,48 @@ export default function PaymentCheckout({
         </div>
       </div>
 
+      {/* Credit Card Form */}
+      {selectedPaymentMethod === 'card' && (
+        <div>
+          {!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? (
+            <div className="card border-danger mb-4">
+              <div className="card-body text-center py-4">
+                <i className="fas fa-exclamation-triangle fa-2x text-danger mb-3"></i>
+                <h6 className="text-danger">Stripe Configuration Missing</h6>
+                <p className="text-muted mb-3">
+                  Please add your Stripe publishable key to <code>.env.local</code>:
+                </p>
+                <code className="bg-light p-2 rounded d-block">
+                  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+                </code>
+                <small className="text-muted mt-2 d-block">
+                  Restart the server after adding the key
+                </small>
+              </div>
+            </div>
+          ) : !stripeLoaded ? (
+            <div className="card border-light mb-4">
+              <div className="card-body text-center py-4">
+                <div className="spinner-border text-primary mb-3" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="text-muted">Loading secure payment form...</p>
+              </div>
+            </div>
+          ) : (
+            <Elements stripe={stripePromise}>
+              <CreditCardForm
+                onPaymentSuccess={onPaymentSuccess}
+                onPaymentError={onPaymentError}
+                planData={planData}
+                customerData={customerData}
+                appliedCoupon={appliedCoupon}
+              />
+            </Elements>
+          )}
+        </div>
+      )}
+
       {/* BNPL Account Verification */}
       {(selectedPaymentMethod === 'klarna' || selectedPaymentMethod === 'affirm') && (
         <div className="card border-warning mb-4">
@@ -276,29 +658,31 @@ export default function PaymentCheckout({
         </div>
       )}
 
-      {/* Payment Button */}
-      <div className="d-grid">
-        <button
-          className="btn btn-success btn-lg py-3"
-          onClick={handlePayment}
-          disabled={
-            loading || 
-            (selectedPaymentMethod !== 'card' && bnplAccountStatus[selectedPaymentMethod] !== true)
-          }
-        >
-          {loading ? (
-            <>
-              <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
-              Processing...
-            </>
-          ) : (
-            <>
-              <i className="fas fa-lock me-2"></i>
-              Pay ${planData?.pricing?.total?.toFixed(2) || planData?.price?.toFixed(2)} Securely
-            </>
-          )}
-        </button>
-      </div>
+      {/* BNPL Payment Button */}
+      {selectedPaymentMethod !== 'card' && (
+        <div className="d-grid">
+          <button
+            className="btn btn-success btn-lg py-3"
+            onClick={handlePayment}
+            disabled={
+              loading || 
+              bnplAccountStatus[selectedPaymentMethod] !== true
+            }
+          >
+            {loading ? (
+              <>
+                <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                Processing...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-lock me-2"></i>
+                Pay ${planData?.pricing?.total?.toFixed(2) || planData?.price?.toFixed(2)} with {selectedPaymentMethod === 'klarna' ? 'Klarna' : 'Affirm'}
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Security Notice */}
       <div className="text-center mt-3">

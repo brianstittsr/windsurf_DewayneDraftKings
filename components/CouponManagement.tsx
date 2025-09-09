@@ -172,8 +172,43 @@ export default function CouponManagement() {
     }
   };
 
+  const formatDate = (dateValue: any): string => {
+    if (!dateValue) return 'N/A';
+    
+    let date: Date;
+    
+    if (typeof dateValue === 'object' && 'toDate' in dateValue && typeof dateValue.toDate === 'function') {
+      // Firestore Timestamp
+      date = dateValue.toDate();
+    } else if (dateValue instanceof Date) {
+      // Already a Date object
+      date = dateValue;
+    } else {
+      // String or other format
+      date = new Date(dateValue as unknown as string);
+    }
+    
+    return date.toLocaleDateString();
+  };
+
   const isExpired = (coupon: Coupon) => {
-    return new Date() > coupon.expirationDate.toDate();
+    if (!coupon.expirationDate) return false;
+    
+    // Handle both Firestore Timestamp and regular Date objects
+    let expirationDate: Date;
+    
+    if (typeof coupon.expirationDate === 'object' && 'toDate' in coupon.expirationDate && typeof coupon.expirationDate.toDate === 'function') {
+      // Firestore Timestamp
+      expirationDate = coupon.expirationDate.toDate();
+    } else if (coupon.expirationDate instanceof Date) {
+      // Already a Date object
+      expirationDate = coupon.expirationDate;
+    } else {
+      // String or other format
+      expirationDate = new Date(coupon.expirationDate as unknown as string);
+    }
+    
+    return new Date() > expirationDate;
   };
 
   const filteredCoupons = coupons.filter(coupon => {
@@ -642,8 +677,8 @@ export default function CouponManagement() {
                       </td>
                       <td>
                         <div className="small">
-                          <div>{new Date(coupon.startDate.toDate()).toLocaleDateString()}</div>
-                          <div>to {new Date(coupon.expirationDate.toDate()).toLocaleDateString()}</div>
+                          <div>{formatDate(coupon.startDate)}</div>
+                          <div>to {formatDate(coupon.expirationDate)}</div>
                         </div>
                       </td>
                       <td>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Coupon Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h2>Quick Coupon Test</h2>
+    <button onclick="testAPI()">Test Coupon API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing...';
+            
+            try {
+                // Test creating TEST100 coupon
+                const response = await fetch('/api/coupons', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        code: 'TEST100',
+                        discountType: 'set_price',
+                        discountValue: '1.00',
+                        description: 'Test coupon - sets registration to $1',
+                        expirationDate: '2024-12-31',
+                        maxUses: '100',
+                        isActive: true
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    result.className = 'result success';
+                    result.innerHTML = `✅ Success! TEST100 coupon created. ID: ${data.id}`;
+                } else {
+                    const errorText = await response.text();
+                    result.className = 'result error';
+                    result.innerHTML = `❌ Error (${response.status}): ${errorText}`;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `❌ Network Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -134,5 +134,40 @@ service cloud.firestore {
       allow create, update: if isAuthenticated();
       allow delete: if isAdmin();
     }
+
+    // Coupons collection - Allow all operations for development
+    match /coupons/{couponId} {
+      allow read, write: if true;
+    }
+
+    // Payments collection - Allow all operations for development
+    match /payments/{paymentId} {
+      allow read, write: if true;
+    }
+
+    // Players collection - Allow all operations for development
+    match /players/{playerId} {
+      allow read, write: if true;
+    }
+
+    // Coaches collection - Allow all operations for development
+    match /coaches/{coachId} {
+      allow read, write: if true;
+    }
+
+    // Games collection - Allow all operations for development
+    match /games/{gameId} {
+      allow read, write: if true;
+    }
+
+    // Seasons collection - Allow all operations for development
+    match /seasons/{seasonId} {
+      allow read, write: if true;
+    }
+
+    // Leagues collection - Allow all operations for development
+    match /leagues/{leagueId} {
+      allow read, write: if true;
+    }
   }
 }

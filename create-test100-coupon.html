@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create TEST100 Coupon</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create TEST100 Coupon</h1>
+        <p>This will create a TEST100 coupon that sets any registration to $1.00</p>
+        
+        <form id="couponForm">
+            <div class="form-group">
+                <label for="code">Coupon Code:</label>
+                <input type="text" id="code" name="code" value="TEST100" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label for="discountType">Discount Type:</label>
+                <select id="discountType" name="discountType">
+                    <option value="set_price" selected>Set Price</option>
+                    <option value="percentage">Percentage</option>
+                    <option value="fixed_amount">Fixed Amount</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="discountValue">Discount Value:</label>
+                <input type="number" id="discountValue" name="discountValue" value="1.00" step="0.01" min="0">
+                <small>For "Set Price": final price. For "Percentage": % off. For "Fixed Amount": $ off</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" rows="2">Test coupon - sets registration to $1</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="expirationDate">Expiration Date:</label>
+                <input type="date" id="expirationDate" name="expirationDate" value="2024-12-31">
+            </div>
+            
+            <div class="form-group">
+                <label for="maxUses">Max Uses:</label>
+                <input type="number" id="maxUses" name="maxUses" value="100" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label for="isActive">Active:</label>
+                <select id="isActive" name="isActive">
+                    <option value="true" selected>Yes</option>
+                    <option value="false">No</option>
+                </select>
+            </div>
+            
+            <button type="submit">Create Coupon</button>
+        </form>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('couponForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                code: formData.get('code'),
+                discountType: formData.get('discountType'),
+                discountValue: formData.get('discountValue'),
+                description: formData.get('description'),
+                expirationDate: formData.get('expirationDate'),
+                maxUses: formData.get('maxUses'),
+                isActive: formData.get('isActive') === 'true',
+                applicableItems: {
+                    playerRegistration: true,
+                    coachRegistration: true,
+                    jamboreeOnly: true,
+                    completeSeason: true,
+                    jamboreeAndSeason: true
+                }
+            };
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Creating coupon...';
+            resultDiv.className = 'result';
+            
+            try {
+                const response = await fetch('/api/coupons', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Success!</h3>
+                        <p>TEST100 coupon created successfully!</p>
+                        <p><strong>Coupon ID:</strong> ${result.id}</p>
+                        <p>You can now use "TEST100" during checkout to set the price to $1.00</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Error</h3>
+                        <p>${result.error}</p>
+                        <p>Please check the server logs for more details.</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Network Error</h3>
+                    <p>Failed to connect to the server: ${error.message}</p>
+                    <p>Make sure the development server is running (npm run dev)</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create TEST100 Coupon</title>
+</head>
+<body>
+    <h1>Creating TEST100 Coupon...</h1>
+    <div id="result"></div>
+
+    <script>
+        async function createCoupon() {
+            try {
+                const couponData = {
+                    code: 'TEST100',
+                    description: 'Test coupon - reduces any registration to $1',
+                    discountType: 'set_price',
+                    discountValue: 1.00,
+                    isActive: true,
+                    expirationDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+                    usageLimit: null,
+                    minimumOrderAmount: 0,
+                    applicableItems: ['jamboree', 'complete_season', 'jamboree_and_season', 'coach_registration'],
+                    notes: 'Test coupon for development and testing purposes'
+                };
+
+                const response = await fetch('/api/coupons', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(couponData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('result').innerHTML = `
+                        <h2 style="color: green;">✅ TEST100 Coupon Created Successfully!</h2>
+                        <p>Coupon ID: ${result.id}</p>
+                        <p>Code: TEST100</p>
+                        <p>Type: Set Price to $1.00</p>
+                        <p>Status: Active</p>
+                    `;
+                } else {
+                    document.getElementById('result').innerHTML = `
+                        <h2 style="color: red;">❌ Failed to Create Coupon</h2>
+                        <p>Error: ${result.error}</p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <h2 style="color: red;">❌ Error</h2>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        // Run when page loads
+        createCoupon();
+    </script>
+</body>
+</html>
