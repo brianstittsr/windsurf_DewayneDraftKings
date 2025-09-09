@@ -20,10 +20,33 @@ export default function ProfileManagement({ type }: ProfileManagementProps) {
   const [loading, setLoading] = useState(true);
   const [selectedProfile, setSelectedProfile] = useState<PlayerWithId | CoachWithId | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [modalMode, setModalMode] = useState<'view' | 'edit' | 'delete'>('view');
   const [editData, setEditData] = useState<any>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  
+  // Create form state
+  const [createForm, setCreateForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    // Player specific
+    position: 'flex',
+    playerTag: 'free-agent',
+    // Coach specific
+    experience: '',
+    coachingLevel: 'assistant',
+    certifications: '',
+    specialties: '',
+    maxTeams: 2,
+    // Common
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    medicalConditions: ''
+  });
 
   useEffect(() => {
     fetchProfiles();
@@ -114,6 +137,72 @@ export default function ProfileManagement({ type }: ProfileManagementProps) {
     }
   };
 
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!createForm.firstName || !createForm.lastName || !createForm.email || !createForm.phone || !createForm.dateOfBirth) {
+      alert('Please fill in all required fields (First Name, Last Name, Email, Phone, Date of Birth)');
+      return;
+    }
+
+    // Validate coach-specific required fields
+    if (type === 'coach' && !createForm.experience) {
+      alert('Experience is required for coaches');
+      return;
+    }
+    
+    try {
+      const endpoint = type === 'player' ? '/api/players' : '/api/coaches';
+      
+      // Prepare form data based on type
+      const formData = {
+        ...createForm,
+        certifications: createForm.certifications ? createForm.certifications.split(',').map(c => c.trim()) : [],
+        specialties: createForm.specialties ? createForm.specialties.split(',').map(s => s.trim()) : []
+      };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        await fetchProfiles();
+        setShowCreateModal(false);
+        
+        // Reset form
+        setCreateForm({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          dateOfBirth: '',
+          position: 'flex',
+          playerTag: 'free-agent',
+          experience: '',
+          coachingLevel: 'assistant',
+          certifications: '',
+          specialties: '',
+          maxTeams: 2,
+          emergencyContactName: '',
+          emergencyContactPhone: '',
+          medicalConditions: ''
+        });
+        
+        alert(`${type === 'player' ? 'Player' : 'Coach'} created successfully!`);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create profile');
+      }
+    } catch (error) {
+      console.error(`Error creating ${type}:`, error);
+      alert(`Error creating ${type}: ${error.message}`);
+    }
+  };
+
   const toggleStatus = async (profile: PlayerWithId | CoachWithId) => {
     try {
       const endpoint = type === 'player' ? '/api/players' : '/api/coaches';
@@ -170,6 +259,21 @@ export default function ProfileManagement({ type }: ProfileManagementProps) {
 
   return (
     <div className="profile-management">
+      {/* Header with Create Button */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h4>
+          <i className={`fas ${type === 'player' ? 'fa-users' : 'fa-chalkboard-teacher'} me-2`}></i>
+          {type === 'player' ? 'Player' : 'Coach'} Management
+        </h4>
+        <button 
+          className="btn btn-primary"
+          onClick={() => setShowCreateModal(true)}
+        >
+          <i className="fas fa-plus me-2"></i>
+          Add {type === 'player' ? 'Player' : 'Coach'}
+        </button>
+      </div>
+
       {/* Search and Filter Controls */}
       <div className="row mb-4">
         <div className="col-md-6">
@@ -514,7 +618,7 @@ export default function ProfileManagement({ type }: ProfileManagementProps) {
                     onClick={handleDeleteConfirm}
                   >
                     <i className="fas fa-trash me-2"></i>
-                    Delete {type}
+                    Delete
                   </button>
                 )}
               </div>
@@ -522,7 +626,237 @@ export default function ProfileManagement({ type }: ProfileManagementProps) {
           </div>
         </div>
       )}
-      {showModal && <div className="modal-backdrop fade show"></div>}
+
+      {/* Create Modal */}
+      {showCreateModal && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <i className={`fas ${type === 'player' ? 'fa-user-plus' : 'fa-chalkboard-teacher'} me-2`}></i>
+                  Add New {type === 'player' ? 'Player' : 'Coach'}
+                </h5>
+                <button 
+                  className="btn-close"
+                  onClick={() => setShowCreateModal(false)}
+                ></button>
+              </div>
+              <form onSubmit={handleCreate}>
+                <div className="modal-body">
+                  <div className="row">
+                    {/* Basic Information */}
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">First Name *</label>
+                      <input 
+                        type="text"
+                        className="form-control"
+                        value={createForm.firstName}
+                        onChange={(e) => setCreateForm({...createForm, firstName: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Last Name *</label>
+                      <input 
+                        type="text"
+                        className="form-control"
+                        value={createForm.lastName}
+                        onChange={(e) => setCreateForm({...createForm, lastName: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Email *</label>
+                      <input 
+                        type="email"
+                        className="form-control"
+                        value={createForm.email}
+                        onChange={(e) => setCreateForm({...createForm, email: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Phone *</label>
+                      <input 
+                        type="tel"
+                        className="form-control"
+                        value={createForm.phone}
+                        onChange={(e) => setCreateForm({...createForm, phone: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Date of Birth *</label>
+                      <input 
+                        type="date"
+                        className="form-control"
+                        value={createForm.dateOfBirth}
+                        onChange={(e) => setCreateForm({...createForm, dateOfBirth: e.target.value})}
+                        required
+                      />
+                    </div>
+
+                    {/* Player Specific Fields */}
+                    {type === 'player' && (
+                      <>
+                        <div className="col-md-6 mb-3">
+                          <label className="form-label">Position</label>
+                          <select 
+                            className="form-select"
+                            value={createForm.position}
+                            onChange={(e) => setCreateForm({...createForm, position: e.target.value})}
+                          >
+                            <option value="quarterback">Quarterback</option>
+                            <option value="rusher">Rusher</option>
+                            <option value="receiver">Receiver</option>
+                            <option value="defender">Defender</option>
+                            <option value="flex">Flex</option>
+                          </select>
+                        </div>
+                        <div className="col-md-6 mb-3">
+                          <label className="form-label">Player Tag</label>
+                          <select 
+                            className="form-select"
+                            value={createForm.playerTag}
+                            onChange={(e) => setCreateForm({...createForm, playerTag: e.target.value})}
+                          >
+                            <option value="free-agent">Free Agent</option>
+                            <option value="draft-pick">Draft Pick</option>
+                            <option value="prospect">Prospect</option>
+                            <option value="meet-greet">Meet & Greet</option>
+                            <option value="client">Client</option>
+                          </select>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Coach Specific Fields */}
+                    {type === 'coach' && (
+                      <>
+                        <div className="col-md-6 mb-3">
+                          <label className="form-label">Experience *</label>
+                          <input 
+                            type="text"
+                            className="form-control"
+                            placeholder="e.g., 5 years coaching high school"
+                            value={createForm.experience}
+                            onChange={(e) => setCreateForm({...createForm, experience: e.target.value})}
+                            required
+                          />
+                        </div>
+                        <div className="col-md-6 mb-3">
+                          <label className="form-label">Coaching Level</label>
+                          <select 
+                            className="form-select"
+                            value={createForm.coachingLevel}
+                            onChange={(e) => setCreateForm({...createForm, coachingLevel: e.target.value})}
+                          >
+                            <option value="volunteer">Volunteer</option>
+                            <option value="assistant">Assistant</option>
+                            <option value="head">Head Coach</option>
+                            <option value="coordinator">Coordinator</option>
+                          </select>
+                        </div>
+                        <div className="col-md-6 mb-3">
+                          <label className="form-label">Certifications</label>
+                          <input 
+                            type="text"
+                            className="form-control"
+                            placeholder="Comma separated (e.g., CPR, First Aid)"
+                            value={createForm.certifications}
+                            onChange={(e) => setCreateForm({...createForm, certifications: e.target.value})}
+                          />
+                        </div>
+                        <div className="col-md-6 mb-3">
+                          <label className="form-label">Specialties</label>
+                          <input 
+                            type="text"
+                            className="form-control"
+                            placeholder="Comma separated (e.g., Offense, Defense)"
+                            value={createForm.specialties}
+                            onChange={(e) => setCreateForm({...createForm, specialties: e.target.value})}
+                          />
+                        </div>
+                        <div className="col-md-6 mb-3">
+                          <label className="form-label">Max Teams</label>
+                          <input 
+                            type="number"
+                            className="form-control"
+                            min="1"
+                            max="5"
+                            value={createForm.maxTeams}
+                            onChange={(e) => setCreateForm({...createForm, maxTeams: parseInt(e.target.value)})}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Emergency Contact */}
+                    <div className="col-12">
+                      <h6 className="border-bottom pb-2 mb-3">Emergency Contact</h6>
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Emergency Contact Name</label>
+                      <input 
+                        type="text"
+                        className="form-control"
+                        value={createForm.emergencyContactName}
+                        onChange={(e) => setCreateForm({...createForm, emergencyContactName: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Emergency Contact Phone</label>
+                      <input 
+                        type="tel"
+                        className="form-control"
+                        value={createForm.emergencyContactPhone}
+                        onChange={(e) => setCreateForm({...createForm, emergencyContactPhone: e.target.value})}
+                      />
+                    </div>
+
+                    {/* Medical Information */}
+                    {type === 'player' && (
+                      <>
+                        <div className="col-12">
+                          <h6 className="border-bottom pb-2 mb-3">Medical Information</h6>
+                        </div>
+                        <div className="col-12 mb-3">
+                          <label className="form-label">Medical Conditions</label>
+                          <textarea 
+                            className="form-control"
+                            rows={3}
+                            placeholder="Any medical conditions, allergies, or medications..."
+                            value={createForm.medicalConditions}
+                            onChange={(e) => setCreateForm({...createForm, medicalConditions: e.target.value})}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary"
+                    onClick={() => setShowCreateModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary"
+                    disabled={!createForm.firstName || !createForm.lastName || !createForm.email || !createForm.phone || !createForm.dateOfBirth}
+                  >
+                    <i className="fas fa-plus me-2"></i>
+                    Create {type === 'player' ? 'Player' : 'Coach'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

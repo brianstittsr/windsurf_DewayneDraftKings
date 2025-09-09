@@ -346,6 +346,7 @@ export interface Payment extends BaseDocument {
     brand?: string;
     expiryMonth?: number;
     expiryYear?: number;
+    bnplAccountVerified?: boolean; // For BNPL methods
   };
   
   // Stripe Integration
@@ -356,11 +357,23 @@ export interface Payment extends BaseDocument {
   // BNPL Integration
   klarnaOrderId?: string;
   affirmChargeId?: string;
+  bnplAccountStatus?: 'verified' | 'unverified' | 'created' | 'failed';
   
   // Payment Status
   status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'cancelled' | 'refunded' | 'partially_refunded';
   paidAt?: Timestamp;
   failureReason?: string;
+  
+  // Plan Information (from checkout)
+  planDetails?: {
+    planType: 'jamboree' | 'season' | 'jamboree_season' | 'coach_assistant' | 'coach_head';
+    planName: string;
+    originalPrice: number;
+    serviceFee: number;
+    couponCode?: string;
+    couponDiscount?: number;
+    finalAmount: number;
+  };
   
   // Subscription Details (if applicable)
   subscriptionId?: string;
@@ -640,6 +653,55 @@ export interface ReferralTree extends BaseDocument {
   }[];
 }
 
+export interface Coupon extends BaseDocument {
+  // Basic Information
+  code: string; // Unique coupon code (e.g., "SAVE20", "WELCOME50")
+  name: string; // Display name for admin
+  description?: string;
+  
+  // Discount Configuration
+  discountType: 'percentage' | 'fixed_amount' | 'set_price';
+  discountValue: number; // Percentage (0-100), fixed amount, or set price
+  
+  // Usage Limits
+  maxUses?: number; // Total times coupon can be used
+  usedCount: number; // Current usage count
+  maxUsesPerCustomer?: number; // Per customer limit
+  
+  // Validity Period
+  startDate: Timestamp;
+  expirationDate: Timestamp;
+  
+  // Applicable Items
+  applicableItems: {
+    playerRegistration: boolean;
+    coachRegistration: boolean;
+    jamboreeOnly: boolean;
+    completeSeason: boolean;
+    jamboreeAndSeason: boolean;
+  };
+  
+  // Minimum Requirements
+  minimumAmount?: number; // Minimum order amount
+  
+  // Status
+  isActive: boolean;
+  
+  // Usage Tracking
+  usageHistory: {
+    customerId: string;
+    customerEmail: string;
+    usedAt: Timestamp;
+    originalAmount: number;
+    discountAmount: number;
+    finalAmount: number;
+  }[];
+  
+  // Admin Information
+  createdBy: string; // Admin user ID
+  lastModifiedBy: string;
+}
+
 export interface SystemSettings extends BaseDocument {
   // Registration Settings
   registrationOpen: boolean;
@@ -675,6 +737,88 @@ export interface SystemSettings extends BaseDocument {
   updatedBy: string; // Staff ID
 }
 
+// New interfaces for checkout process
+export interface CheckoutSession extends BaseDocument {
+  // Session Identification
+  sessionId: string; // Stripe session ID
+  sessionUrl: string; // Stripe checkout URL
+  
+  // Customer Information
+  customerEmail: string;
+  customerName: string;
+  playerId?: string;
+  coachId?: string;
+  
+  // Plan Selection
+  selectedPlan: {
+    planType: 'jamboree' | 'season' | 'jamboree_season' | 'coach_assistant' | 'coach_head';
+    planName: string;
+    originalPrice: number;
+    serviceFee: number;
+    couponCode?: string;
+    couponDiscount?: number;
+    finalAmount: number;
+  };
+  
+  // Payment Configuration
+  paymentMethods: ('card' | 'klarna' | 'affirm')[];
+  selectedPaymentMethod?: 'card' | 'klarna' | 'affirm';
+  bnplAccountVerified?: boolean;
+  
+  // Session Status
+  status: 'created' | 'active' | 'completed' | 'expired' | 'cancelled';
+  expiresAt: Timestamp;
+  
+  // Success/Cancel URLs
+  successUrl: string;
+  cancelUrl: string;
+  
+  // Related Payment
+  paymentId?: string;
+  
+  // Registration Data (stored temporarily)
+  registrationData?: {
+    personalInfo: any;
+    roleSpecificInfo: any;
+    emergencyContact: any;
+    medicalInfo: any;
+  };
+  
+  // Completion Status
+  completedAt?: Timestamp;
+  registrationCompleted?: boolean;
+}
+
+export interface PlanSelection extends BaseDocument {
+  // User Information
+  sessionId?: string; // Browser session
+  customerEmail?: string;
+  
+  // Selected Plan
+  planType: 'jamboree' | 'season' | 'jamboree_season' | 'coach_assistant' | 'coach_head';
+  planName: string;
+  role: 'player' | 'coach';
+  
+  // Pricing Details
+  originalPrice: number;
+  serviceFee: number;
+  couponCode?: string;
+  couponDiscount?: number;
+  finalAmount: number;
+  
+  // Selection Context
+  selectedFrom: 'pricing_page' | 'registration_wizard' | 'admin_panel';
+  
+  // Status
+  status: 'selected' | 'in_checkout' | 'paid' | 'expired';
+  expiresAt: Timestamp;
+  
+  // Conversion Tracking
+  convertedToPayment?: boolean;
+  paymentId?: string;
+  checkoutSessionId?: string;
+}
+
 // Collection names for Firestore
 export const COLLECTIONS = {
   PLAYERS: 'players',
@@ -684,6 +828,8 @@ export const COLLECTIONS = {
   SEASONS: 'seasons',
   LEAGUES: 'leagues',
   PAYMENTS: 'payments',
+  CHECKOUT_SESSIONS: 'checkout_sessions',
+  PLAN_SELECTIONS: 'plan_selections',
   SUBSCRIPTIONS: 'subscriptions',
   PAYMENT_METHODS: 'payment_methods',
   MARKETING_FUNNELS: 'marketing_funnels',
@@ -694,7 +840,9 @@ export const COLLECTIONS = {
   DRAFT_HISTORY: 'draft-history',
   REFERRAL_TREES: 'referral-trees',
   SYSTEM_SETTINGS: 'system-settings',
-  AUDIT_LOGS: 'audit-logs'
+  AUDIT_LOGS: 'audit-logs',
+  COUPONS: 'coupons',
+  SMS_OPT_INS: 'sms_opt_ins'
 } as const;
 
 // Subcollections
@@ -719,6 +867,14 @@ export type PaymentWithPlayer = Payment & {
   player?: Player;
 };
 
+export type CheckoutSessionWithPlan = CheckoutSession & {
+  planDetails?: PlanSelection;
+};
+
+export type PaymentWithCheckout = Payment & {
+  checkoutSession?: CheckoutSession;
+};
+
 // Database query helpers
 export const getPlayersByTeam = (teamId: string) => ({
   collection: COLLECTIONS.PLAYERS,
@@ -740,8 +896,50 @@ export const getPendingPayments = () => ({
   where: [['status', '==', 'pending']]
 });
 
+export const getActiveCheckoutSessions = () => ({
+  collection: COLLECTIONS.CHECKOUT_SESSIONS,
+  where: [['status', 'in', ['created', 'active']]]
+});
+
+export const getCheckoutSessionByStripeId = (sessionId: string) => ({
+  collection: COLLECTIONS.CHECKOUT_SESSIONS,
+  where: [['sessionId', '==', sessionId]]
+});
+
+export const getPlanSelectionsByEmail = (email: string) => ({
+  collection: COLLECTIONS.PLAN_SELECTIONS,
+  where: [['customerEmail', '==', email]]
+});
+
 export const getCompletedGames = (seasonId: string) => ({
   collection: COLLECTIONS.GAMES,
   where: [['seasonId', '==', seasonId], ['status', '==', 'completed']],
   orderBy: [['actualDate', 'desc']]
 });
+
+// SMS Opt-in Interface
+export interface SMSOptIn extends BaseDocument {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  email?: string;
+  consent: boolean;
+  marketingConsent: boolean;
+  optInDate: Timestamp;
+  status: 'active' | 'opted_out' | 'suspended';
+  source: 'web_form' | 'registration' | 'manual' | 'api';
+  ipAddress?: string;
+  userAgent?: string;
+  
+  // Opt-out tracking
+  optOutDate?: Timestamp;
+  optOutMethod?: 'reply_stop' | 'web_form' | 'manual' | 'complaint';
+  
+  // Message tracking
+  messagesSent: number;
+  lastMessageSent?: Timestamp;
+  
+  // Compliance
+  tcpaCompliant: boolean;
+  consentText: string;
+}

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, where } from 'firebase/firestore';
-import { COLLECTIONS } from '@/lib/firestore-schema';
+import { collection, getDocs, doc, updateDoc, deleteDoc, addDoc, query, orderBy, where, Timestamp } from 'firebase/firestore';
+import { COLLECTIONS, Coach } from '@/lib/firestore-schema';
+import QRCode from 'qrcode';
 
 // GET - Fetch all coaches
 export async function GET(request: NextRequest) {
@@ -101,6 +102,100 @@ export async function DELETE(request: NextRequest) {
     console.error('Error deleting coach:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete coach' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - Create new coach
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      dateOfBirth,
+      experience,
+      certifications,
+      specialties,
+      coachingLevel,
+      emergencyContactName,
+      emergencyContactPhone,
+      maxTeams
+    } = body;
+
+    if (!firstName || !lastName || !email || !phone || !dateOfBirth || !experience) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    const coachData: Omit<Coach, 'id'> = {
+      firstName,
+      lastName,
+      email,
+      phone,
+      dateOfBirth: Timestamp.fromDate(new Date(dateOfBirth)),
+      registrationDate: Timestamp.now(),
+      registrationStatus: 'confirmed',
+      isActive: true,
+      experience,
+      certifications: certifications || [],
+      specialties: specialties || [],
+      coachingLevel: coachingLevel || 'assistant',
+      assignedTeams: [],
+      maxTeams: maxTeams || 2,
+      emergencyContact: emergencyContactName && emergencyContactPhone ? {
+        name: emergencyContactName,
+        phone: emergencyContactPhone
+      } : undefined,
+      stats: {
+        seasonsCoached: 0,
+        teamsCoached: 0,
+        totalWins: 0,
+        totalLosses: 0,
+        championshipsWon: 0
+      },
+      qrCode: '',
+      qrCodeUrl: '',
+      funnelStatus: {
+        currentStep: 0,
+        lastInteraction: Timestamp.now(),
+        isOptedOut: false
+      },
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    };
+
+    const docRef = await addDoc(collection(db, COLLECTIONS.COACHES), coachData);
+    
+    // Generate QR code
+    const qrCodeUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/coach/${docRef.id}`;
+    const qrCodeData = await QRCode.toDataURL(qrCodeUrl);
+    
+    // Update coach with QR code
+    await updateDoc(doc(db, COLLECTIONS.COACHES, docRef.id), {
+      qrCode: qrCodeData,
+      qrCodeUrl: qrCodeUrl
+    });
+
+    return NextResponse.json({
+      success: true,
+      coach: {
+        id: docRef.id,
+        ...coachData,
+        qrCode: qrCodeData,
+        qrCodeUrl: qrCodeUrl
+      },
+      message: 'Coach created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating coach:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to create coach' },
       { status: 500 }
     );
   }

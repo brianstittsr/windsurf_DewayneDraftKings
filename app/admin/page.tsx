@@ -5,6 +5,7 @@ import ModernNavbar from '@/components/ModernNavbar';
 import ProfileManagement from '@/components/ProfileManagement';
 import PaymentManagement from '@/components/PaymentManagement';
 import TeamManagement from '@/components/TeamManagement';
+import CouponManagement from '@/components/CouponManagement';
 
 interface DashboardData {
   delivery: {
@@ -125,6 +126,13 @@ export default function AdminPage() {
         return (
           <div className="fade-in">
             <PaymentManagement />
+          </div>
+        );
+      
+      case 'coupons':
+        return (
+          <div className="fade-in">
+            <CouponManagement />
           </div>
         );
       
@@ -378,6 +386,16 @@ export default function AdminPage() {
                 >
                   <i className="fas fa-credit-card me-2"></i>
                   Payments
+                </button>
+              </li>
+              <li className="nav-item" role="presentation">
+                <button
+                  className={`nav-link ${activeTab === 'coupons' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('coupons')}
+                  type="button"
+                >
+                  <i className="fas fa-tag me-2"></i>
+                  Coupons
                 </button>
               </li>
               <li className="nav-item" role="presentation">

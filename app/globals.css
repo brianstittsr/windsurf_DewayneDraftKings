@@ -44,6 +44,179 @@ body {
   line-height: 1.6;
 }
 
+/* Pricing Page Styles */
+.modern-tabs {
+  background: var(--gray-100);
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.modern-tabs .nav-link {
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  color: var(--gray-600);
+  transition: all 0.3s ease;
+  background: transparent;
+}
+
+.modern-tabs .nav-link:hover {
+  color: var(--primary);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.modern-tabs .nav-link.active {
+  background: white;
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.pricing-card {
+  border: 2px solid var(--gray-200);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--primary);
+}
+
+.popular-plan {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
+  transform: scale(1.02);
+}
+
+.popular-plan:hover {
+  transform: scale(1.02) translateY(-4px);
+}
+
+.popular-badge {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.popular-badge .badge {
+  border-radius: 0 0 8px 8px;
+  padding: 6px 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pricing-display {
+  margin: 20px 0;
+}
+
+.price-main {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.service-fee {
+  margin-top: 4px;
+  font-size: 0.875rem;
+}
+
+.total-price {
+  margin-top: 8px;
+  font-size: 1.125rem;
+  padding: 8px 16px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.features-list {
+  margin: 24px 0;
+}
+
+.features-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: 0.95rem;
+}
+
+.features-list li:last-child {
+  border-bottom: none;
+}
+
+.features-list .fas {
+  width: 16px;
+  text-align: center;
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: var(--gradient-primary);
+  border: none;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline-primary {
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  background: transparent;
+}
+
+.btn-outline-primary:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-success {
+  background: var(--gradient-success);
+  border: none;
+}
+
+.btn-success:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Coupon Integration Styles */
+.selected-plan {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.original-price {
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.discount-amount {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success) !important;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 0.25rem;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -103,6 +276,43 @@ a {
   border-bottom: 1px solid var(--gray-200);
   box-shadow: var(--shadow-sm);
   backdrop-filter: blur(10px);
+}
+
+/* Rounded Navigation Styling */
+.rounded-nav-container {
+  background: var(--gray-100);
+  border-radius: 50px;
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.rounded-nav {
+  margin: 0;
+  padding: 0;
+  gap: 2px;
+}
+
+.rounded-nav-link {
+  color: var(--gray-600) !important;
+  font-weight: 500;
+  padding: 8px 16px !important;
+  border-radius: 50px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.rounded-nav-link:hover {
+  background: white;
+  color: var(--primary) !important;
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.rounded-nav-link:focus {
+  background: white;
+  color: var(--primary) !important;
+  box-shadow: var(--shadow-sm);
 }
 
 .dk-stats-card {

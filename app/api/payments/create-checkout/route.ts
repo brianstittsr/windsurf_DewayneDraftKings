@@ -1,81 +1,124 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripeService } from '@/lib/stripe-service';
+import { StripeService } from '@/lib/stripe-service';
+import { 
+  checkoutUtils, 
+  enhancedCheckoutSessionService,
+  enhancedPlanSelectionService 
+} from '@/lib/firebase-services';
+import { Timestamp } from 'firebase/firestore';
+
+const stripeService = new StripeService();
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { 
-      amount, 
-      description, 
-      customerId, 
-      customerEmail, 
+    const {
+      amount,
+      currency = 'usd',
+      customerEmail,
       customerName,
-      paymentType = 'registration',
-      playerId,
-      coachId,
+      paymentMethods = ['card'], // Default to card, can include 'klarna', 'affirm'
+      planDetails, // New: plan information from checkout
+      registrationData, // New: temporary registration data storage
+      metadata = {},
       successUrl,
-      cancelUrl 
+      cancelUrl
     } = body;
 
-    if (!amount || !description) {
+    // Validate required fields
+    if (!amount || !customerEmail || !successUrl || !cancelUrl) {
       return NextResponse.json(
-        { success: false, error: 'Amount and description are required' },
+        { error: 'Missing required fields: amount, customerEmail, successUrl, cancelUrl' },
         { status: 400 }
       );
     }
 
-    // Create or get customer
-    let stripeCustomerId = customerId;
-    if (!stripeCustomerId && customerEmail && customerName) {
-      const customer = await stripeService.createCustomer(
-        customerEmail,
-        customerName,
-        undefined,
-        { playerId, coachId, paymentType }
+    // Convert amount to cents for Stripe
+    const amountInCents = Math.round(amount * 100);
+
+    // Create or retrieve customer
+    let customer;
+    try {
+      customer = await stripeService.createCustomer(customerEmail, customerName);
+    } catch (error) {
+      console.error('Error creating/retrieving customer:', error);
+      return NextResponse.json(
+        { error: 'Failed to process customer information' },
+        { status: 500 }
       );
-      stripeCustomerId = customer.id;
     }
 
-    // Create line items for checkout
-    const lineItems = [
-      {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: description,
-            description: `${paymentType} payment for All Pro Sports`,
-          },
-          unit_amount: Math.round(amount * 100), // Convert to cents
-        },
-        quantity: 1,
-      },
-    ];
-
-    // Create checkout session
+    // Create checkout session with specified payment methods
     const session = await stripeService.createCheckoutSession(
-      lineItems,
-      successUrl || `${process.env.NEXT_PUBLIC_BASE_URL}/payment/success`,
-      cancelUrl || `${process.env.NEXT_PUBLIC_BASE_URL}/payment/cancelled`,
-      stripeCustomerId,
-      { 
-        paymentType, 
-        playerId, 
-        coachId,
-        customerEmail,
-        customerName 
-      }
+      amountInCents,
+      currency,
+      successUrl,
+      cancelUrl,
+      customer.id,
+      {
+        customerName,
+        planType: planDetails?.planType,
+        planName: planDetails?.planName,
+        ...metadata
+      },
+      paymentMethods as any
     );
 
+    // Store checkout session in Firebase
+    const checkoutSessionData = {
+      sessionId: session.id!,
+      sessionUrl: session.url!,
+      customerEmail,
+      customerName,
+      selectedPlan: planDetails || {
+        planType: 'jamboree' as const,
+        planName: 'Default Plan',
+        originalPrice: amount,
+        serviceFee: 0,
+        finalAmount: amount
+      },
+      paymentMethods,
+      status: 'created' as const,
+      expiresAt: Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000)), // 24 hours
+      successUrl,
+      cancelUrl,
+      registrationData
+    };
+
+    const checkoutSessionId = await checkoutUtils.createCheckoutSession(checkoutSessionData);
+
+    // Create plan selection record if plan details provided
+    if (planDetails) {
+      const planSelectionData = {
+        customerEmail,
+        planType: planDetails.planType,
+        planName: planDetails.planName,
+        role: planDetails.planType.includes('coach') ? 'coach' as const : 'player' as const,
+        originalPrice: planDetails.originalPrice,
+        serviceFee: planDetails.serviceFee,
+        couponCode: planDetails.couponCode,
+        couponDiscount: planDetails.couponDiscount,
+        finalAmount: planDetails.finalAmount,
+        selectedFrom: 'registration_wizard' as const,
+        status: 'in_checkout' as const,
+        expiresAt: Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000)),
+        checkoutSessionId: session.id
+      };
+
+      await checkoutUtils.createPlanSelection(planSelectionData);
+    }
+
     return NextResponse.json({
-      success: true,
       sessionId: session.id,
-      url: session.url,
-      customerId: stripeCustomerId
+      sessionUrl: session.url,
+      customerId: customer.id,
+      checkoutSessionId
     });
+
   } catch (error) {
     console.error('Error creating checkout session:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create checkout session' },
+      { error: 'Failed to create checkout session' },
       { status: 500 }
     );
   }

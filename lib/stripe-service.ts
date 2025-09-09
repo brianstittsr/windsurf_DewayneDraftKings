@@ -62,18 +62,40 @@ class StripeService {
     }
   }
 
-  // Create checkout session for hosted payment page
+  // Retrieve checkout session
+  async retrieveCheckoutSession(sessionId: string): Promise<Stripe.Checkout.Session> {
+    try {
+      const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+      return session;
+    } catch (error) {
+      console.error('Error retrieving checkout session:', error);
+      throw error;
+    }
+  }
+
+  // Create checkout session for hosted checkout page (supports BNPL)
   async createCheckoutSession(
-    lineItems: Stripe.Checkout.SessionCreateParams.LineItem[],
+    amount: number,
+    currency: string = 'usd',
     successUrl: string,
     cancelUrl: string,
     customerId?: string,
-    metadata?: { [key: string]: string }
+    metadata?: { [key: string]: string },
+    paymentMethods: Stripe.Checkout.SessionCreateParams.PaymentMethodType[] = ['card']
   ): Promise<Stripe.Checkout.Session> {
     try {
       const session = await this.stripe.checkout.sessions.create({
-        payment_method_types: ['card', 'klarna', 'affirm'],
-        line_items: lineItems,
+        payment_method_types: paymentMethods,
+        line_items: [{
+          price_data: {
+            currency,
+            unit_amount: Math.round(amount * 100),
+            product_data: {
+              name: 'All Pro Sports Registration'
+            }
+          },
+          quantity: 1
+        }],
         mode: 'payment',
         success_url: successUrl,
         cancel_url: cancelUrl,
@@ -152,6 +174,14 @@ class StripeService {
   // Handle successful payment
   private async handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent): Promise<void> {
     try {
+      // Retrieve charges for payment method details
+      const charges = await this.stripe.charges.list({
+        payment_intent: paymentIntent.id,
+        limit: 1
+      });
+
+      const charge = charges.data[0];
+      
       const paymentData = {
         stripePaymentIntentId: paymentIntent.id,
         stripeCustomerId: paymentIntent.customer as string,
@@ -161,8 +191,8 @@ class StripeService {
         paidAt: Timestamp.now(),
         paymentMethod: {
           type: 'card' as const,
-          last4: paymentIntent.charges.data[0]?.payment_method_details?.card?.last4,
-          brand: paymentIntent.charges.data[0]?.payment_method_details?.card?.brand,
+          last4: charge?.payment_method_details?.card?.last4 || '',
+          brand: charge?.payment_method_details?.card?.brand || '',
         },
         metadata: paymentIntent.metadata,
         createdAt: Timestamp.now(),
@@ -293,4 +323,5 @@ class StripeService {
 }
 
 export const stripeService = new StripeService();
+export { StripeService };
 export default StripeService;

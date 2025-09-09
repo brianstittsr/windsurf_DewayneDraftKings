@@ -5,15 +5,25 @@ import { collection, addDoc, updateDoc, doc, query, where, getDocs, Timestamp } 
 import { SMSMessage, SMSSubscriber, SMS_COLLECTIONS } from './sms-schema';
 
 class TwilioSMSService {
-  private client: Twilio;
+  private client: Twilio | null;
   private fromNumber: string;
+  private isConfigured: boolean;
 
   constructor() {
-    this.client = new Twilio(
-      process.env.TWILIO_ACCOUNT_SID!,
-      process.env.TWILIO_AUTH_TOKEN!
-    );
-    this.fromNumber = process.env.TWILIO_PHONE_NUMBER!;
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const phoneNumber = process.env.TWILIO_PHONE_NUMBER;
+
+    this.isConfigured = !!(accountSid && authToken && phoneNumber);
+    
+    if (this.isConfigured) {
+      this.client = new Twilio(accountSid!, authToken!);
+      this.fromNumber = phoneNumber!;
+    } else {
+      this.client = null;
+      this.fromNumber = '';
+      console.warn('Twilio not configured - SMS functionality disabled. Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER in .env.local');
+    }
   }
 
   // Send individual SMS message
@@ -25,12 +35,23 @@ class TwilioSMSService {
     stepId?: string
   ): Promise<SMSMessage> {
     try {
-      // Send via Twilio
-      const twilioMessage = await this.client.messages.create({
-        body: message,
-        from: this.fromNumber,
-        to: to
-      });
+      let twilioMessage: any = null;
+      
+      if (this.isConfigured && this.client) {
+        // Send via Twilio
+        twilioMessage = await this.client.messages.create({
+          body: message,
+          from: this.fromNumber,
+          to: to
+        });
+      } else {
+        // Simulate message for development
+        console.log(`[SIMULATED SMS] To: ${to}, Message: ${message}`);
+        twilioMessage = {
+          sid: `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          status: 'sent'
+        };
+      }
 
       // Create SMS message record
       const smsMessage: Omit<SMSMessage, 'id'> = {

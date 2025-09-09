@@ -23,23 +23,30 @@ export default function ModernNavbar() {
 
           {/* Desktop Navigation */}
           <div className="d-none d-lg-flex align-items-center">
-            <ul className="nav me-4">
-              <li className="nav-item">
-                <Link href="/league" className="nav-link text-dark fw-medium px-3">
-                  League
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link href="/leaderboard" className="nav-link text-dark fw-medium px-3">
-                  Leaderboard
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link href="/admin" className="nav-link text-dark fw-medium px-3">
-                  Admin
-                </Link>
-              </li>
-            </ul>
+            <div className="rounded-nav-container me-4">
+              <ul className="nav rounded-nav">
+                <li className="nav-item">
+                  <Link href="/league" className="nav-link rounded-nav-link">
+                    League
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link href="/leaderboard" className="nav-link rounded-nav-link">
+                    Leaderboard
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link href="/pricing" className="nav-link rounded-nav-link">
+                    Pricing
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link href="/admin" className="nav-link rounded-nav-link">
+                    Admin
+                  </Link>
+                </li>
+              </ul>
+            </div>
             
             {/* CTA Button */}
             <Link href="/register" className="btn dk-btn-primary me-2">
@@ -77,6 +84,14 @@ export default function ModernNavbar() {
               >
                 <i className="fas fa-chart-line me-2"></i>
                 Leaderboard
+              </Link>
+              <Link 
+                href="/pricing" 
+                className="nav-link text-dark py-2 px-0"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <i className="fas fa-dollar-sign me-2"></i>
+                Pricing
               </Link>
               <Link 
                 href="/admin" 
