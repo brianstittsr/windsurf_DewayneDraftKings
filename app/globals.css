@@ -526,10 +526,36 @@ a {
   transition: opacity 1s ease-in-out;
   object-fit: cover;
   filter: sepia(0.8) contrast(1.2) brightness(0.9);
+  will-change: opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .video-slide.active {
   opacity: 1 !important;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .masthead {
+    min-height: 70vh !important;
+  }
+  
+  .video-slide {
+    transition: opacity 0.5s ease-in-out;
+    filter: sepia(0.6) contrast(1.1) brightness(0.95);
+  }
+  
+  .video-background {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .video-slide {
+    transition: opacity 0.2s ease-in-out;
+  }
 }
 
 .video-overlay {

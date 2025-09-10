@@ -44,6 +44,10 @@ export default function Home() {
               const currentIndex = Array.from(videos).indexOf(current);
               const nextIndex = (currentIndex + 1) % videos.length;
               
+              // Check if user prefers reduced motion
+              const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              const transitionTime = prefersReducedMotion ? 200 : (window.innerWidth <= 768 ? 500 : 1000);
+              
               // Fade out current video
               current.style.opacity = '0';
               
@@ -53,7 +57,7 @@ export default function Home() {
                 videos[nextIndex].currentTime = 0;
                 videos[nextIndex].style.opacity = '1';
                 videos[nextIndex].play();
-              }, 1000); // Wait for fade out transition
+              }, transitionTime);
             }}
           >
             <source src="/img/2249402-uhd_3840_2160_24fps.mp4" type="video/mp4" />
@@ -74,6 +78,10 @@ export default function Home() {
               const currentIndex = Array.from(videos).indexOf(current);
               const nextIndex = (currentIndex + 1) % videos.length;
               
+              // Check if user prefers reduced motion
+              const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              const transitionTime = prefersReducedMotion ? 200 : (window.innerWidth <= 768 ? 500 : 1000);
+              
               // Fade out current video
               current.style.opacity = '0';
               
@@ -83,7 +91,7 @@ export default function Home() {
                 videos[nextIndex].currentTime = 0;
                 videos[nextIndex].style.opacity = '1';
                 videos[nextIndex].play();
-              }, 1000); // Wait for fade out transition
+              }, transitionTime);
             }}
           >
             <source src="/img/2249402-uhd_3840_2160_24fps (1).mp4" type="video/mp4" />
@@ -104,6 +112,10 @@ export default function Home() {
               const currentIndex = Array.from(videos).indexOf(current);
               const nextIndex = (currentIndex + 1) % videos.length;
               
+              // Check if user prefers reduced motion
+              const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              const transitionTime = prefersReducedMotion ? 200 : (window.innerWidth <= 768 ? 500 : 1000);
+              
               // Fade out current video
               current.style.opacity = '0';
               
@@ -113,7 +125,7 @@ export default function Home() {
                 videos[nextIndex].currentTime = 0;
                 videos[nextIndex].style.opacity = '1';
                 videos[nextIndex].play();
-              }, 1000); // Wait for fade out transition
+              }, transitionTime);
             }}
           >
             <source src="/img/4112090-hd_1920_1080_25fps.mp4" type="video/mp4" />
@@ -134,6 +146,10 @@ export default function Home() {
               const currentIndex = Array.from(videos).indexOf(current);
               const nextIndex = (currentIndex + 1) % videos.length;
               
+              // Check if user prefers reduced motion
+              const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              const transitionTime = prefersReducedMotion ? 200 : (window.innerWidth <= 768 ? 500 : 1000);
+              
               // Fade out current video
               current.style.opacity = '0';
               
@@ -143,7 +159,7 @@ export default function Home() {
                 videos[nextIndex].currentTime = 0;
                 videos[nextIndex].style.opacity = '1';
                 videos[nextIndex].play();
-              }, 1000); // Wait for fade out transition
+              }, transitionTime);
             }}
           >
             <source src="/img/7187055-hd_1920_1080_24fps.mp4" type="video/mp4" />
