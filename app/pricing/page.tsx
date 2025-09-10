@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import ModernNavbar from '../../components/ModernNavbar';
-import { CouponService } from '../../lib/coupon-service';
-import { Coupon } from '../../lib/firestore-schema';
+// Removed Firebase dependencies for Vercel build
+// import { CouponService } from '../../lib/coupon-service';
+// import { Coupon } from '../../lib/firestore-schema';
 
 export default function PricingPage() {
   const [activeTab, setActiveTab] = useState<'player' | 'coach'>('player');
   const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
   const [couponError, setCouponError] = useState('');
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
@@ -127,24 +128,11 @@ export default function PricingPage() {
     setValidatingCoupon(true);
     setCouponError('');
 
-    const plan = currentPricing[selectedPlan];
-    const result = await CouponService.validateCoupon(
-      couponCode,
-      plan.price + plan.serviceFee,
-      undefined,
-      undefined,
-      plan.itemType
-    );
-
+    // Simulate coupon validation for now
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     setValidatingCoupon(false);
-
-    if (result.isValid && result.coupon) {
-      setAppliedCoupon(result.coupon);
-      setCouponError('');
-    } else {
-      setAppliedCoupon(null);
-      setCouponError(result.error || 'Invalid coupon code');
-    }
+    setCouponError('Coupon validation temporarily disabled');
   };
 
   const removeCoupon = () => {
@@ -154,11 +142,12 @@ export default function PricingPage() {
   };
 
   const calculatePricing = (plan: any) => {
-    return CouponService.calculateFinalPrice(
-      plan.price,
-      plan.serviceFee,
-      appliedCoupon
-    );
+    // Simplified pricing calculation without CouponService
+    return {
+      subtotal: plan.price,
+      discount: 0,
+      total: plan.price + plan.serviceFee
+    };
   };
 
   return (
@@ -256,7 +245,7 @@ export default function PricingPage() {
                             {appliedCoupon.code}
                           </span>
                           <span className="text-success">
-                            {CouponService.getDiscountDisplay(appliedCoupon)} applied!
+                            Discount applied!
                           </span>
                         </div>
                         <button

@@ -21,21 +21,56 @@ export default function PaymentPage() {
     setLoading(false);
   }, [playerId]);
 
-  const handlePayment = async () => {
+  const handlePayment = async (planType: string, amount: number) => {
     setPaymentProcessing(true);
     setError('');
 
     try {
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Get registration data from URL params or localStorage
+      const urlParams = new URLSearchParams(window.location.search);
+      const registrationData = urlParams.get('registration');
       
-      setPaymentProcessing(false);
-      setSuccess(true);
+      if (!registrationData) {
+        throw new Error('Registration data not found. Please start from registration page.');
+      }
+
+      const playerData = JSON.parse(decodeURIComponent(registrationData));
       
-      // Here you would integrate with your payment processor (Stripe, etc.)
-      // and save payment data to Firebase with dynamic imports
-    } catch (err) {
-      setError('Payment failed. Please try again.');
+      // Create Stripe checkout session
+      const response = await fetch('/api/payments/create-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: amount,
+          currency: 'usd',
+          playerData: playerData,
+          planData: {
+            title: planType === 'complete-package' ? 'Complete Package' : 'Meal Plan Add-on',
+            subtitle: planType === 'complete-package' ? 'Registration + Season + Meal Plan' : 'Monthly meal subscription',
+            itemType: planType
+          },
+          successUrl: `${window.location.origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/payment/${playerId}?cancelled=true`
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      if (data.success && data.url) {
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error('Invalid response from payment service');
+      }
+      
+    } catch (err: any) {
+      setError(err.message || 'Payment failed. Please try again.');
       setPaymentProcessing(false);
     }
   };
@@ -137,7 +172,7 @@ export default function PaymentPage() {
                         </div>
                         <button
                           className="btn dk-btn-primary"
-                          onClick={handlePayment}
+                          onClick={() => handlePayment('basic-registration', 87)}
                           disabled={paymentProcessing}
                         >
                           {paymentProcessing ? (
@@ -175,7 +210,7 @@ export default function PaymentPage() {
                         </div>
                         <button
                           className="btn btn-outline-primary"
-                          onClick={handlePayment}
+                          onClick={() => handlePayment('meal-plan', 35)}
                           disabled={paymentProcessing}
                         >
                           Add Meal Plan
@@ -212,7 +247,7 @@ export default function PaymentPage() {
                         </div>
                         <button
                           className="btn btn-success btn-lg"
-                          onClick={handlePayment}
+                          onClick={() => handlePayment('complete-package', 112)}
                           disabled={paymentProcessing}
                         >
                           {paymentProcessing ? (

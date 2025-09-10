@@ -40,10 +40,13 @@ export default function RegisterPage() {
     setMessage('');
 
     try {
-      // For now, just redirect to payment page
-      // Firebase integration will be added later with dynamic imports
+      // Redirect to payment page with registration data
       const playerId = `temp_${Date.now()}`;
-      router.push(`/payment/${playerId}?amount=50&type=${formData.role}`);
+      const queryParams = new URLSearchParams({
+        registration: encodeURIComponent(JSON.stringify(formData))
+      });
+      
+      router.push(`/payment/${playerId}?${queryParams.toString()}`);
     } catch (error) {
       console.error('Registration error:', error);
       setMessage('Registration failed. Please try again.');
