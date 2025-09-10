@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ModernNavbar from '@/components/ModernNavbar';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [formData, setFormData] = useState({
     role: 'player',
     firstName: '',
@@ -32,6 +34,26 @@ export default function RegisterPage() {
   const [message, setMessage] = useState('');
 
   const totalSteps = 5;
+
+  // Load selected plan from URL parameters
+  useEffect(() => {
+    const planParam = searchParams.get('plan');
+    const roleParam = searchParams.get('role');
+    
+    if (planParam) {
+      try {
+        const plan = JSON.parse(planParam);
+        setSelectedPlan(plan);
+        
+        // Set role from pricing page selection
+        if (roleParam) {
+          setFormData(prev => ({ ...prev, role: roleParam }));
+        }
+      } catch (error) {
+        console.error('Error parsing plan data:', error);
+      }
+    }
+  }, [searchParams]);
 
   const stepTitles = [
     'Role Selection',
@@ -97,13 +119,17 @@ export default function RegisterPage() {
     setMessage('');
 
     try {
-      // Redirect to payment page with registration data
-      const playerId = `temp_${Date.now()}`;
+      // Redirect to checkout page with registration and plan data
+      const registrationData = {
+        ...formData,
+        selectedPlan: selectedPlan
+      };
+      
       const queryParams = new URLSearchParams({
-        registration: encodeURIComponent(JSON.stringify(formData))
+        registration: encodeURIComponent(JSON.stringify(registrationData))
       });
       
-      router.push(`/payment/${playerId}?${queryParams.toString()}`);
+      router.push(`/checkout?${queryParams.toString()}`);
     } catch (error) {
       console.error('Registration error:', error);
       setMessage('Registration failed. Please try again.');
