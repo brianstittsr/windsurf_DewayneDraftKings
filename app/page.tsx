@@ -1,8 +1,75 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useRef } from 'react'
 
 export default function Home() {
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
+  const currentVideoIndex = useRef(0)
+
+  useEffect(() => {
+    // Initialize video rotation
+    const videos = videoRefs.current.filter(Boolean) as HTMLVideoElement[]
+    if (videos.length === 0) return
+
+    const rotateVideo = () => {
+      const current = videos[currentVideoIndex.current]
+      const nextIndex = (currentVideoIndex.current + 1) % videos.length
+      const next = videos[nextIndex]
+
+      if (!current || !next) return
+
+      // Check if user prefers reduced motion
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const transitionTime = prefersReducedMotion ? 200 : (window.innerWidth <= 768 ? 500 : 1000)
+
+      // Fade out current video
+      current.style.opacity = '0'
+      current.classList.remove('active')
+
+      setTimeout(() => {
+        // Fade in next video
+        next.classList.add('active')
+        next.currentTime = 0
+        next.style.opacity = '1'
+        next.play().catch(console.error)
+        currentVideoIndex.current = nextIndex
+      }, transitionTime)
+    }
+
+    // Set up event listeners for video end
+    videos.forEach((video, index) => {
+      if (video) {
+        video.addEventListener('ended', rotateVideo)
+        video.addEventListener('loadeddata', () => {
+          console.log(`Video ${index + 1} loaded`)
+        })
+        video.addEventListener('error', (e) => {
+          console.error(`Video ${index + 1} error:`, e)
+        })
+      }
+    })
+
+    // Start first video
+    if (videos[0]) {
+      videos[0].classList.add('active')
+      videos[0].style.opacity = '1'
+      videos[0].play().catch(console.error)
+    }
+
+    // Cleanup
+    return () => {
+      videos.forEach(video => {
+        if (video) {
+          video.removeEventListener('ended', rotateVideo)
+        }
+      })
+    }
+  }, [])
+
+  const setVideoRef = (index: number) => (el: HTMLVideoElement | null) => {
+    videoRefs.current[index] = el
+  }
   return (
     <>
       {/* Navigation */}
@@ -29,138 +96,45 @@ export default function Home() {
         {/* Video Background */}
         <div className="video-background">
           <video 
-            id="video1" 
-            className="video-slide active" 
-            autoPlay 
+            ref={setVideoRef(0)}
+            className="video-slide" 
             muted 
             playsInline
             loop={false}
             style={{ display: 'block' }}
-            onLoadedData={() => console.log('Video 1 loaded')}
-            onError={(e) => console.error('Video 1 error:', e)}
-            onEnded={() => {
-              const videos = document.querySelectorAll('.video-slide') as NodeListOf<HTMLVideoElement>;
-              const current = document.querySelector('.video-slide.active') as HTMLVideoElement;
-              const currentIndex = Array.from(videos).indexOf(current);
-              const nextIndex = (currentIndex + 1) % videos.length;
-              
-              // Check if user prefers reduced motion
-              const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-              const transitionTime = prefersReducedMotion ? 200 : (window.innerWidth <= 768 ? 500 : 1000);
-              
-              // Fade out current video
-              current.style.opacity = '0';
-              
-              setTimeout(() => {
-                current.classList.remove('active');
-                videos[nextIndex].classList.add('active');
-                videos[nextIndex].currentTime = 0;
-                videos[nextIndex].style.opacity = '1';
-                videos[nextIndex].play();
-              }, transitionTime);
-            }}
           >
             <source src="/img/2249402-uhd_3840_2160_24fps.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <video 
-            id="video2" 
+            ref={setVideoRef(1)}
             className="video-slide" 
             muted 
             playsInline
             loop={false}
             style={{ display: 'block' }}
-            onLoadedData={() => console.log('Video 2 loaded')}
-            onError={(e) => console.error('Video 2 error:', e)}
-            onEnded={() => {
-              const videos = document.querySelectorAll('.video-slide') as NodeListOf<HTMLVideoElement>;
-              const current = document.querySelector('.video-slide.active') as HTMLVideoElement;
-              const currentIndex = Array.from(videos).indexOf(current);
-              const nextIndex = (currentIndex + 1) % videos.length;
-              
-              // Check if user prefers reduced motion
-              const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-              const transitionTime = prefersReducedMotion ? 200 : (window.innerWidth <= 768 ? 500 : 1000);
-              
-              // Fade out current video
-              current.style.opacity = '0';
-              
-              setTimeout(() => {
-                current.classList.remove('active');
-                videos[nextIndex].classList.add('active');
-                videos[nextIndex].currentTime = 0;
-                videos[nextIndex].style.opacity = '1';
-                videos[nextIndex].play();
-              }, transitionTime);
-            }}
           >
             <source src="/img/2249402-uhd_3840_2160_24fps (1).mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <video 
-            id="video3" 
+            ref={setVideoRef(2)}
             className="video-slide" 
             muted 
             playsInline
             loop={false}
             style={{ display: 'block' }}
-            onLoadedData={() => console.log('Video 3 loaded')}
-            onError={(e) => console.error('Video 3 error:', e)}
-            onEnded={() => {
-              const videos = document.querySelectorAll('.video-slide') as NodeListOf<HTMLVideoElement>;
-              const current = document.querySelector('.video-slide.active') as HTMLVideoElement;
-              const currentIndex = Array.from(videos).indexOf(current);
-              const nextIndex = (currentIndex + 1) % videos.length;
-              
-              // Check if user prefers reduced motion
-              const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-              const transitionTime = prefersReducedMotion ? 200 : (window.innerWidth <= 768 ? 500 : 1000);
-              
-              // Fade out current video
-              current.style.opacity = '0';
-              
-              setTimeout(() => {
-                current.classList.remove('active');
-                videos[nextIndex].classList.add('active');
-                videos[nextIndex].currentTime = 0;
-                videos[nextIndex].style.opacity = '1';
-                videos[nextIndex].play();
-              }, transitionTime);
-            }}
           >
             <source src="/img/4112090-hd_1920_1080_25fps.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <video 
-            id="video4" 
+            ref={setVideoRef(3)}
             className="video-slide" 
             muted 
             playsInline
             loop={false}
             style={{ display: 'block' }}
-            onLoadedData={() => console.log('Video 4 loaded')}
-            onError={(e) => console.error('Video 4 error:', e)}
-            onEnded={() => {
-              const videos = document.querySelectorAll('.video-slide') as NodeListOf<HTMLVideoElement>;
-              const current = document.querySelector('.video-slide.active') as HTMLVideoElement;
-              const currentIndex = Array.from(videos).indexOf(current);
-              const nextIndex = (currentIndex + 1) % videos.length;
-              
-              // Check if user prefers reduced motion
-              const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-              const transitionTime = prefersReducedMotion ? 200 : (window.innerWidth <= 768 ? 500 : 1000);
-              
-              // Fade out current video
-              current.style.opacity = '0';
-              
-              setTimeout(() => {
-                current.classList.remove('active');
-                videos[nextIndex].classList.add('active');
-                videos[nextIndex].currentTime = 0;
-                videos[nextIndex].style.opacity = '1';
-                videos[nextIndex].play();
-              }, transitionTime);
-            }}
           >
             <source src="/img/7187055-hd_1920_1080_24fps.mp4" type="video/mp4" />
             Your browser does not support the video tag.
