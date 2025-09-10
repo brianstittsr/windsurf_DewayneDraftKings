@@ -1,4 +1,6 @@
-# All Pro Sports SMS Automation System
+# All Pro Sports - SMS Automation Platform
+
+> Latest deployment: Fixed TypeScript schema issues for Vercel deployment
 
 ## Phase 1: SMS Automation & Player Registration System
 
