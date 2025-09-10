@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { smsJourneyService } from '@/lib/sms-journey-service';
+import SMSJourneyService from '@/lib/sms-journey-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Return predefined journey templates
-    const templates = smsJourneyService.constructor.getJourneyTemplates();
+    const templates = SMSJourneyService.getJourneyTemplates();
 
     return NextResponse.json({
       success: true,
