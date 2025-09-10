@@ -1,33 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc, deleteDoc, addDoc, query, orderBy, where, Timestamp } from 'firebase/firestore';
-import { COLLECTIONS, Coach } from '@/lib/firestore-schema';
-import QRCode from 'qrcode';
 
 // GET - Fetch all coaches
 export async function GET(request: NextRequest) {
   try {
-    // Check if Firebase is available (prevents build-time errors)
-    if (!db) {
+    // Dynamic imports to prevent build-time execution
+    const services = await import('@/lib/firebase').catch(() => null);
+    if (!services?.db) {
       return NextResponse.json(
         { success: false, error: 'Database not available' },
         { status: 503 }
       );
     }
 
+    const { collection, getDocs, query, orderBy, where } = await import('firebase/firestore');
+    const { COLLECTIONS } = await import('@/lib/firestore-schema');
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const limit = searchParams.get('limit');
 
     let coachesQuery = query(
-      collection(db, COLLECTIONS.COACHES),
+      collection(services.db, COLLECTIONS.COACHES),
       orderBy('createdAt', 'desc')
     );
 
     // Filter by status if provided
     if (status) {
       coachesQuery = query(
-        collection(db, COLLECTIONS.COACHES),
+        collection(services.db, COLLECTIONS.COACHES),
         where('registrationStatus', '==', status),
         orderBy('createdAt', 'desc')
       );
@@ -59,13 +59,17 @@ export async function GET(request: NextRequest) {
 // PUT - Update coach
 export async function PUT(request: NextRequest) {
   try {
-    // Check if Firebase is available (prevents build-time errors)
-    if (!db) {
+    // Dynamic imports to prevent build-time execution
+    const services = await import('@/lib/firebase').catch(() => null);
+    if (!services?.db) {
       return NextResponse.json(
         { success: false, error: 'Database not available' },
         { status: 503 }
       );
     }
+
+    const { doc, updateDoc } = await import('firebase/firestore');
+    const { COLLECTIONS } = await import('@/lib/firestore-schema');
 
     const body = await request.json();
     const { coachId, ...updateData } = body;
@@ -80,7 +84,7 @@ export async function PUT(request: NextRequest) {
     // Add updated timestamp
     updateData.updatedAt = new Date();
 
-    await updateDoc(doc(db, COLLECTIONS.COACHES, coachId), updateData);
+    await updateDoc(doc(services.db, COLLECTIONS.COACHES, coachId), updateData);
 
     return NextResponse.json({
       success: true,
@@ -98,13 +102,17 @@ export async function PUT(request: NextRequest) {
 // DELETE - Delete coach
 export async function DELETE(request: NextRequest) {
   try {
-    // Check if Firebase is available (prevents build-time errors)
-    if (!db) {
+    // Dynamic imports to prevent build-time execution
+    const services = await import('@/lib/firebase').catch(() => null);
+    if (!services?.db) {
       return NextResponse.json(
         { success: false, error: 'Database not available' },
         { status: 503 }
       );
     }
+
+    const { doc, deleteDoc } = await import('firebase/firestore');
+    const { COLLECTIONS } = await import('@/lib/firestore-schema');
 
     const { searchParams } = new URL(request.url);
     const coachId = searchParams.get('id');
@@ -116,7 +124,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await deleteDoc(doc(db, COLLECTIONS.COACHES, coachId));
+    await deleteDoc(doc(services.db, COLLECTIONS.COACHES, coachId));
 
     return NextResponse.json({
       success: true,
@@ -134,13 +142,18 @@ export async function DELETE(request: NextRequest) {
 // POST - Create new coach
 export async function POST(request: NextRequest) {
   try {
-    // Check if Firebase is available (prevents build-time errors)
-    if (!db) {
+    // Dynamic imports to prevent build-time execution
+    const services = await import('@/lib/firebase').catch(() => null);
+    if (!services?.db) {
       return NextResponse.json(
         { success: false, error: 'Database not available' },
         { status: 503 }
       );
     }
+
+    const { doc, addDoc, updateDoc, collection, Timestamp } = await import('firebase/firestore');
+    const { COLLECTIONS } = await import('@/lib/firestore-schema');
+    const QRCode = await import('qrcode');
 
     const body = await request.json();
     const {
@@ -165,7 +178,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const coachData: Omit<Coach, 'id'> = {
+    const coachData = {
       firstName,
       lastName,
       email,
@@ -202,14 +215,14 @@ export async function POST(request: NextRequest) {
       updatedAt: Timestamp.now()
     };
 
-    const docRef = await addDoc(collection(db, COLLECTIONS.COACHES), coachData);
+    const docRef = await addDoc(collection(services.db, COLLECTIONS.COACHES), coachData);
     
     // Generate QR code
     const qrCodeUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/coach/${docRef.id}`;
     const qrCodeData = await QRCode.toDataURL(qrCodeUrl);
     
     // Update coach with QR code
-    await updateDoc(doc(db, COLLECTIONS.COACHES, docRef.id), {
+    await updateDoc(doc(services.db, COLLECTIONS.COACHES, docRef.id), {
       qrCode: qrCodeData,
       qrCodeUrl: qrCodeUrl
     });
