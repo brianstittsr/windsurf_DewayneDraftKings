@@ -57,9 +57,9 @@ export async function GET(request: NextRequest) {
     }));
 
     // Calculate summary statistics
-    const totalAmount = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-    const successfulPayments = payments.filter(p => p.status === 'succeeded');
-    const failedPayments = payments.filter(p => p.status === 'failed');
+    const totalAmount = payments.reduce((sum, payment) => sum + ((payment as any).amount || 0), 0);
+    const successfulPayments = payments.filter(p => (p as any).status === 'succeeded');
+    const failedPayments = payments.filter(p => (p as any).status === 'failed');
 
     return NextResponse.json({
       success: true,

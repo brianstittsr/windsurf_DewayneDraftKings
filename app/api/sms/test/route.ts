@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { TwilioSMSService } from '@/lib/twilio-service';
+import TwilioSMSService from '@/lib/twilio-service';
 
 const smsService = new TwilioSMSService();
 
@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
       details: {
         to,
         message,
-        messageId: smsMessage.id,
-        status: smsMessage.status,
-        sentAt: smsMessage.sentAt
+        messageId: (smsMessage as any).id,
+        status: (smsMessage as any).status,
+        sentAt: (smsMessage as any).sentAt
       }
     });
 
