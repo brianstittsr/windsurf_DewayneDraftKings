@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import QRCodeService, { QRCodeData } from '@/lib/qr-code-service';
+import QRCodeService from '@/lib/qr-code-service';
+import type { QRCodeData } from '@/lib/qr-code-service';
 
 export default function QRCodeManagementPage() {
   const [qrCodes, setQrCodes] = useState<QRCodeData[]>([]);

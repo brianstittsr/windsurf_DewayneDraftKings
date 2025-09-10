@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { smsJourneyService } from '@/lib/sms-journey-service';
-import SMSJourneyService from '@/lib/sms-journey-service';
+import { smsJourneyService, SMSJourneyService } from '@/lib/sms-journey-service';
 
 export async function POST(request: NextRequest) {
   try {

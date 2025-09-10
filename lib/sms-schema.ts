@@ -5,7 +5,7 @@ import { Timestamp } from 'firebase/firestore';
 interface BaseSMSDocument {
   id: string;
   createdAt: Timestamp;
-  updatedAt: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 // SMS Subscriber - simplified for Phase 1
@@ -33,7 +33,10 @@ export interface SMSSubscriber extends BaseSMSDocument {
   totalMessagesSent: number;
   totalMessagesDelivered: number;
   totalReplies: number;
+  totalClicks: number;
   lastEngagement?: Timestamp;
+  lastReply?: Timestamp;
+  lastClick?: Timestamp;
 }
 
 // SMS Journey - automated message sequences
@@ -150,42 +153,29 @@ export interface SMSCampaign extends BaseSMSDocument {
 
 // SMS Analytics - aggregated metrics
 export interface SMSAnalytics extends BaseSMSDocument {
-  period: 'daily' | 'weekly' | 'monthly';
-  startDate: Timestamp;
-  endDate: Timestamp;
-  
-  // Subscriber Metrics
-  subscriberMetrics: {
-    totalSubscribers: number;
-    newSubscribers: number;
-    optOuts: number;
-    netGrowth: number;
-  };
+  date: Timestamp;
   
   // Message Metrics
-  messageMetrics: {
-    totalSent: number;
-    totalDelivered: number;
-    totalFailed: number;
-    deliveryRate: number;
-  };
+  totalMessagesSent: number;
+  totalMessagesDelivered: number;
+  totalMessagesFailed: number;
+  deliveryRate: number;
   
   // Engagement Metrics
-  engagementMetrics: {
-    totalReplies: number;
-    totalClicks: number;
-    replyRate: number;
-    clickRate: number;
-  };
+  totalReplies: number;
+  totalOptOuts: number;
+  replyRate: number;
+  optOutRate: number;
+  
+  // Conversion Metrics
+  totalClicks: number;
+  clickThroughRate: number;
+  
+  // Subscriber Metrics
+  activeSubscribers: number;
   
   // Journey Performance
-  journeyMetrics: {
-    [journeyId: string]: {
-      subscribers: number;
-      completed: number;
-      completionRate: number;
-    };
-  };
+  conversionsByJourney: { [journeyId: string]: number };
 }
 
 // SMS Template - reusable message templates

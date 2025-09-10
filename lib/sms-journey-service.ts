@@ -323,4 +323,5 @@ class SMSJourneyService {
 }
 
 export const smsJourneyService = new SMSJourneyService();
+export { SMSJourneyService };
 export default SMSJourneyService;

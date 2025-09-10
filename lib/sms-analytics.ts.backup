@@ -224,6 +224,7 @@ class SMSAnalyticsService {
       ]);
 
       const analyticsData = {
+        id: '',
         date: Timestamp.fromDate(startOfDay),
         totalMessagesSent: deliveryMetrics.totalSent,
         totalMessagesDelivered: deliveryMetrics.totalDelivered,
@@ -240,6 +241,9 @@ class SMSAnalyticsService {
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
+      
+      // Remove id before adding to Firestore
+      delete analyticsData.id;
 
       await addDoc(collection(db, SMS_COLLECTIONS.SMS_ANALYTICS), analyticsData);
     } catch (error) {

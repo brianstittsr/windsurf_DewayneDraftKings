@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { twilioService } from '@/lib/twilio-service';
-import TwilioSMSService from '@/lib/twilio-service';
+import { twilioService, TwilioSMSService } from '@/lib/twilio-service';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { SMS_COLLECTIONS } from '@/lib/sms-schema';

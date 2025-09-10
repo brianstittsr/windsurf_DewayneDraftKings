@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { smsJourneyService } from '@/lib/sms-journey-service';
-import SMSJourneyService from '@/lib/sms-journey-service';
+import { smsJourneyService, SMSJourneyService } from '@/lib/sms-journey-service';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { SMS_COLLECTIONS } from '@/lib/sms-schema';

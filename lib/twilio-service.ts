@@ -307,4 +307,5 @@ class TwilioSMSService {
 }
 
 export const twilioService = new TwilioSMSService();
+export { TwilioSMSService };
 export default TwilioSMSService;

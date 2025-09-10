@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import TwilioSMSService from '@/lib/twilio-service';
+import { TwilioSMSService } from '@/lib/twilio-service';
 
 const smsService = new TwilioSMSService();
 

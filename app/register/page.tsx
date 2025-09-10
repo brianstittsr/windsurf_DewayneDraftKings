@@ -6,7 +6,7 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { SMS_COLLECTIONS } from '@/lib/sms-schema';
 import { COLLECTIONS } from '@/lib/firestore-schema';
-import TwilioSMSService, { twilioService } from '@/lib/twilio-service';
+import { twilioService, TwilioSMSService } from '@/lib/twilio-service';
 import QRCode from 'qrcode';
 import ModernNavbar from '@/components/ModernNavbar';
 import PaymentCheckout from '@/components/PaymentCheckout';
