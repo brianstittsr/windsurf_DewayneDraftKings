@@ -649,6 +649,32 @@ a {
   background-color: transparent;
 }
 
+/* Waiver document styling */
+.waiver-document {
+  font-family: 'Times New Roman', serif;
+  line-height: 1.4;
+}
+
+.waiver-section h6 {
+  color: var(--gray-800);
+  margin-bottom: 0.5rem;
+}
+
+.waiver-section p {
+  text-align: justify;
+  margin-bottom: 0.75rem;
+}
+
+.signature-input {
+  border: 2px solid var(--primary);
+  background-color: #f8f9ff;
+}
+
+.signature-input:focus {
+  border-color: var(--primary-dark);
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+}
+
 /* Responsive wizard adjustments */
 @media (max-width: 768px) {
   .step-number {
@@ -663,5 +689,9 @@ a {
   
   .step-content {
     min-height: 250px;
+  }
+  
+  .waiver-document {
+    max-height: 300px !important;
   }
 }

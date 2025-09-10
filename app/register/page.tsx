@@ -22,18 +22,23 @@ export default function RegisterPage() {
     specialties: '',
     emergencyContactName: '',
     emergencyContactPhone: '',
-    maxTeams: 2
+    maxTeams: 2,
+    waiverAccepted: false,
+    parentGuardianName: '',
+    parentGuardianSignature: '',
+    waiverSignatureDate: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
 
-  const totalSteps = 4;
+  const totalSteps = 5;
 
   const stepTitles = [
     'Role Selection',
     'Personal Information', 
     'Sport Details',
-    'Emergency Contact'
+    'Emergency Contact',
+    'Waiver & Release'
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -70,6 +75,8 @@ export default function RegisterPage() {
         return true; // Player sport details are optional
       case 4:
         return true; // Emergency contact is optional
+      case 5:
+        return formData.waiverAccepted && formData.parentGuardianName !== '' && formData.parentGuardianSignature !== '';
       default:
         return true;
     }
@@ -340,15 +347,128 @@ export default function RegisterPage() {
                 />
               </div>
             </div>
-            <div className="alert alert-info">
-              <i className="fas fa-info-circle me-2"></i>
-              <strong>Review your information:</strong>
-              <ul className="mb-0 mt-2">
-                <li>Role: <strong>{formData.role === 'player' ? 'Player' : 'Coach'}</strong></li>
-                <li>Name: <strong>{formData.firstName} {formData.lastName}</strong></li>
-                <li>Email: <strong>{formData.email}</strong></li>
-                <li>Phone: <strong>{formData.phone}</strong></li>
-              </ul>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="step-content">
+            <div className="text-center mb-4">
+              <i className="fas fa-file-signature fa-3x text-primary mb-3"></i>
+              <h4>Waiver & Release of Liability</h4>
+              <p className="text-muted">Required for participation in All Pro Sports activities</p>
+            </div>
+            
+            <div className="waiver-document bg-light p-4 mb-4" style={{ maxHeight: '400px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '8px' }}>
+              <h5 className="text-center mb-4"><strong>All Pro Sports Minor Participant Waiver & Release of Liability</strong></h5>
+              
+              <div className="mb-3">
+                <strong>Participant Name (Minor):</strong> {formData.firstName} {formData.lastName}<br/>
+                <strong>Date of Birth:</strong> {formData.dateOfBirth ? new Date(formData.dateOfBirth).toLocaleDateString() : 'Not provided'}
+              </div>
+
+              <div className="waiver-section mb-3">
+                <h6><strong>1. Acknowledgement of Risks</strong></h6>
+                <p className="small">I, the undersigned parent or legal guardian, acknowledge that participation in flag football and related activities (including practices, games, training, and events) organized by All Pro Sports involves inherent risks. These risks include, but are not limited to, physical injury, illness, collisions, falls, concussions, equipment malfunction, weather conditions, and in rare cases, permanent disability or death.</p>
+              </div>
+
+              <div className="waiver-section mb-3">
+                <h6><strong>2. Assumption of Risk</strong></h6>
+                <p className="small">I voluntarily allow my child to participate in All Pro Sports activities, fully accepting and assuming all risks, known and unknown, including those arising from the negligence of All Pro Sports, its owners, staff, volunteers, referees, or affiliates.</p>
+              </div>
+
+              <div className="waiver-section mb-3">
+                <h6><strong>3. Release of Liability</strong></h6>
+                <p className="small">In consideration for my child's participation, I hereby release, discharge, and hold harmless All Pro Sports, its directors, officers, employees, volunteers, coaches, referees, sponsors, partners, and affiliates from any and all liability, claims, demands, or causes of action, whether in law or equity, arising out of or related to any injury, illness, disability, or death sustained by my child while participating. This release includes any financial obligations, medical costs, damages, or losses incurred, even if caused by negligence.</p>
+              </div>
+
+              <div className="waiver-section mb-3">
+                <h6><strong>4. Medical Treatment</strong></h6>
+                <p className="small">I grant permission to All Pro Sports staff and medical personnel to administer emergency care and/or arrange for transport to a medical facility if necessary. I agree to be financially responsible for any medical treatment and related expenses.</p>
+              </div>
+
+              <div className="waiver-section mb-3">
+                <h6><strong>5. Insurance</strong></h6>
+                <p className="small">I understand that All Pro Sports does not provide medical or accident insurance for participants. I certify that my child has adequate health insurance coverage.</p>
+              </div>
+
+              <div className="waiver-section mb-3">
+                <h6><strong>6. Photo/Media Release</strong></h6>
+                <p className="small">I grant permission for my child's image, likeness, and voice to be recorded, photographed, or otherwise captured during All Pro Sports activities, and for such media to be used in promotional materials, websites, or social media without compensation.</p>
+              </div>
+
+              <div className="waiver-section mb-3">
+                <h6><strong>7. Code of Conduct</strong></h6>
+                <p className="small">I agree that my child will follow all league rules, show respect to referees, coaches, teammates, and opponents, and uphold the standards of good sportsmanship.</p>
+              </div>
+
+              <div className="waiver-section mb-3">
+                <h6><strong>8. Acknowledgement of Understanding</strong></h6>
+                <p className="small">I have read this waiver, fully understand its terms, and sign it freely and voluntarily. I acknowledge that I am giving up substantial rights, including the right to sue All Pro Sports for negligence.</p>
+              </div>
+            </div>
+
+            <div className="signature-section">
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <label className="form-label">Parent/Guardian Name *</label>
+                  <input
+                    type="text"
+                    name="parentGuardianName"
+                    value={formData.parentGuardianName}
+                    onChange={handleInputChange}
+                    className="form-control"
+                    placeholder="Full legal name"
+                    required
+                  />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Today's Date</label>
+                  <input
+                    type="date"
+                    name="waiverSignatureDate"
+                    value={formData.waiverSignatureDate || new Date().toISOString().split('T')[0]}
+                    onChange={handleInputChange}
+                    className="form-control"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Digital Signature *</label>
+                <input
+                  type="text"
+                  name="parentGuardianSignature"
+                  value={formData.parentGuardianSignature}
+                  onChange={handleInputChange}
+                  className="form-control signature-input"
+                  placeholder="Type your full name as your digital signature"
+                  style={{ fontFamily: 'cursive', fontSize: '18px' }}
+                  required
+                />
+                <small className="form-text text-muted">By typing your name above, you are providing your legal digital signature.</small>
+              </div>
+
+              <div className="form-check mb-3">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  name="waiverAccepted"
+                  checked={formData.waiverAccepted}
+                  onChange={(e) => setFormData(prev => ({ ...prev, waiverAccepted: e.target.checked }))}
+                  id="waiverAccepted"
+                  required
+                />
+                <label className="form-check-label" htmlFor="waiverAccepted">
+                  <strong>I have read, understood, and agree to the terms of this waiver and release of liability. I acknowledge that I am giving up substantial legal rights by signing this document.</strong>
+                </label>
+              </div>
+
+              <div className="alert alert-warning">
+                <i className="fas fa-exclamation-triangle me-2"></i>
+                <strong>Important:</strong> This waiver covers liability (including death), financial responsibility for medical expenses, waives the right to sue All Pro Sports and affiliates, grants photo/video release rights, and establishes code of conduct requirements.
+              </div>
             </div>
           </div>
         );
