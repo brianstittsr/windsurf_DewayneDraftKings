@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { smsOptInService } from '@/lib/firebase-services';
+import { Timestamp } from 'firebase/firestore';
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,12 +36,18 @@ export async function POST(request: NextRequest) {
 
     // Create opt-in record
     const optInData = {
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
+      firstName: body.firstName?.trim() || '',
+      lastName: body.lastName?.trim() || '',
       phoneNumber: formattedPhone,
       email: body.email?.trim() || undefined,
       consent: true,
-      marketingConsent: body.marketingConsent || false
+      marketingConsent: body.marketingConsent || false,
+      source: 'web_form' as const,
+      status: 'active' as const,
+      optInDate: Timestamp.now(),
+      messagesSent: 0,
+      tcpaCompliant: true,
+      consentText: 'User provided explicit consent via web form opt-in'
     };
 
     const optInId = await smsOptInService.createOptIn(
