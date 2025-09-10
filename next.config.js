@@ -23,18 +23,6 @@ const nextConfig = {
       },
     });
     
-    // Handle Firebase modules properly
-    config.module.rules.push({
-      test: /node_modules\/firebase/,
-      use: {
-        loader: 'babel-loader',
-        options: {
-          presets: ['@babel/preset-env'],
-          plugins: ['@babel/plugin-proposal-private-methods']
-        }
-      }
-    });
-    
     // Exclude Node.js modules from client bundle
     if (!isServer) {
       config.resolve.fallback = {
