@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
-import { COLLECTIONS } from '@/lib/firestore-schema';
 
 export async function POST(request: NextRequest) {
   try {
+    // Dynamic imports to prevent build-time execution
+    const services = await import('@/lib/firebase').catch(() => null);
+    if (!services?.db) {
+      return NextResponse.json(
+        { success: false, error: 'Database not available' },
+        { status: 503 }
+      );
+    }
+
+    const { doc, updateDoc } = await import('firebase/firestore');
+    const { COLLECTIONS } = await import('@/lib/firestore-schema');
+
     const body = await request.json();
     const { coachId, qrCode, qrCodeUrl } = body;
 
@@ -15,7 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await updateDoc(doc(db, COLLECTIONS.COACHES, coachId), {
+    await updateDoc(doc(services.db, COLLECTIONS.COACHES, coachId), {
       qrCode,
       qrCodeUrl,
       updatedAt: new Date()
