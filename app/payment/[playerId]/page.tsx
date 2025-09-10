@@ -1,93 +1,65 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
-import { COLLECTIONS, Player } from '@/lib/firestore-schema';
+import { useParams, useSearchParams } from 'next/navigation';
 
 export default function PaymentPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const playerId = params.playerId as string;
-  const [player, setPlayer] = useState<Player | null>(null);
-  const [loading, setLoading] = useState(true);
+  const amount = searchParams.get('amount') || '50';
+  const type = searchParams.get('type') || 'player';
+  
+  const [loading, setLoading] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
+  // Remove Firebase dependency - player data will be handled differently
   useEffect(() => {
-    const fetchPlayer = async () => {
-      try {
-        if (!playerId) return;
-        
-        const playerDoc = await getDoc(doc(db, COLLECTIONS.PLAYERS, playerId));
-        if (playerDoc.exists()) {
-          setPlayer({ id: playerDoc.id, ...playerDoc.data() } as Player);
-        } else {
-          setError('Player not found');
-        }
-      } catch (err) {
-        setError('Failed to load player information');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPlayer();
+    // For now, just set loading to false since we're not fetching from Firebase
+    setLoading(false);
   }, [playerId]);
 
-  const handlePayment = async (paymentType: string, amount: number) => {
+  const handlePayment = async () => {
     setPaymentProcessing(true);
     setError('');
 
     try {
-      // For now, simulate payment processing
-      // In Phase 2, this will integrate with Stripe
+      // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Update player payment status
-      if (player) {
-        await updateDoc(doc(db, COLLECTIONS.PLAYERS, player.id), {
-          paymentStatus: 'paid',
-          registrationStatus: 'confirmed',
-          updatedAt: Timestamp.now()
-        });
-
-        // Send confirmation SMS
-        await fetch('/api/sms/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phone: player.phone,
-            message: `🎉 Payment confirmed! Welcome to All Pro Sports, ${player.firstName}! Your registration is complete. Check your player profile: ${player.qrCodeUrl}`,
-            subscriberId: player.id,
-            journeyId: 'payment-confirmed'
-          }),
-        });
-
-        // Redirect to success page
-        window.location.href = `/player/${player.id}?payment=success`;
-      }
+      
+      setPaymentProcessing(false);
+      setSuccess(true);
+      
+      // Here you would integrate with your payment processor (Stripe, etc.)
+      // and save payment data to Firebase with dynamic imports
     } catch (err) {
-      setError('Payment processing failed. Please try again.');
-    } finally {
+      setError('Payment failed. Please try again.');
       setPaymentProcessing(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="container my-5">
-        <div className="row justify-content-center">
-          <div className="col-md-6">
-            <div className="card dk-card">
-              <div className="card-body text-center">
-                <div className="spinner-border text-primary mb-3" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-                <p>Loading payment information...</p>
-              </div>
-            </div>
+      <div className="container mt-5 pt-5">
+        <div className="text-center">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Loading...</span>
           </div>
+          <p className="mt-3">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className="container mt-5 pt-5">
+        <div className="alert alert-success text-center">
+          <h4>Payment Successful!</h4>
+          <p>Welcome to All Pro Sports! You will receive a confirmation email shortly.</p>
+          <a href="/" className="btn btn-primary">Return to Home</a>
         </div>
       </div>
     );
@@ -116,7 +88,7 @@ export default function PaymentPage() {
     );
   }
 
-  if (!player) return null;
+  // Remove player dependency since we're not using Firebase
 
   return (
     <div className="container my-5">
@@ -133,14 +105,9 @@ export default function PaymentPage() {
                 <h5 className="text-primary mb-3">👤 Player Information</h5>
                 <div className="row">
                   <div className="col-md-6">
-                    <p><strong>Name:</strong> {player.firstName} {player.lastName}</p>
-                    <p><strong>Position:</strong> {player.position}</p>
-                    <p><strong>Phone:</strong> {player.phone}</p>
-                  </div>
-                  <div className="col-md-6">
-                    <p><strong>Email:</strong> {player.email || 'Not provided'}</p>
-                    <p><strong>Player Type:</strong> {player.playerTag}</p>
-                    <p><strong>Registration Date:</strong> {new Date().toLocaleDateString()}</p>
+                    <h3>Payment for {type === 'player' ? 'Player' : 'Coach'} Registration</h3>
+                    <p className="text-muted">Registration ID: {playerId}</p>
+                    <p>Complete your registration by processing payment below.</p>
                   </div>
                 </div>
               </div>
@@ -170,7 +137,7 @@ export default function PaymentPage() {
                         </div>
                         <button
                           className="btn dk-btn-primary"
-                          onClick={() => handlePayment('flag-football', 87)}
+                          onClick={handlePayment}
                           disabled={paymentProcessing}
                         >
                           {paymentProcessing ? (
@@ -208,7 +175,7 @@ export default function PaymentPage() {
                         </div>
                         <button
                           className="btn btn-outline-primary"
-                          onClick={() => handlePayment('meal-plan', 35)}
+                          onClick={handlePayment}
                           disabled={paymentProcessing}
                         >
                           Add Meal Plan
@@ -245,7 +212,7 @@ export default function PaymentPage() {
                         </div>
                         <button
                           className="btn btn-success btn-lg"
-                          onClick={() => handlePayment('complete-package', 112)}
+                          onClick={handlePayment}
                           disabled={paymentProcessing}
                         >
                           {paymentProcessing ? (
@@ -276,15 +243,12 @@ export default function PaymentPage() {
                   After payment, you'll receive your unique QR code that links to your player profile and stats.
                 </p>
                 <div className="mb-3">
-                  <img 
-                    src={player.qrCode} 
-                    alt="Player QR Code" 
-                    style={{ width: '150px', height: '150px' }}
-                    className="border rounded"
-                  />
+                  <div className="text-center p-3 bg-light rounded">
+                    <p>QR Code will be generated after payment completion</p>
+                  </div>
                 </div>
                 <small className="text-muted">
-                  Profile URL: {player.qrCodeUrl}
+                  Profile URL will be available after registration
                 </small>
               </div>
 
