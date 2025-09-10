@@ -1,20 +1,89 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ModernNavbar from '../../components/ModernNavbar';
-// Removed Firebase dependencies for Vercel build
-// import { CouponService } from '../../lib/coupon-service';
-// import { Coupon } from '../../lib/firestore-schema';
+
+interface PricingPlan {
+  id?: string;
+  title: string;
+  subtitle: string;
+  price: number;
+  serviceFee: number;
+  features: string[];
+  popular: boolean;
+  buttonText: string;
+  buttonClass: string;
+  itemType: 'jamboree' | 'season' | 'bundle' | 'assistant_coach' | 'head_coach';
+  category: 'player' | 'coach';
+}
+
+interface Coupon {
+  id: string;
+  code: string;
+  discountType: 'percentage' | 'fixed_amount' | 'set_price';
+  discountValue: number;
+  expiryDate?: { toDate: () => Date };
+  usageLimit?: number;
+  usedCount: number;
+  applicableItems?: string[];
+  minimumOrderValue?: number;
+}
 
 export default function PricingPage() {
   const [activeTab, setActiveTab] = useState<'player' | 'coach'>('player');
   const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [couponError, setCouponError] = useState('');
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const playerPricing = [
+  // Load pricing plans from Firebase
+  useEffect(() => {
+    const loadPricingPlans = async () => {
+      try {
+        setLoading(true);
+        
+        // Dynamic import to avoid build errors
+        const { db } = await import('@/lib/firebase').catch(() => ({ db: null }));
+        
+        if (!db) {
+          console.warn('Firebase not available, using static pricing data');
+          setPricingPlans(getStaticPricingData());
+          setLoading(false);
+          return;
+        }
+
+        const { collection, getDocs } = await import('firebase/firestore');
+        const pricingRef = collection(db, 'pricing');
+        const snapshot = await getDocs(pricingRef);
+        
+        if (snapshot.empty) {
+          console.log('No pricing data in Firebase, using static data');
+          setPricingPlans(getStaticPricingData());
+        } else {
+          const plans = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })) as PricingPlan[];
+          setPricingPlans(plans);
+        }
+      } catch (err) {
+        console.error('Error loading pricing plans:', err);
+        setError('Failed to load pricing data');
+        setPricingPlans(getStaticPricingData());
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPricingPlans();
+  }, []);
+
+  // Static pricing data as fallback
+  const getStaticPricingData = (): PricingPlan[] => [
     {
       title: 'Jamboree Game',
       subtitle: 'Registration + Jersey',
@@ -30,7 +99,8 @@ export default function PricingPage() {
       popular: false,
       buttonText: 'Register Now',
       buttonClass: 'btn-outline-primary',
-      itemType: 'jamboree' as const
+      itemType: 'jamboree',
+      category: 'player'
     },
     {
       title: 'Jamboree + Season',
@@ -48,9 +118,10 @@ export default function PricingPage() {
         'Season highlight reel'
       ],
       popular: true,
-      buttonText: 'Get Complete Package',
-      buttonClass: 'btn-success',
-      itemType: 'jamboree_and_season' as const
+      buttonText: 'Get Started',
+      buttonClass: 'btn-primary',
+      itemType: 'bundle',
+      category: 'player'
     },
     {
       title: 'Complete Season',
@@ -58,61 +129,63 @@ export default function PricingPage() {
       price: 59.00,
       serviceFee: 3.00,
       features: [
-        'Full season registration',
-        'Official team jersey',
+        'Complete season registration',
         'All regular season games',
         'Playoff eligibility',
+        'Official team jersey',
         'Advanced stats tracking',
-        'Team photo & highlights',
-        'End of season awards'
+        'Team events access',
+        'Season awards eligibility'
       ],
       popular: false,
       buttonText: 'Join Season',
-      buttonClass: 'btn-primary',
-      itemType: 'complete_season' as const
-    }
-  ];
-
-  const coachPricing = [
+      buttonClass: 'btn-outline-primary',
+      itemType: 'season',
+      category: 'player'
+    },
     {
       title: 'Assistant Coach',
       subtitle: 'Support role',
       price: 45.00,
       serviceFee: 3.00,
       features: [
-        'Assistant coaching certification',
+        'Assistant coaching role',
         'Team management access',
-        'Practice planning tools',
-        'Player development resources',
-        'Safety training included'
+        'Player development training',
+        'Game day sideline access',
+        'Coach certification',
+        'Equipment provided'
       ],
       popular: false,
       buttonText: 'Apply Now',
       buttonClass: 'btn-outline-primary',
-      itemType: 'coach_registration' as const
+      itemType: 'assistant_coach',
+      category: 'coach'
     },
     {
       title: 'Head Coach',
-      subtitle: 'Team leadership',
+      subtitle: 'Leadership role',
       price: 75.00,
       serviceFee: 3.00,
       features: [
-        'Head coaching certification',
+        'Head coaching position',
         'Full team management',
-        'Game strategy tools',
-        'Player evaluation system',
-        'Parent communication portal',
-        'League coordinator access',
-        'Advanced training materials'
+        'Strategic planning authority',
+        'Player recruitment rights',
+        'Advanced coach training',
+        'Leadership certification',
+        'Premium equipment package'
       ],
       popular: true,
-      buttonText: 'Lead a Team',
+      buttonText: 'Lead Team',
       buttonClass: 'btn-primary',
-      itemType: 'coach_registration' as const
+      itemType: 'head_coach',
+      category: 'coach'
     }
   ];
 
-  const currentPricing = activeTab === 'player' ? playerPricing : coachPricing;
+  // Filter pricing plans by category
+  const currentPricing = pricingPlans.filter(plan => plan.category === activeTab);
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
@@ -128,11 +201,54 @@ export default function PricingPage() {
     setValidatingCoupon(true);
     setCouponError('');
 
-    // Simulate coupon validation for now
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setValidatingCoupon(false);
-    setCouponError('Coupon validation temporarily disabled');
+    try {
+      // Dynamic import to avoid build errors
+      const { db } = await import('@/lib/firebase').catch(() => ({ db: null }));
+      
+      if (!db) {
+        setCouponError('Coupon validation unavailable');
+        setValidatingCoupon(false);
+        return;
+      }
+
+      const { collection, query, where, getDocs } = await import('firebase/firestore');
+      const couponsRef = collection(db, 'coupons');
+      const q = query(couponsRef, where('code', '==', couponCode.toUpperCase()));
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        setCouponError('Invalid coupon code');
+        setValidatingCoupon(false);
+        return;
+      }
+
+      const couponDoc = snapshot.docs[0];
+      const coupon = { id: couponDoc.id, ...couponDoc.data() } as Coupon;
+      
+      // Validate coupon
+      const now = new Date();
+      const expiryDate = coupon.expiryDate?.toDate();
+      
+      if (expiryDate && expiryDate < now) {
+        setCouponError('Coupon has expired');
+        setValidatingCoupon(false);
+        return;
+      }
+      
+      if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+        setCouponError('Coupon usage limit reached');
+        setValidatingCoupon(false);
+        return;
+      }
+
+      setAppliedCoupon(coupon);
+      setCouponCode('');
+    } catch (error) {
+      console.error('Coupon validation error:', error);
+      setCouponError('Error validating coupon. Please try again.');
+    } finally {
+      setValidatingCoupon(false);
+    }
   };
 
   const removeCoupon = () => {
@@ -262,9 +378,34 @@ export default function PricingPage() {
             </div>
           )}
 
+          {/* Loading State */}
+          {loading && (
+            <div className="row justify-content-center">
+              <div className="col-12 text-center">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading pricing plans...</span>
+                </div>
+                <p className="mt-3 text-muted">Loading pricing plans...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="row justify-content-center">
+              <div className="col-lg-8">
+                <div className="alert alert-warning" role="alert">
+                  <i className="fas fa-exclamation-triangle me-2"></i>
+                  {error}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Pricing Cards */}
-          <div className="row justify-content-center">
-            {currentPricing.map((plan, index) => {
+          {!loading && !error && (
+            <div className="row justify-content-center">
+              {currentPricing.map((plan, index) => {
               const pricing = calculatePricing(plan);
               const isSelected = selectedPlan === index;
               
@@ -352,7 +493,8 @@ export default function PricingPage() {
                 </div>
               );
             })}
-          </div>
+            </div>
+          )}
 
           {/* Additional Info */}
           <div className="row justify-content-center mt-5">
