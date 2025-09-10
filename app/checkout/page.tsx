@@ -33,7 +33,7 @@ export default function CheckoutPage() {
     
     const plan = registrationData.selectedPlan;
     const basePrice = plan.pricing?.finalAmount || plan.price || 0;
-    const serviceFee = plan.serviceFee || 3.00;
+    const serviceFee = 3.00; // Standard service fee
     
     return basePrice + serviceFee;
   };
@@ -180,7 +180,7 @@ export default function CheckoutPage() {
                       </div>
                       <div className="d-flex justify-content-between">
                         <span>Service Fee:</span>
-                        <span>${(plan?.serviceFee || 3.00).toFixed(2)}</span>
+                        <span>$3.00</span>
                       </div>
                     </div>
 
