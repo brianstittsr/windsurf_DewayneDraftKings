@@ -242,12 +242,12 @@ class ConversionTrackingService {
         {
           stage: 'Engaged Users',
           count: 0,
-          filter: (sub: SMSSubscriber) => (sub.totalReplies || 0) > 0 || (sub.totalClicks || 0) > 0
+          filter: (sub: SMSSubscriber) => (sub.totalReplies || 0) > 0
         },
         {
           stage: 'Active Clickers',
           count: 0,
-          filter: (sub: SMSSubscriber) => (sub.totalClicks || 0) > 0
+          filter: (sub: SMSSubscriber) => (sub.totalReplies || 0) > 2
         }
       ];
 
