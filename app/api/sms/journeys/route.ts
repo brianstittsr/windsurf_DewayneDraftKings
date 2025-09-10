@@ -85,7 +85,17 @@ export async function POST(request: NextRequest) {
       const createdJourneys = [];
 
       for (const template of templates) {
-        const journeyId = await smsJourneyService.createJourney(template);
+        // Add stats property to template before creating journey
+        const journeyWithStats = {
+          ...template,
+          stats: {
+            totalSubscribers: 0,
+            completedJourney: 0,
+            optedOut: 0,
+            conversionRate: 0
+          }
+        };
+        const journeyId = await smsJourneyService.createJourney(journeyWithStats);
         createdJourneys.push({ id: journeyId, name: template.name });
       }
 
