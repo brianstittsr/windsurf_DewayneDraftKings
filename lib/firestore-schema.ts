@@ -16,11 +16,13 @@ export interface Player extends BaseDocument {
   phone: string;
   dateOfBirth: Timestamp;
   profilePhoto?: string;
+  jerseySize: string;
   
   // Registration Information
   registrationDate: Timestamp;
   registrationStatus: 'pending' | 'confirmed' | 'cancelled';
   paymentStatus: 'pending' | 'paid' | 'partial' | 'overdue';
+  registrationPdfUrl?: string;
   
   // Player Classification
   playerTag: 'free-agent' | 'draft-pick' | 'prospect' | 'meet-greet' | 'client';
@@ -90,11 +92,13 @@ export interface Coach extends BaseDocument {
   phone: string;
   dateOfBirth: Timestamp;
   profilePhoto?: string;
+  jerseySize?: string;
   
   // Registration Information
   registrationDate: Timestamp;
   registrationStatus: 'pending' | 'confirmed' | 'cancelled';
   isActive: boolean;
+  registrationPdfUrl?: string;
   
   // Coaching Information
   experience: string; // Years of experience or description
@@ -819,10 +823,72 @@ export interface PlanSelection extends BaseDocument {
   checkoutSessionId?: string;
 }
 
+// User Profile Interface (Enhanced for admin management)
+export interface UserProfile extends BaseDocument {
+  // Personal Information
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: Timestamp;
+  role: 'player' | 'coach';
+  jerseySize?: string;
+  profilePhoto?: string;
+  
+  // Registration Data
+  registrationData: RegistrationData;
+  registrationPdfUrl?: string;
+  
+  // Profile Management
+  profileUrl?: string;
+  qrCodeUrl?: string;
+  qrCodeData?: string;
+  
+  // Payment Information
+  stripeSessionId?: string;
+  paymentStatus: 'pending' | 'paid' | 'failed';
+  paymentId?: string;
+  
+  // Status
+  status: 'active' | 'inactive' | 'suspended';
+  isVerified: boolean;
+  
+  // Admin Notes
+  adminNotes?: string;
+  lastLogin?: Timestamp;
+}
+
+// Registration Data Interface
+export interface RegistrationData {
+  role: 'player' | 'coach';
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  dateOfBirth: string;
+  position?: string;
+  playerTag?: string;
+  jerseySize: string;
+  experience?: string;
+  coachingLevel?: string;
+  certifications?: string;
+  specialties?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  maxTeams?: number;
+  waiverAccepted: boolean;
+  parentGuardianName?: string;
+  parentGuardianSignature?: string;
+  waiverSignatureDate?: string;
+  selectedPlan?: any;
+  submittedAt: Timestamp;
+}
+
 // Collection names for Firestore
 export const COLLECTIONS = {
   PLAYERS: 'players',
   COACHES: 'coaches',
+  USER_PROFILES: 'user_profiles',
   TEAMS: 'teams',
   GAMES: 'games',
   SEASONS: 'seasons',

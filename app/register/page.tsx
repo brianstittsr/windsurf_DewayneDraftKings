@@ -19,6 +19,7 @@ export default function RegisterPage() {
     position: 'flex',
     playerTag: 'free-agent',
     experience: '',
+    jerseySize: 'M',
     coachingLevel: 'volunteer',
     certifications: '',
     specialties: '',
@@ -285,16 +286,39 @@ export default function RegisterPage() {
                   </select>
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Player Status</label>
-                  <select
-                    name="playerTag"
+                  <label htmlFor="playerTag" className="form-label">Player Status</label>
+                  <select 
+                    id="playerTag"
+                    name="playerTag" 
+                    className="form-select" 
                     value={formData.playerTag}
                     onChange={handleInputChange}
-                    className="form-select"
+                    required
                   >
                     <option value="free-agent">Free Agent</option>
                     <option value="returning">Returning Player</option>
                     <option value="rookie">Rookie</option>
+                    <option value="veteran">Veteran</option>
+                  </select>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="jerseySize" className="form-label">Jersey Size</label>
+                  <select 
+                    id="jerseySize"
+                    name="jerseySize" 
+                    className="form-select" 
+                    value={formData.jerseySize}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="XS">Extra Small (XS)</option>
+                    <option value="S">Small (S)</option>
+                    <option value="M">Medium (M)</option>
+                    <option value="L">Large (L)</option>
+                    <option value="XL">Extra Large (XL)</option>
+                    <option value="XXL">2X Large (XXL)</option>
+                    <option value="XXXL">3X Large (XXXL)</option>
                   </select>
                 </div>
               </>

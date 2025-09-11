@@ -77,67 +77,82 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleSuccessfulPayment(session: any) {
+  console.log('Processing successful payment for session:', session.id);
+  
+  const metadata = session.metadata;
+  console.log('Session metadata:', metadata);
+  
+  // Parse registration data from metadata
+  let registrationData;
   try {
-    console.log('Processing successful payment:', session.id);
-    
-    // Extract player data from metadata
-    const metadata = session.metadata;
-    const playerData = JSON.parse(session.metadata.registrationData);
-    
-    console.log('Payment completed for player:', {
-      name: metadata.playerName,
-      phone: metadata.playerPhone,
-      email: metadata.playerEmail,
-      amount: session.amount_total / 100,
-      sessionId: session.id
-    });
+    registrationData = JSON.parse(session.metadata.registrationData);
+  } catch (error) {
+    console.error('Error parsing registration data:', error);
+    return;
+  }
 
-    // Dynamically import Firebase services
+  // Create payment record
+  const paymentRecord = {
+    stripeSessionId: session.id,
+    amount: session.amount_total / 100,
+    currency: session.currency,
+    customerEmail: session.customer_email || session.customer_details?.email,
+    customerName: metadata.playerName,
+    paymentStatus: session.payment_status,
+    paymentMethod: metadata.paymentMethod || session.payment_method_types?.[0] || 'card',
+    createdAt: new Date(),
+    metadata: {
+      planType: metadata.planType,
+      playerPhone: metadata.playerPhone,
+      playerEmail: metadata.playerEmail
+    }
+  };
+
+  // Save to Firebase if available
+  try {
     const { db } = await import('@/lib/firebase').catch(() => ({ db: null }));
     
     if (db) {
       const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
       
       // Save payment record
-      const paymentRecord = {
-        sessionId: session.id,
-        amount: session.amount_total / 100,
-        currency: session.currency,
-        status: 'completed',
-        playerName: metadata.playerName,
-        playerPhone: metadata.playerPhone,
-        playerEmail: metadata.playerEmail,
-        planType: metadata.planType,
+      const paymentDoc = await addDoc(collection(db, 'payments'), {
+        ...paymentRecord,
         createdAt: serverTimestamp(),
-        stripeData: {
-          customerId: session.customer,
-          paymentIntentId: session.payment_intent,
-          paymentStatus: session.payment_status
+        updatedAt: serverTimestamp()
+      });
+      
+      console.log('Payment record saved:', paymentDoc.id);
+      
+      // Create user profile with PDF generation and email
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/registration/create-profile`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            registrationData,
+            paymentId: paymentDoc.id,
+            stripeSessionId: session.id
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('User profile created successfully:', result.profileId);
+        } else {
+          console.error('Failed to create user profile:', await response.text());
         }
-      };
+      } catch (error) {
+        console.error('Error creating user profile:', error);
+      }
       
-      await addDoc(collection(db, 'payments'), paymentRecord);
-      
-      // Create player profile
-      const playerProfile = {
-        ...playerData,
-        paymentStatus: 'paid',
-        registrationDate: serverTimestamp(),
-        stripeSessionId: session.id,
-        planType: metadata.planType,
-        qrCodeGenerated: false
-      };
-      
-      const playerDoc = await addDoc(collection(db, 'players'), playerProfile);
-      console.log('Player profile created:', playerDoc.id);
-      
-      // TODO: Generate QR code for player
-      // TODO: Send confirmation SMS/email
+      console.log('Successfully processed payment and initiated profile creation');
     } else {
-      console.log('Firebase not available, payment logged locally only');
+      console.log('Firebase not available, payment processed but not stored');
     }
-    
   } catch (error) {
-    console.error('Error handling successful payment:', error);
+    console.error('Error saving to Firebase:', error);
   }
 }

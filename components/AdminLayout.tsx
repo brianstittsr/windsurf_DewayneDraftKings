@@ -160,6 +160,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </Link>
           </li>
 
+          {/* Nav Item - User Profiles */}
+          <li className="nav-item">
+            <Link href="/admin?tab=user-profiles" className={`nav-link ${isActive('/admin/user-profiles') ? 'active' : ''}`}>
+              <i className="fas fa-fw fa-id-card"></i>
+              <span>User Profiles</span>
+            </Link>
+          </li>
+
           {/* Nav Item - QR Codes */}
           <li className="nav-item">
             <Link href="/admin?tab=qr-codes" className={`nav-link ${isActive('/admin/qr-codes') ? 'active' : ''}`}>
