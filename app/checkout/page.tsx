@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ModernNavbar from '@/components/ModernNavbar';
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [registrationData, setRegistrationData] = useState<any>(null);
@@ -798,5 +798,26 @@ export default function CheckoutPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <>
+        <ModernNavbar />
+        <div className="container mt-5 pt-5">
+          <div className="row justify-content-center">
+            <div className="col-12 text-center">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    }>
+      <CheckoutPageContent />
+    </Suspense>
   );
 }

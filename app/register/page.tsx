@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ModernNavbar from '@/components/ModernNavbar';
 import { 
@@ -20,7 +20,7 @@ const formatPhoneNumber = (digits: string): string => {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
 };
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
@@ -757,5 +757,26 @@ export default function RegisterPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <>
+        <ModernNavbar />
+        <div className="container mt-5 pt-5">
+          <div className="row justify-content-center">
+            <div className="col-12 text-center">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    }>
+      <RegisterPageContent />
+    </Suspense>
   );
 }
