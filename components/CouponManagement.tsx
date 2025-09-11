@@ -61,10 +61,11 @@ export default function CouponManagement() {
       const response = await fetch('/api/coupons');
       if (response.ok) {
         const data = await response.json();
-        setCoupons(data);
+        setCoupons(data.coupons || []);
       }
     } catch (error) {
       console.error('Error fetching coupons:', error);
+      setCoupons([]);
     } finally {
       setLoading(false);
     }
@@ -211,9 +212,9 @@ export default function CouponManagement() {
     return new Date() > expirationDate;
   };
 
-  const filteredCoupons = coupons.filter(coupon => {
+  const filteredCoupons = (coupons || []).filter(coupon => {
     const matchesSearch = coupon.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         coupon.name.toLowerCase().includes(searchTerm.toLowerCase());
+                         (coupon.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesFilter = filterStatus === 'all' ||
                          (filterStatus === 'active' && coupon.isActive && !isExpired(coupon)) ||

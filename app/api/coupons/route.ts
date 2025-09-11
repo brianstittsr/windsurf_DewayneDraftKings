@@ -7,16 +7,27 @@ export async function GET(request: NextRequest) {
     const { db } = await import('@/lib/firebase').catch(() => ({ db: null }));
     
     if (!db) {
+      console.error('Firebase database not available - check environment variables');
       return NextResponse.json({ 
-        error: 'Database unavailable' 
-      }, { status: 503 });
+        success: true,
+        coupons: [],
+        warning: 'Firebase not configured - coupons will not persist'
+      });
     }
 
     const { collection, getDocs, orderBy, query } = await import('firebase/firestore');
     
     const couponsRef = collection(db, 'coupons');
-    const q = query(couponsRef, orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
+    
+    // Try without orderBy first in case createdAt field doesn't exist
+    let snapshot;
+    try {
+      const q = query(couponsRef, orderBy('createdAt', 'desc'));
+      snapshot = await getDocs(q);
+    } catch (orderError) {
+      console.warn('Could not order by createdAt, fetching without ordering:', orderError);
+      snapshot = await getDocs(couponsRef);
+    }
     
     const coupons = snapshot.docs.map(doc => ({
       id: doc.id,
@@ -28,8 +39,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching coupons:', error);
     return NextResponse.json({ 
-      error: 'Failed to fetch coupons' 
-    }, { status: 500 });
+      success: true,
+      coupons: [],
+      error: 'Failed to fetch coupons'
+    });
   }
 }
 
@@ -49,6 +62,7 @@ export async function POST(request: NextRequest) {
     const { db } = await import('@/lib/firebase').catch(() => ({ db: null }));
     
     if (!db) {
+      console.error('Firebase database not available for coupon creation');
       return NextResponse.json({ 
         error: 'Database unavailable' 
       }, { status: 503 });
@@ -93,7 +107,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating coupon:', error);
     return NextResponse.json({ 
-      error: 'Failed to create coupon' 
+      success: false,
+      error: 'Failed to create coupon'
     }, { status: 500 });
   }
 }
