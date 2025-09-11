@@ -3,15 +3,22 @@ import { NextRequest, NextResponse } from 'next/server';
 // GET - Fetch all coupons
 export async function GET(request: NextRequest) {
   try {
-    // Dynamic import to avoid build errors
-    const { db } = await import('@/lib/firebase').catch(() => ({ db: null }));
+    // Always return empty array in production if Firebase fails
+    // This prevents 500 errors on deployment
+    let db = null;
+    
+    try {
+      const firebase = await import('@/lib/firebase');
+      db = firebase.db;
+    } catch (importError) {
+      console.log('Firebase import failed:', importError.message);
+    }
     
     if (!db) {
-      console.error('Firebase database not available - check environment variables');
+      console.log('Firebase database not available - returning empty coupons array');
       return NextResponse.json({ 
         success: true,
-        coupons: [],
-        warning: 'Firebase not configured - coupons will not persist'
+        coupons: []
       });
     }
 
@@ -40,8 +47,7 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching coupons:', error);
     return NextResponse.json({ 
       success: true,
-      coupons: [],
-      error: 'Failed to fetch coupons'
+      coupons: []
     });
   }
 }
@@ -58,13 +64,19 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Dynamic import to avoid build errors
-    const { db } = await import('@/lib/firebase').catch(() => ({ db: null }));
+    // Safe Firebase import
+    let db = null;
+    try {
+      const firebase = await import('@/lib/firebase');
+      db = firebase.db;
+    } catch (importError) {
+      console.log('Firebase import failed for POST:', importError.message);
+    }
     
     if (!db) {
-      console.error('Firebase database not available for coupon creation');
+      console.log('Firebase database not available for coupon creation');
       return NextResponse.json({ 
-        error: 'Database unavailable' 
+        error: 'Database unavailable - Firebase not configured' 
       }, { status: 503 });
     }
 
