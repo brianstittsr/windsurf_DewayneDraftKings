@@ -3,6 +3,22 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ModernNavbar from '@/components/ModernNavbar';
+import { 
+  validateEmail, 
+  validatePhone, 
+  validateName, 
+  validateDateOfBirth,
+  validateEmergencyPhone
+} from '@/lib/validation';
+
+// Phone number formatting utility
+const formatPhoneNumber = (digits: string): string => {
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+};
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -33,6 +49,7 @@ export default function RegisterPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const totalSteps = 5;
 
@@ -66,9 +83,31 @@ export default function RegisterPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+    
+    // Format phone numbers as user types
+    let formattedValue = value;
+    if (name === 'phone' || name === 'emergencyContactPhone') {
+      // Allow only digits, spaces, parentheses, and hyphens
+      const digitsOnly = value.replace(/\D/g, '');
+      if (digitsOnly.length <= 11) {
+        formattedValue = formatPhoneNumber(digitsOnly);
+      } else {
+        return; // Don't update if too many digits
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: formattedValue
     }));
   };
 
@@ -85,24 +124,85 @@ export default function RegisterPage() {
   };
 
   const validateStep = (step: number): boolean => {
+    const errors: Record<string, string> = {};
+    
     switch (step) {
       case 1:
-        return formData.role !== '';
-      case 2:
-        return formData.firstName !== '' && formData.lastName !== '' && 
-               formData.phone !== '' && formData.email !== '' && formData.dateOfBirth !== '';
-      case 3:
-        if (formData.role === 'coach') {
-          return formData.experience !== '';
+        if (!formData.role) {
+          errors.role = 'Please select a role';
         }
-        return true; // Player sport details are optional
+        break;
+        
+      case 2:
+        // Validate first name
+        const firstNameResult = validateName(formData.firstName, 'First name');
+        if (!firstNameResult.isValid) {
+          errors.firstName = firstNameResult.error!;
+        }
+        
+        // Validate last name
+        const lastNameResult = validateName(formData.lastName, 'Last name');
+        if (!lastNameResult.isValid) {
+          errors.lastName = lastNameResult.error!;
+        }
+        
+        // Validate email
+        const emailResult = validateEmail(formData.email);
+        if (!emailResult.isValid) {
+          errors.email = emailResult.error!;
+        }
+        
+        // Validate phone
+        const phoneResult = validatePhone(formData.phone);
+        if (!phoneResult.isValid) {
+          errors.phone = phoneResult.error!;
+        }
+        
+        // Validate date of birth
+        const dobResult = validateDateOfBirth(formData.dateOfBirth);
+        if (!dobResult.isValid) {
+          errors.dateOfBirth = dobResult.error!;
+        }
+        break;
+        
+      case 3:
+        if (formData.role === 'coach' && !formData.experience.trim()) {
+          errors.experience = 'Experience is required for coaches';
+        }
+        break;
+        
       case 4:
-        return true; // Emergency contact is optional
+        // Validate emergency contact if provided
+        if (formData.emergencyContactPhone) {
+          const emergencyPhoneResult = validateEmergencyPhone(formData.emergencyContactPhone);
+          if (!emergencyPhoneResult.isValid) {
+            errors.emergencyContactPhone = emergencyPhoneResult.error!;
+          }
+          
+          if (!formData.emergencyContactName.trim()) {
+            errors.emergencyContactName = 'Emergency contact name is required when phone is provided';
+          }
+        }
+        break;
+        
       case 5:
-        return formData.waiverAccepted && formData.parentGuardianName !== '' && formData.parentGuardianSignature !== '';
-      default:
-        return true;
+        if (!formData.waiverAccepted) {
+          errors.waiverAccepted = 'You must accept the waiver to continue';
+        }
+        
+        const parentNameResult = validateName(formData.parentGuardianName, 'Parent/Guardian name');
+        if (!parentNameResult.isValid) {
+          errors.parentGuardianName = parentNameResult.error!;
+        }
+        
+        if (!formData.parentGuardianSignature.trim()) {
+          errors.parentGuardianSignature = 'Digital signature is required';
+        }
+        break;
     }
+    
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleNext = () => {
@@ -200,9 +300,12 @@ export default function RegisterPage() {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChange}
-                  className="form-control"
+                  className={`form-control ${fieldErrors.firstName ? 'is-invalid' : ''}`}
                   required
                 />
+                {fieldErrors.firstName && (
+                  <div className="invalid-feedback">{fieldErrors.firstName}</div>
+                )}
               </div>
               <div className="col-md-6 mb-3">
                 <label className="form-label">Last Name *</label>
@@ -211,9 +314,12 @@ export default function RegisterPage() {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleInputChange}
-                  className="form-control"
+                  className={`form-control ${fieldErrors.lastName ? 'is-invalid' : ''}`}
                   required
                 />
+                {fieldErrors.lastName && (
+                  <div className="invalid-feedback">{fieldErrors.lastName}</div>
+                )}
               </div>
             </div>
             <div className="row">
@@ -224,9 +330,13 @@ export default function RegisterPage() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="form-control"
+                  className={`form-control ${fieldErrors.phone ? 'is-invalid' : ''}`}
+                  placeholder="(555) 123-4567"
                   required
                 />
+                {fieldErrors.phone && (
+                  <div className="invalid-feedback">{fieldErrors.phone}</div>
+                )}
               </div>
               <div className="col-md-6 mb-3">
                 <label className="form-label">Email *</label>
@@ -235,9 +345,13 @@ export default function RegisterPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="form-control"
+                  className={`form-control ${fieldErrors.email ? 'is-invalid' : ''}`}
+                  placeholder="your.email@example.com"
                   required
                 />
+                {fieldErrors.email && (
+                  <div className="invalid-feedback">{fieldErrors.email}</div>
+                )}
               </div>
             </div>
             <div className="mb-3">
@@ -247,9 +361,12 @@ export default function RegisterPage() {
                 name="dateOfBirth"
                 value={formData.dateOfBirth}
                 onChange={handleInputChange}
-                className="form-control"
+                className={`form-control ${fieldErrors.dateOfBirth ? 'is-invalid' : ''}`}
                 required
               />
+              {fieldErrors.dateOfBirth && (
+                <div className="invalid-feedback">{fieldErrors.dateOfBirth}</div>
+              )}
             </div>
           </div>
         );
@@ -381,9 +498,12 @@ export default function RegisterPage() {
                   name="emergencyContactName"
                   value={formData.emergencyContactName}
                   onChange={handleInputChange}
-                  className="form-control"
+                  className={`form-control ${fieldErrors.emergencyContactName ? 'is-invalid' : ''}`}
                   placeholder="Full name"
                 />
+                {fieldErrors.emergencyContactName && (
+                  <div className="invalid-feedback">{fieldErrors.emergencyContactName}</div>
+                )}
               </div>
               <div className="col-md-6 mb-3">
                 <label className="form-label">Emergency Contact Phone</label>
@@ -392,9 +512,12 @@ export default function RegisterPage() {
                   name="emergencyContactPhone"
                   value={formData.emergencyContactPhone}
                   onChange={handleInputChange}
-                  className="form-control"
-                  placeholder="Phone number"
+                  className={`form-control ${fieldErrors.emergencyContactPhone ? 'is-invalid' : ''}`}
+                  placeholder="(555) 123-4567"
                 />
+                {fieldErrors.emergencyContactPhone && (
+                  <div className="invalid-feedback">{fieldErrors.emergencyContactPhone}</div>
+                )}
               </div>
             </div>
           </div>
@@ -460,17 +583,20 @@ export default function RegisterPage() {
 
             <div className="signature-section">
               <div className="row mb-3">
-                <div className="col-md-6">
+                <div className="mb-3">
                   <label className="form-label">Parent/Guardian Name *</label>
                   <input
                     type="text"
                     name="parentGuardianName"
                     value={formData.parentGuardianName}
                     onChange={handleInputChange}
-                    className="form-control"
-                    placeholder="Full legal name"
+                    className={`form-control ${fieldErrors.parentGuardianName ? 'is-invalid' : ''}`}
+                    placeholder="Full name of parent or legal guardian"
                     required
                   />
+                  {fieldErrors.parentGuardianName && (
+                    <div className="invalid-feedback">{fieldErrors.parentGuardianName}</div>
+                  )}
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Today's Date</label>
@@ -492,17 +618,20 @@ export default function RegisterPage() {
                   name="parentGuardianSignature"
                   value={formData.parentGuardianSignature}
                   onChange={handleInputChange}
-                  className="form-control signature-input"
+                  className={`form-control signature-input ${fieldErrors.parentGuardianSignature ? 'is-invalid' : ''}`}
                   placeholder="Type your full name as your digital signature"
                   style={{ fontFamily: 'cursive', fontSize: '18px' }}
                   required
                 />
+                {fieldErrors.parentGuardianSignature && (
+                  <div className="invalid-feedback">{fieldErrors.parentGuardianSignature}</div>
+                )}
                 <small className="form-text text-muted">By typing your name above, you are providing your legal digital signature.</small>
               </div>
 
               <div className="form-check mb-3">
                 <input
-                  className="form-check-input"
+                  className={`form-check-input ${fieldErrors.waiverAccepted ? 'is-invalid' : ''}`}
                   type="checkbox"
                   name="waiverAccepted"
                   checked={formData.waiverAccepted}
@@ -513,6 +642,9 @@ export default function RegisterPage() {
                 <label className="form-check-label" htmlFor="waiverAccepted">
                   <strong>I have read, understood, and agree to the terms of this waiver and release of liability. I acknowledge that I am giving up substantial legal rights by signing this document.</strong>
                 </label>
+                {fieldErrors.waiverAccepted && (
+                  <div className="invalid-feedback d-block">{fieldErrors.waiverAccepted}</div>
+                )}
               </div>
 
               <div className="alert alert-warning">

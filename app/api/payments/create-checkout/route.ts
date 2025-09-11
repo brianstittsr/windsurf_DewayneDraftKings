@@ -6,7 +6,10 @@ export async function POST(request: NextRequest) {
     const Stripe = await import('stripe').then(mod => mod.default);
     
     if (!process.env.STRIPE_SECRET_KEY) {
-      return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
+      console.error('STRIPE_SECRET_KEY environment variable is not set');
+      return NextResponse.json({ 
+        error: 'Stripe not configured. Please check environment variables.' 
+      }, { status: 500 });
     }
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -31,6 +34,12 @@ export async function POST(request: NextRequest) {
       paymentMethodTypes = ['affirm'];
     }
 
+    // Build product description with coupon info
+    let productDescription = planData?.subtitle || 'Player registration and services';
+    if (planData?.appliedCoupon) {
+      productDescription += ` (Coupon ${planData.appliedCoupon.code} applied)`;
+    }
+
     const sessionConfig: any = {
       payment_method_types: paymentMethodTypes,
       line_items: [
@@ -39,7 +48,7 @@ export async function POST(request: NextRequest) {
             currency,
             product_data: {
               name: planData?.title || 'All Pro Sports Registration',
-              description: planData?.subtitle || 'Player registration and services',
+              description: productDescription,
             },
             unit_amount: Math.round(amount * 100),
           },
@@ -55,6 +64,10 @@ export async function POST(request: NextRequest) {
         playerEmail: registrationData.email || '',
         planType: planData?.itemType || 'registration',
         paymentMethod: paymentMethod,
+        originalAmount: planData?.pricing?.basePrice || planData?.price || 0,
+        discountAmount: planData?.pricing?.discount || 0,
+        finalAmount: planData?.pricing?.finalAmount || planData?.price || 0,
+        couponCode: planData?.appliedCoupon?.code || '',
         registrationData: JSON.stringify(registrationData),
         planData: JSON.stringify(planData),
       },
