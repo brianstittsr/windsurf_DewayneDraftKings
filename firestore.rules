@@ -169,5 +169,10 @@ service cloud.firestore {
     match /leagues/{leagueId} {
       allow read, write: if true;
     }
+
+    // User Profiles collection - Allow all operations for development
+    match /userProfiles/{profileId} {
+      allow read, write: if true;
+    }
   }
 }
