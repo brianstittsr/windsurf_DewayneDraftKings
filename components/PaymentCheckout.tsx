@@ -236,10 +236,13 @@ export default function PaymentCheckout({
         
         setAppliedCoupon(couponData);
         
-        // Calculate new total based on coupon type
-        let newTotal = result.finalAmount;
-        if (originalPlanData.serviceFee) {
-          newTotal = Math.max(0, result.finalAmount + originalPlanData.serviceFee);
+        // For set_price coupons, the final amount should be the coupon value plus service fee
+        // For other coupon types, apply discount to subtotal then add service fee
+        let newTotal;
+        if (couponData.type === 'set_price') {
+          newTotal = result.finalAmount + (originalPlanData.serviceFee || 0);
+        } else {
+          newTotal = Math.max(0, result.finalAmount + (originalPlanData.serviceFee || 0));
         }
         
         // Update plan data with discount

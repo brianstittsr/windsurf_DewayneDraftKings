@@ -63,9 +63,9 @@ function CheckoutPageContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          code: code.trim(),
-          itemType: registrationData?.selectedPlan?.itemType || 'registration',
-          amount: registrationData?.selectedPlan?.price || 0
+          code: code.trim().toUpperCase(),
+          orderAmount: registrationData?.selectedPlan?.price || 0,
+          applicableItems: [registrationData?.selectedPlan?.itemType || 'registration']
         })
       });
       
