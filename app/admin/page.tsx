@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
 import UserProfileSearch from '@/components/UserProfileSearch';
 import PaymentManagement from '@/components/PaymentManagement';
@@ -8,15 +9,15 @@ import CouponManagement from '@/components/CouponManagement';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Get tab from URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const tab = urlParams.get('tab');
+    // Get tab from URL params using Next.js searchParams
+    const tab = searchParams.get('tab');
     if (tab) {
       setActiveTab(tab);
     }
-  }, []);
+  }, [searchParams]);
 
   const renderTabContent = () => {
     switch (activeTab) {
