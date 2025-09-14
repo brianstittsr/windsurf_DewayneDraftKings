@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
 import UserProfileSearch from '@/components/UserProfileSearch';
 import PaymentManagement from '@/components/PaymentManagement';
 import CouponManagement from '@/components/CouponManagement';
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const searchParams = useSearchParams();
 
@@ -295,5 +295,16 @@ export default function AdminDashboard() {
     <AdminLayout>
       {renderTabContent()}
     </AdminLayout>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <span className="ml-2">Loading admin dashboard...</span>
+    </div>}>
+      <AdminDashboardContent />
+    </Suspense>
   );
 }

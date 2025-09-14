@@ -16,8 +16,7 @@ export async function GET(request: NextRequest) {
       apiVersion: '2023-10-16',
     });
 
-    const { searchParams } = new URL(request.url);
-    const sessionId = searchParams.get('session_id');
+    const sessionId = request.nextUrl.searchParams.get('session_id');
 
     if (!sessionId) {
       return NextResponse.json(
