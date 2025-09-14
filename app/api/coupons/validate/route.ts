@@ -16,12 +16,27 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Dynamic import to avoid build errors
-    const { db } = await import('@/lib/firebase').catch(() => ({ db: null }));
-    
-    if (!db) {
+    // Check if Firebase environment variables are configured
+    if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+      console.error('Firebase not configured - missing NEXT_PUBLIC_FIREBASE_PROJECT_ID');
       return NextResponse.json({ 
-        error: 'Coupon validation unavailable' 
+        error: 'Coupon validation service not available' 
+      }, { status: 503 });
+    }
+
+    // Dynamic import with better error handling
+    let db;
+    try {
+      const firebaseModule = await import('@/lib/firebase');
+      db = firebaseModule.db;
+      
+      if (!db) {
+        throw new Error('Firebase database not initialized');
+      }
+    } catch (firebaseError) {
+      console.error('Firebase initialization error:', firebaseError);
+      return NextResponse.json({ 
+        error: 'Database connection failed' 
       }, { status: 503 });
     }
 
