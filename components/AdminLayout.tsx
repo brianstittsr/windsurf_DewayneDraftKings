@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -10,8 +10,14 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (tab: string) => {
+    if (tab === '/admin') {
+      return pathname === '/admin' && !searchParams.get('tab');
+    }
+    return pathname === '/admin' && searchParams.get('tab') === tab;
+  };
 
   useEffect(() => {
     // Initialize sidebar toggle functionality
@@ -104,9 +110,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             Management
           </div>
 
+          {/* Nav Item - User Profiles */}
+          <li className="nav-item">
+            <Link href="/admin?tab=user-profiles" className={`nav-link ${isActive('user-profiles') ? 'active' : ''}`}>
+              <i className="fas fa-fw fa-user"></i>
+              <span>User Profiles</span>
+            </Link>
+          </li>
+
           {/* Nav Item - Players */}
           <li className="nav-item">
-            <Link href="/admin?tab=players" className={`nav-link ${isActive('/admin/players') ? 'active' : ''}`}>
+            <Link href="/admin?tab=players" className={`nav-link ${isActive('players') ? 'active' : ''}`}>
               <i className="fas fa-fw fa-users"></i>
               <span>Players</span>
             </Link>
@@ -114,7 +128,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* Nav Item - Coaches */}
           <li className="nav-item">
-            <Link href="/admin?tab=coaches" className={`nav-link ${isActive('/admin/coaches') ? 'active' : ''}`}>
+            <Link href="/admin?tab=coaches" className={`nav-link ${isActive('coaches') ? 'active' : ''}`}>
               <i className="fas fa-fw fa-user-tie"></i>
               <span>Coaches</span>
             </Link>
@@ -122,7 +136,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* Nav Item - Teams */}
           <li className="nav-item">
-            <Link href="/admin?tab=teams" className={`nav-link ${isActive('/admin/teams') ? 'active' : ''}`}>
+            <Link href="/admin?tab=teams" className={`nav-link ${isActive('teams') ? 'active' : ''}`}>
               <i className="fas fa-fw fa-users-cog"></i>
               <span>Teams</span>
             </Link>
@@ -130,7 +144,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* Nav Item - Games */}
           <li className="nav-item">
-            <Link href="/admin?tab=games" className={`nav-link ${isActive('/admin/games') ? 'active' : ''}`}>
+            <Link href="/admin?tab=games" className={`nav-link ${isActive('games') ? 'active' : ''}`}>
               <i className="fas fa-fw fa-calendar-alt"></i>
               <span>Games</span>
             </Link>
@@ -146,7 +160,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* Nav Item - Payments */}
           <li className="nav-item">
-            <Link href="/admin?tab=payments" className={`nav-link ${isActive('/admin/payments') ? 'active' : ''}`}>
+            <Link href="/admin?tab=payments" className={`nav-link ${isActive('payments') ? 'active' : ''}`}>
               <i className="fas fa-fw fa-credit-card"></i>
               <span>Payments</span>
             </Link>
@@ -154,23 +168,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* Nav Item - Coupons */}
           <li className="nav-item">
-            <Link href="/admin?tab=coupons" className={`nav-link ${isActive('/admin/coupons') ? 'active' : ''}`}>
+            <Link href="/admin?tab=coupons" className={`nav-link ${isActive('coupons') ? 'active' : ''}`}>
               <i className="fas fa-fw fa-tags"></i>
               <span>Coupons</span>
             </Link>
           </li>
 
-          {/* Nav Item - User Profiles */}
-          <li className="nav-item">
-            <Link href="/admin?tab=user-profiles" className={`nav-link ${isActive('/admin/user-profiles') ? 'active' : ''}`}>
-              <i className="fas fa-fw fa-id-card"></i>
-              <span>User Profiles</span>
-            </Link>
-          </li>
-
           {/* Nav Item - QR Codes */}
           <li className="nav-item">
-            <Link href="/admin?tab=qr-codes" className={`nav-link ${isActive('/admin/qr-codes') ? 'active' : ''}`}>
+            <Link href="/admin?tab=qr-codes" className={`nav-link ${isActive('qr-codes') ? 'active' : ''}`}>
               <i className="fas fa-fw fa-qrcode"></i>
               <span>QR Codes</span>
             </Link>
