@@ -174,5 +174,15 @@ service cloud.firestore {
     match /userProfiles/{profileId} {
       allow read, write: if true;
     }
+
+    // Refunds collection - Allow all operations for development
+    match /refunds/{refundId} {
+      allow read, write: if true;
+    }
+
+    // Disputes collection - Allow all operations for development
+    match /disputes/{disputeId} {
+      allow read, write: if true;
+    }
   }
 }

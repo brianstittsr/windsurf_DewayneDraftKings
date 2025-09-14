@@ -61,6 +61,21 @@ export async function POST(request: NextRequest) {
         console.log('Payment failed:', failedPayment.id);
         break;
       
+      case 'charge.dispute.created':
+        const dispute = event.data.object;
+        await handleDispute(dispute);
+        break;
+      
+      case 'refund.created':
+        const refund = event.data.object;
+        await handleRefundCreated(refund);
+        break;
+      
+      case 'refund.updated':
+        const refundUpdate = event.data.object;
+        await handleRefundUpdated(refundUpdate);
+        break;
+      
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
@@ -154,5 +169,171 @@ async function handleSuccessfulPayment(session: any) {
     }
   } catch (error) {
     console.error('Error saving to Firebase:', error);
+  }
+}
+
+async function handleRefundCreated(refund: any) {
+  console.log('Processing refund created:', refund.id);
+  
+  try {
+    const { db } = await import('@/lib/firebase').catch(() => ({ db: null }));
+    
+    if (db) {
+      const { collection, addDoc, query, where, getDocs, updateDoc, doc, serverTimestamp } = await import('firebase/firestore');
+      
+      // Find the original payment by charge ID
+      const paymentsQuery = query(
+        collection(db, 'payments'),
+        where('stripeChargeId', '==', refund.charge)
+      );
+      
+      const paymentSnapshot = await getDocs(paymentsQuery);
+      
+      if (!paymentSnapshot.empty) {
+        const paymentDoc = paymentSnapshot.docs[0];
+        const paymentData = paymentDoc.data();
+        
+        // Update original payment status
+        await updateDoc(doc(db, 'payments', paymentDoc.id), {
+          refundStatus: refund.status,
+          refundAmount: refund.amount / 100,
+          refundReason: refund.reason,
+          updatedAt: serverTimestamp()
+        });
+        
+        console.log('Updated payment with refund info:', paymentDoc.id);
+      }
+      
+      // Create refund record
+      const refundRecord = {
+        stripeRefundId: refund.id,
+        stripeChargeId: refund.charge,
+        amount: refund.amount / 100,
+        currency: refund.currency,
+        status: refund.status,
+        reason: refund.reason,
+        receiptNumber: refund.receipt_number,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      const refundDoc = await addDoc(collection(db, 'refunds'), refundRecord);
+      console.log('Refund record saved:', refundDoc.id);
+      
+    } else {
+      console.log('Firebase not available, refund processed but not stored');
+    }
+  } catch (error) {
+    console.error('Error processing refund:', error);
+  }
+}
+
+async function handleRefundUpdated(refund: any) {
+  console.log('Processing refund updated:', refund.id);
+  
+  try {
+    const { db } = await import('@/lib/firebase').catch(() => ({ db: null }));
+    
+    if (db) {
+      const { collection, query, where, getDocs, updateDoc, doc, serverTimestamp } = await import('firebase/firestore');
+      
+      // Find the refund record
+      const refundsQuery = query(
+        collection(db, 'refunds'),
+        where('stripeRefundId', '==', refund.id)
+      );
+      
+      const refundSnapshot = await getDocs(refundsQuery);
+      
+      if (!refundSnapshot.empty) {
+        const refundDoc = refundSnapshot.docs[0];
+        
+        // Update refund record
+        await updateDoc(doc(db, 'refunds', refundDoc.id), {
+          status: refund.status,
+          reason: refund.reason,
+          updatedAt: serverTimestamp()
+        });
+        
+        console.log('Updated refund record:', refundDoc.id);
+        
+        // Also update the original payment if needed
+        const paymentsQuery = query(
+          collection(db, 'payments'),
+          where('stripeChargeId', '==', refund.charge)
+        );
+        
+        const paymentSnapshot = await getDocs(paymentsQuery);
+        
+        if (!paymentSnapshot.empty) {
+          const paymentDoc = paymentSnapshot.docs[0];
+          
+          await updateDoc(doc(db, 'payments', paymentDoc.id), {
+            refundStatus: refund.status,
+            updatedAt: serverTimestamp()
+          });
+          
+          console.log('Updated payment refund status:', paymentDoc.id);
+        }
+      }
+    } else {
+      console.log('Firebase not available, refund update not stored');
+    }
+  } catch (error) {
+    console.error('Error updating refund:', error);
+  }
+}
+
+async function handleDispute(dispute: any) {
+  console.log('Processing dispute created:', dispute.id);
+  
+  try {
+    const { db } = await import('@/lib/firebase').catch(() => ({ db: null }));
+    
+    if (db) {
+      const { collection, addDoc, query, where, getDocs, updateDoc, doc, serverTimestamp } = await import('firebase/firestore');
+      
+      // Find the original payment by charge ID
+      const paymentsQuery = query(
+        collection(db, 'payments'),
+        where('stripeChargeId', '==', dispute.charge)
+      );
+      
+      const paymentSnapshot = await getDocs(paymentsQuery);
+      
+      if (!paymentSnapshot.empty) {
+        const paymentDoc = paymentSnapshot.docs[0];
+        
+        // Update original payment with dispute info
+        await updateDoc(doc(db, 'payments', paymentDoc.id), {
+          disputeStatus: dispute.status,
+          disputeReason: dispute.reason,
+          disputeAmount: dispute.amount / 100,
+          updatedAt: serverTimestamp()
+        });
+        
+        console.log('Updated payment with dispute info:', paymentDoc.id);
+      }
+      
+      // Create dispute record
+      const disputeRecord = {
+        stripeDisputeId: dispute.id,
+        stripeChargeId: dispute.charge,
+        amount: dispute.amount / 100,
+        currency: dispute.currency,
+        status: dispute.status,
+        reason: dispute.reason,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      const disputeDoc = await addDoc(collection(db, 'disputes'), disputeRecord);
+      console.log('Dispute record saved:', disputeDoc.id);
+      
+    } else {
+      console.log('Firebase not available, dispute processed but not stored');
+    }
+  } catch (error) {
+    console.error('Error processing dispute:', error);
   }
 }

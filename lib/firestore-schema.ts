@@ -390,6 +390,14 @@ export interface Payment extends BaseDocument {
   refundAmount?: number;
   refundReason?: string;
   refundedAt?: Timestamp;
+  refundStatus?: 'pending' | 'succeeded' | 'failed' | 'cancelled';
+  stripeRefundId?: string;
+  stripeChargeId?: string;
+  
+  // Dispute Information
+  disputeStatus?: 'warning_needs_response' | 'warning_under_review' | 'warning_closed' | 'needs_response' | 'under_review' | 'charge_refunded' | 'won' | 'lost';
+  disputeReason?: string;
+  disputeAmount?: number;
   
   // Installment Information (for BNPL)
   installments?: {
@@ -894,6 +902,8 @@ export const COLLECTIONS = {
   SEASONS: 'seasons',
   LEAGUES: 'leagues',
   PAYMENTS: 'payments',
+  REFUNDS: 'refunds',
+  DISPUTES: 'disputes',
   CHECKOUT_SESSIONS: 'checkout_sessions',
   PLAN_SELECTIONS: 'plan_selections',
   SUBSCRIPTIONS: 'subscriptions',
@@ -982,6 +992,93 @@ export const getCompletedGames = (seasonId: string) => ({
   where: [['seasonId', '==', seasonId], ['status', '==', 'completed']],
   orderBy: [['actualDate', 'desc']]
 });
+
+// Refund Interface
+export interface Refund extends BaseDocument {
+  // Stripe Information
+  stripeRefundId: string;
+  stripeChargeId: string;
+  paymentId?: string; // Reference to original payment
+  
+  // Refund Details
+  amount: number;
+  currency: string;
+  status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
+  reason: 'duplicate' | 'fraudulent' | 'requested_by_customer' | 'other';
+  receiptNumber?: string;
+  
+  // Customer Information
+  customerEmail?: string;
+  customerName?: string;
+  
+  // Processing Information
+  processedBy?: string; // Admin user ID who initiated refund
+  processedAt?: Timestamp;
+  
+  // Metadata
+  metadata?: { [key: string]: string };
+  notes?: string;
+}
+
+// Dispute Interface
+export interface Dispute extends BaseDocument {
+  // Stripe Information
+  stripeDisputeId: string;
+  stripeChargeId: string;
+  paymentId?: string; // Reference to original payment
+  
+  // Dispute Details
+  amount: number;
+  currency: string;
+  status: 'warning_needs_response' | 'warning_under_review' | 'warning_closed' | 'needs_response' | 'under_review' | 'charge_refunded' | 'won' | 'lost';
+  reason: 'duplicate' | 'fraudulent' | 'subscription_canceled' | 'product_unacceptable' | 'product_not_received' | 'unrecognized' | 'credit_not_processed' | 'general' | 'incorrect_account_details' | 'insufficient_funds' | 'bank_cannot_process' | 'debit_not_authorized' | 'customer_initiated';
+  
+  // Evidence and Response
+  evidenceDetails?: {
+    accessActivityLog?: string;
+    billingAddress?: string;
+    cancellationPolicy?: string;
+    cancellationPolicyDisclosure?: string;
+    cancellationRebuttal?: string;
+    customerCommunication?: string;
+    customerEmailAddress?: string;
+    customerName?: string;
+    customerPurchaseIp?: string;
+    customerSignature?: string;
+    duplicateChargeDocumentation?: string;
+    duplicateChargeExplanation?: string;
+    duplicateChargeId?: string;
+    productDescription?: string;
+    receipt?: string;
+    refundPolicy?: string;
+    refundPolicyDisclosure?: string;
+    refundRefusalExplanation?: string;
+    serviceDate?: string;
+    serviceDocumentation?: string;
+    shippingAddress?: string;
+    shippingCarrier?: string;
+    shippingDate?: string;
+    shippingDocumentation?: string;
+    shippingTrackingNumber?: string;
+    uncategorizedFile?: string;
+    uncategorizedText?: string;
+  };
+  
+  // Important Dates
+  evidenceDueBy?: Timestamp;
+  submittedAt?: Timestamp;
+  
+  // Customer Information
+  customerEmail?: string;
+  customerName?: string;
+  
+  // Processing Information
+  handledBy?: string; // Admin user ID handling dispute
+  
+  // Metadata
+  metadata?: { [key: string]: string };
+  notes?: string;
+}
 
 // SMS Opt-in Interface
 export interface SMSOptIn extends BaseDocument {

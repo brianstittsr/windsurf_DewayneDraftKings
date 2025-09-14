@@ -79,26 +79,32 @@ export default function PaymentManagement() {
   };
 
   const processRefund = async () => {
-    if (!selectedPayment || !selectedPayment.stripePaymentIntentId) return;
+    if (!selectedPayment) return;
 
     try {
-      const response = await fetch('/api/payments/refund', {
+      const response = await fetch(`/api/payments/${selectedPayment.id}/refund`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          paymentIntentId: selectedPayment.stripePaymentIntentId,
           amount: refundAmount ? parseFloat(refundAmount) : undefined,
-          reason: refundReason,
-          paymentId: selectedPayment.id
+          reason: refundReason
         })
       });
 
-      if (response.ok) {
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        alert(`Refund processed successfully! Refund ID: ${data.refund.stripeRefundId}`);
         await fetchPayments();
         setShowModal(false);
+        setRefundAmount('');
+        setRefundReason('');
+      } else {
+        alert(`Error processing refund: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error processing refund:', error);
+      alert('Error processing refund. Please try again.');
     }
   };
 
