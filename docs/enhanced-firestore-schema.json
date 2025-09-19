@@ -1,0 +1,673 @@
+{
+  "collections": {
+    "leads": {
+      "description": "Lead management and nurturing system",
+      "fields": {
+        "id": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "email": "string",
+        "phone": "string",
+        "source": "enum: sms | email | referral | event | social | website",
+        "status": "enum: prospect | nurturing | hot | converted | lost",
+        "score": "number (0-100)",
+        "tags": "array<string>",
+        "lastContact": "timestamp",
+        "conversionProbability": "number (0-1)",
+        "assignedStaff": "string (userId)",
+        "notes": "array<object>",
+        "touchpoints": "array<object>",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "lead_001",
+        "firstName": "Sarah",
+        "lastName": "Johnson",
+        "email": "sarah.johnson@email.com",
+        "phone": "+15551234567",
+        "source": "referral",
+        "status": "hot",
+        "score": 85,
+        "tags": ["flag-football", "returning-player", "high-value"],
+        "lastContact": "2024-01-15T10:30:00Z",
+        "conversionProbability": 0.75,
+        "assignedStaff": "staff_001",
+        "notes": [
+          {
+            "timestamp": "2024-01-15T10:30:00Z",
+            "staffId": "staff_001",
+            "content": "Interested in complete season package",
+            "type": "call"
+          }
+        ],
+        "touchpoints": [
+          {
+            "timestamp": "2024-01-14T15:00:00Z",
+            "channel": "sms",
+            "campaign": "welcome-sequence",
+            "response": "positive"
+          }
+        ],
+        "createdAt": "2024-01-10T09:00:00Z",
+        "updatedAt": "2024-01-15T10:30:00Z"
+      }
+    },
+    "enhanced_teams": {
+      "description": "Enhanced team management with capacity and draft features",
+      "fields": {
+        "id": "string",
+        "name": "string",
+        "capacity": "number",
+        "currentSize": "number",
+        "waitlistSize": "number",
+        "coachId": "string",
+        "assistantCoaches": "array<string>",
+        "status": "enum: forming | full | draft-ready | active | inactive",
+        "draftOrder": "number",
+        "division": "string",
+        "homeField": "string",
+        "teamColor": "string",
+        "logoUrl": "string",
+        "qrCodeUrl": "string",
+        "socialLinks": "object",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "team_001",
+        "name": "Thunder Bolts",
+        "capacity": 35,
+        "currentSize": 28,
+        "waitlistSize": 5,
+        "coachId": "coach_001",
+        "assistantCoaches": ["coach_002", "coach_003"],
+        "status": "active",
+        "draftOrder": 3,
+        "division": "North",
+        "homeField": "Field A",
+        "teamColor": "#1E40AF",
+        "logoUrl": "https://storage.firebase.com/teams/thunder-bolts-logo.png",
+        "qrCodeUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+        "socialLinks": {
+          "facebook": "https://facebook.com/thunderbolts",
+          "instagram": "@thunderbolts_fb"
+        },
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-15T12:00:00Z"
+      }
+    },
+    "enhanced_players": {
+      "description": "Enhanced player profiles with draft and jersey integration",
+      "fields": {
+        "id": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "email": "string",
+        "phone": "string",
+        "dateOfBirth": "timestamp",
+        "status": "enum: prospect | pending-payment | paid-registered | draft-pool | team-assigned | waitlist",
+        "position": "enum: quarterback | rusher | receiver | defender | flex",
+        "playerTag": "enum: free-agent | draft-pick | prospect | meet-greet | client | veteran | rookie",
+        "jerseyNumber": "number",
+        "jerseySize": "string",
+        "teamId": "string",
+        "draftRound": "number",
+        "draftPick": "number",
+        "isDrafted": "boolean",
+        "availability": "object",
+        "preferences": "object",
+        "qrCodeUrl": "string",
+        "profileUrl": "string",
+        "stats": "object",
+        "emergencyContact": "object",
+        "medicalInfo": "object",
+        "referredBy": "string",
+        "referralCount": "number",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "player_001",
+        "firstName": "Marcus",
+        "lastName": "Williams",
+        "email": "marcus.williams@email.com",
+        "phone": "+15559876543",
+        "dateOfBirth": "1995-06-20T00:00:00Z",
+        "status": "team-assigned",
+        "position": "receiver",
+        "playerTag": "veteran",
+        "jerseyNumber": 15,
+        "jerseySize": "L",
+        "teamId": "team_001",
+        "draftRound": 2,
+        "draftPick": 8,
+        "isDrafted": true,
+        "availability": {
+          "weekdays": ["tuesday", "thursday"],
+          "weekends": ["saturday"],
+          "timePreference": "evening"
+        },
+        "preferences": {
+          "position": ["receiver", "flex"],
+          "teamStyle": "competitive",
+          "notifications": {
+            "sms": true,
+            "email": true,
+            "push": false
+          }
+        },
+        "qrCodeUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+        "profileUrl": "https://allprosports.com/profile/player_001",
+        "stats": {
+          "gamesPlayed": 12,
+          "touchdowns": 8,
+          "receptions": 45,
+          "yards": 680
+        },
+        "emergencyContact": {
+          "name": "Jennifer Williams",
+          "phone": "+15551112222",
+          "relationship": "spouse"
+        },
+        "medicalInfo": {
+          "conditions": "None",
+          "allergies": "Peanuts",
+          "lastUpdated": "2024-01-01T00:00:00Z"
+        },
+        "referredBy": "player_002",
+        "referralCount": 3,
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-15T14:30:00Z"
+      }
+    },
+    "jersey_qr_codes": {
+      "description": "Jersey QR code management and tracking",
+      "fields": {
+        "id": "string",
+        "playerId": "string",
+        "teamId": "string",
+        "jerseyNumber": "number",
+        "qrCodeUrl": "string",
+        "landingPageUrl": "string",
+        "scanCount": "number",
+        "lastScanned": "timestamp",
+        "printStatus": "enum: pending | printed | delivered | active",
+        "vendorOrderId": "string",
+        "specifications": "object",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "jersey_qr_001",
+        "playerId": "player_001",
+        "teamId": "team_001",
+        "jerseyNumber": 15,
+        "qrCodeUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+        "landingPageUrl": "https://allprosports.com/player/player_001?utm_source=jersey&utm_medium=qr",
+        "scanCount": 47,
+        "lastScanned": "2024-01-15T16:45:00Z",
+        "printStatus": "active",
+        "vendorOrderId": "VO-2024-001",
+        "specifications": {
+          "placement": "lower-right",
+          "size": "1.5x1.5",
+          "color": "black",
+          "material": "vinyl"
+        },
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-15T16:45:00Z"
+      }
+    },
+    "draft_events": {
+      "description": "Draft system management",
+      "fields": {
+        "id": "string",
+        "name": "string",
+        "status": "enum: setup | active | paused | completed",
+        "currentRound": "number",
+        "currentPick": "number",
+        "pickTimeLimit": "number",
+        "teams": "array<string>",
+        "draftOrder": "array<string>",
+        "rules": "object",
+        "startTime": "timestamp",
+        "endTime": "timestamp",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "draft_2024_spring",
+        "name": "Spring 2024 Draft",
+        "status": "completed",
+        "currentRound": 8,
+        "currentPick": 160,
+        "pickTimeLimit": 120,
+        "teams": ["team_001", "team_002", "team_003", "team_004"],
+        "draftOrder": ["team_003", "team_001", "team_004", "team_002"],
+        "rules": {
+          "rounds": 8,
+          "positionLimits": {
+            "quarterback": 2,
+            "rusher": 8,
+            "receiver": 12,
+            "defender": 10,
+            "flex": 3
+          },
+          "tradingAllowed": true,
+          "autodraftEnabled": false
+        },
+        "startTime": "2024-01-20T19:00:00Z",
+        "endTime": "2024-01-20T22:30:00Z",
+        "createdAt": "2024-01-15T00:00:00Z",
+        "updatedAt": "2024-01-20T22:30:00Z"
+      }
+    },
+    "draft_picks": {
+      "description": "Individual draft pick tracking",
+      "fields": {
+        "id": "string",
+        "draftEventId": "string",
+        "round": "number",
+        "pick": "number",
+        "overallPick": "number",
+        "teamId": "string",
+        "playerId": "string",
+        "timestamp": "timestamp",
+        "status": "enum: upcoming | active | completed | skipped | traded",
+        "timeRemaining": "number",
+        "tradedTo": "string",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "pick_001",
+        "draftEventId": "draft_2024_spring",
+        "round": 1,
+        "pick": 3,
+        "overallPick": 3,
+        "teamId": "team_001",
+        "playerId": "player_001",
+        "timestamp": "2024-01-20T19:15:00Z",
+        "status": "completed",
+        "timeRemaining": 0,
+        "tradedTo": null,
+        "createdAt": "2024-01-20T19:00:00Z",
+        "updatedAt": "2024-01-20T19:15:00Z"
+      }
+    },
+    "leaderboards": {
+      "description": "Dynamic leaderboard system",
+      "fields": {
+        "id": "string",
+        "category": "enum: stats | referrals | participation | revenue | attendance",
+        "period": "enum: weekly | monthly | seasonal | all-time",
+        "entries": "array<object>",
+        "lastUpdated": "timestamp",
+        "displaySettings": "object",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "leaderboard_touchdowns_monthly",
+        "category": "stats",
+        "period": "monthly",
+        "entries": [
+          {
+            "playerId": "player_001",
+            "playerName": "Marcus Williams",
+            "teamName": "Thunder Bolts",
+            "value": 12,
+            "rank": 1,
+            "change": 2,
+            "avatar": "https://storage.firebase.com/avatars/player_001.jpg"
+          },
+          {
+            "playerId": "player_002",
+            "playerName": "Sarah Johnson",
+            "teamName": "Lightning Strikes",
+            "value": 10,
+            "rank": 2,
+            "change": -1,
+            "avatar": "https://storage.firebase.com/avatars/player_002.jpg"
+          }
+        ],
+        "lastUpdated": "2024-01-15T18:00:00Z",
+        "displaySettings": {
+          "title": "Monthly Touchdown Leaders",
+          "subtitle": "January 2024",
+          "showTop": 10,
+          "updateFrequency": "hourly"
+        },
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-15T18:00:00Z"
+      }
+    },
+    "referral_trees": {
+      "description": "Referral program tracking and visualization",
+      "fields": {
+        "id": "string",
+        "referrerId": "string",
+        "referrals": "array<object>",
+        "totalReferrals": "number",
+        "totalRewards": "number",
+        "level": "number",
+        "status": "enum: active | inactive | suspended",
+        "rewardsTier": "string",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "referral_tree_001",
+        "referrerId": "player_001",
+        "referrals": [
+          {
+            "playerId": "player_003",
+            "playerName": "John Smith",
+            "registrationDate": "2024-01-10T00:00:00Z",
+            "rewardEarned": 25.00,
+            "status": "active"
+          },
+          {
+            "playerId": "player_004",
+            "playerName": "Lisa Brown",
+            "registrationDate": "2024-01-12T00:00:00Z",
+            "rewardEarned": 25.00,
+            "status": "active"
+          }
+        ],
+        "totalReferrals": 2,
+        "totalRewards": 50.00,
+        "level": 1,
+        "status": "active",
+        "rewardsTier": "bronze",
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-12T00:00:00Z"
+      }
+    },
+    "upsell_campaigns": {
+      "description": "Automated upsell campaign management",
+      "fields": {
+        "id": "string",
+        "name": "string",
+        "targetAudience": "array<string>",
+        "trigger": "enum: registration | milestone | seasonal | manual | behavior",
+        "offers": "array<object>",
+        "conversionRate": "number",
+        "revenue": "number",
+        "status": "enum: draft | active | paused | completed",
+        "schedule": "object",
+        "messaging": "object",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "upsell_meal_plans",
+        "name": "Post-Registration Meal Plan Upsell",
+        "targetAudience": ["new-registrations", "fitness-interested"],
+        "trigger": "registration",
+        "offers": [
+          {
+            "productId": "meal_plan_basic",
+            "productName": "Basic Meal Plan",
+            "originalPrice": 49.99,
+            "discountPercent": 20,
+            "finalPrice": 39.99,
+            "expirationDays": 7,
+            "conversionCount": 23
+          }
+        ],
+        "conversionRate": 0.15,
+        "revenue": 919.77,
+        "status": "active",
+        "schedule": {
+          "delay": 24,
+          "reminderIntervals": [72, 144],
+          "maxAttempts": 3
+        },
+        "messaging": {
+          "subject": "Complete Your Fitness Journey",
+          "channels": ["email", "sms"],
+          "personalization": true
+        },
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-15T00:00:00Z"
+      }
+    },
+    "staff_kpis": {
+      "description": "Staff performance tracking and KPI management",
+      "fields": {
+        "id": "string",
+        "staffId": "string",
+        "role": "enum: registration | jersey-qr | meal-plan | classes | draft-stats | general-manager",
+        "period": "enum: daily | weekly | monthly | quarterly",
+        "metrics": "array<object>",
+        "goals": "array<object>",
+        "performance": "number",
+        "achievements": "array<object>",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "kpi_staff_001_weekly",
+        "staffId": "staff_001",
+        "role": "registration",
+        "period": "weekly",
+        "metrics": [
+          {
+            "name": "registrations_completed",
+            "value": 47,
+            "target": 50,
+            "unit": "count",
+            "trend": "up",
+            "percentOfTarget": 94
+          },
+          {
+            "name": "conversion_rate",
+            "value": 0.23,
+            "target": 0.20,
+            "unit": "percentage",
+            "trend": "up",
+            "percentOfTarget": 115
+          }
+        ],
+        "goals": [
+          {
+            "name": "Weekly Registration Target",
+            "target": 50,
+            "current": 47,
+            "deadline": "2024-01-21T23:59:59Z",
+            "status": "on-track"
+          }
+        ],
+        "performance": 87,
+        "achievements": [
+          {
+            "name": "Conversion Champion",
+            "description": "Exceeded conversion rate target for 3 consecutive weeks",
+            "earnedDate": "2024-01-15T00:00:00Z",
+            "badge": "gold"
+          }
+        ],
+        "createdAt": "2024-01-15T00:00:00Z",
+        "updatedAt": "2024-01-15T18:00:00Z"
+      }
+    },
+    "events": {
+      "description": "Event management and coordination",
+      "fields": {
+        "id": "string",
+        "name": "string",
+        "type": "enum: jamboree | draft | game | practice | social",
+        "date": "timestamp",
+        "venue": "string",
+        "status": "enum: planning | setup | active | completed | cancelled",
+        "registrations": "array<object>",
+        "staff": "array<object>",
+        "equipment": "array<object>",
+        "budget": "object",
+        "attendance": "object",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "event_jamboree_2024",
+        "name": "Spring 2024 Jamboree",
+        "type": "jamboree",
+        "date": "2024-02-15T10:00:00Z",
+        "venue": "All Pro Sports Complex",
+        "status": "planning",
+        "registrations": [
+          {
+            "playerId": "player_001",
+            "registrationTime": "2024-01-10T15:30:00Z",
+            "checkInTime": null,
+            "paymentStatus": "completed",
+            "method": "online",
+            "specialRequests": "Vegetarian meal option"
+          }
+        ],
+        "staff": [
+          {
+            "staffId": "staff_001",
+            "role": "registration-coordinator",
+            "shiftStart": "2024-02-15T08:00:00Z",
+            "shiftEnd": "2024-02-15T18:00:00Z",
+            "responsibilities": ["check-in", "payment-processing"]
+          }
+        ],
+        "equipment": [
+          {
+            "item": "Registration Tablets",
+            "quantity": 5,
+            "status": "reserved",
+            "assignedTo": "staff_001"
+          }
+        ],
+        "budget": {
+          "allocated": 5000.00,
+          "spent": 1250.00,
+          "remaining": 3750.00
+        },
+        "attendance": {
+          "expected": 200,
+          "registered": 156,
+          "checkedIn": 0
+        },
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-15T00:00:00Z"
+      }
+    },
+    "analytics": {
+      "description": "Comprehensive analytics and tracking",
+      "fields": {
+        "id": "string",
+        "eventType": "enum: registration | payment | scan | referral | upsell | login | page-view",
+        "userId": "string",
+        "sessionId": "string",
+        "source": "string",
+        "medium": "string",
+        "campaign": "string",
+        "content": "string",
+        "term": "string",
+        "value": "number",
+        "metadata": "object",
+        "timestamp": "timestamp",
+        "createdAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "analytics_001",
+        "eventType": "registration",
+        "userId": "player_001",
+        "sessionId": "sess_abc123",
+        "source": "facebook",
+        "medium": "social",
+        "campaign": "spring-2024-launch",
+        "content": "video-ad",
+        "term": "flag-football",
+        "value": 88.50,
+        "metadata": {
+          "device": "mobile",
+          "browser": "chrome",
+          "location": "Charlotte, NC",
+          "referrer": "https://facebook.com",
+          "conversionTime": 1440
+        },
+        "timestamp": "2024-01-15T14:30:00Z",
+        "createdAt": "2024-01-15T14:30:00Z"
+      }
+    },
+    "consent_records": {
+      "description": "User consent and compliance tracking",
+      "fields": {
+        "id": "string",
+        "userId": "string",
+        "consentType": "enum: sms | email | marketing | analytics | cookies | data-processing",
+        "granted": "boolean",
+        "timestamp": "timestamp",
+        "ipAddress": "string",
+        "userAgent": "string",
+        "method": "enum: registration | update | withdrawal",
+        "version": "string",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "sampleDocument": {
+        "id": "consent_001",
+        "userId": "player_001",
+        "consentType": "sms",
+        "granted": true,
+        "timestamp": "2024-01-15T14:30:00Z",
+        "ipAddress": "192.168.1.100",
+        "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
+        "method": "registration",
+        "version": "1.0",
+        "createdAt": "2024-01-15T14:30:00Z",
+        "updatedAt": "2024-01-15T14:30:00Z"
+      }
+    }
+  },
+  "indexes": [
+    {
+      "collection": "leads",
+      "fields": ["status", "score", "lastContact"]
+    },
+    {
+      "collection": "enhanced_players",
+      "fields": ["status", "teamId", "position"]
+    },
+    {
+      "collection": "jersey_qr_codes",
+      "fields": ["playerId", "printStatus"]
+    },
+    {
+      "collection": "draft_picks",
+      "fields": ["draftEventId", "round", "pick"]
+    },
+    {
+      "collection": "analytics",
+      "fields": ["eventType", "timestamp", "userId"]
+    },
+    {
+      "collection": "staff_kpis",
+      "fields": ["staffId", "period", "updatedAt"]
+    }
+  ],
+  "security_rules": {
+    "description": "Firebase Security Rules for enhanced collections",
+    "rules": {
+      "leads": "Staff and admin read/write access only",
+      "enhanced_teams": "Public read, staff write access",
+      "enhanced_players": "Player owns their data, staff can read/write",
+      "jersey_qr_codes": "Public read for QR functionality, staff write",
+      "draft_events": "Public read during draft, admin write",
+      "leaderboards": "Public read, system write",
+      "referral_trees": "User owns their tree, staff can read",
+      "upsell_campaigns": "Staff and admin access only",
+      "staff_kpis": "Staff can read own KPIs, admin can read all",
+      "events": "Public read for event info, staff write",
+      "analytics": "System write only, admin read",
+      "consent_records": "User owns their consents, admin read for compliance"
+    }
+  }
+}

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Pro Sports - Registration Confirmation</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #334155;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .success-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            display: inline-block;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .info-section {
+            background: #f8fafc;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .info-section h3 {
+            color: #1e293b;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .info-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #64748b;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            color: #1e293b;
+            font-weight: 500;
+        }
+        .plan-details {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border: 2px solid #10b981;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .plan-details h3 {
+            color: #059669;
+            margin: 0 0 10px 0;
+        }
+        .price-display {
+            font-size: 24px;
+            font-weight: 700;
+            color: #059669;
+            margin: 10px 0;
+        }
+        .next-steps {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .next-steps h3 {
+            color: #92400e;
+            margin: 0 0 15px 0;
+        }
+        .next-steps ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .next-steps li {
+            margin-bottom: 8px;
+            color: #78350f;
+        }
+        .contact-info {
+            background: #e0f2fe;
+            border-left: 4px solid #0ea5e9;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .contact-info h3 {
+            color: #0c4a6e;
+            margin: 0 0 15px 0;
+        }
+        .footer {
+            background: #1e293b;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .footer p {
+            margin: 5px 0;
+            opacity: 0.8;
+        }
+        .qr-section {
+            text-align: center;
+            padding: 20px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .qr-code {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            margin: 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-player {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .badge-paid {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .emergency-contact {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .emergency-contact h4 {
+            color: #dc2626;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        @media (max-width: 600px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            .content {
+                padding: 20px;
+            }
+            .header {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏈 All Pro Sports</h1>
+            <p>Registration Confirmation</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="success-badge">
+                ✅ Registration Successful!
+            </div>
+
+            <h2>Welcome to All Pro Sports, Marcus!</h2>
+            <p>Thank you for registering for our Flag Football League. Your registration has been successfully processed and payment confirmed. We're excited to have you join our team!</p>
+
+            <!-- Personal Information -->
+            <div class="info-section">
+                <h3>👤 Personal Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Full Name</div>
+                        <div class="info-value">Marcus Johnson</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">marcus.johnson@email.com</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Phone</div>
+                        <div class="info-value">(555) 123-4567</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Date of Birth</div>
+                        <div class="info-value">March 15, 1995</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Role</div>
+                        <div class="info-value"><span class="badge badge-player">Player</span></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Jersey Size</div>
+                        <div class="info-value">Large</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player Details -->
+            <div class="info-section">
+                <h3>🏃‍♂️ Player Details</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Position</div>
+                        <div class="info-value">Receiver</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Player Tag</div>
+                        <div class="info-value">Free Agent</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Experience Level</div>
+                        <div class="info-value">Intermediate</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Registration Date</div>
+                        <div class="info-value">January 15, 2025</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            <div class="emergency-contact">
+                <h4>🚨 Emergency Contact</h4>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Contact Name</div>
+                        <div class="info-value">Sarah Johnson</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Contact Phone</div>
+                        <div class="info-value">(555) 987-6543</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plan Details -->
+            <div class="plan-details">
+                <h3>📋 Registration Plan</h3>
+                <p><strong>Complete Season Package</strong></p>
+                <div class="price-display">$88.50 + $3.00 service fee = $91.50</div>
+                <p>✅ Full season participation<br>
+                ✅ Official team jersey<br>
+                ✅ End of season tournament<br>
+                ✅ Awards ceremony access</p>
+                <div style="margin-top: 15px;">
+                    <span class="badge badge-paid">Payment Status: PAID</span>
+                </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="qr-section">
+                <h3>📱 Your Player QR Code</h3>
+                <p>Use this QR code for quick check-ins and profile access:</p>
+                <div class="qr-code">
+                    [QR CODE]<br>
+                    Profile Link
+                </div>
+                <p><small>Scan with any QR code reader or camera app</small></p>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3>🎯 What's Next?</h3>
+                <ul>
+                    <li><strong>Team Draft:</strong> You'll be notified of your team assignment within 48 hours</li>
+                    <li><strong>First Practice:</strong> Check your email for practice schedule (typically starts the week of January 22nd)</li>
+                    <li><strong>Jersey Pickup:</strong> Collect your jersey at the first practice or at our facility</li>
+                    <li><strong>Season Schedule:</strong> Full game schedule will be emailed once teams are finalized</li>
+                    <li><strong>Waiver Confirmation:</strong> Your signed waiver has been processed and filed</li>
+                </ul>
+            </div>
+
+            <!-- Important Information -->
+            <div class="contact-info">
+                <h3>📞 Important Information</h3>
+                <p><strong>League Start Date:</strong> January 29, 2025</p>
+                <p><strong>Season Duration:</strong> 8 weeks + playoffs</p>
+                <p><strong>Game Location:</strong> All Pro Sports Complex<br>
+                123 Sports Drive, Charlotte, NC 28202</p>
+                <p><strong>Game Times:</strong> Saturdays 9:00 AM - 5:00 PM</p>
+                <p><strong>Contact:</strong> info@allprosportsnc.com | (704) 555-PROS</p>
+            </div>
+
+            <!-- Registration Summary -->
+            <div class="info-section">
+                <h3>📄 Registration Summary</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Registration ID</div>
+                        <div class="info-value">APS-2025-001234</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Payment Method</div>
+                        <div class="info-value">Credit Card (****4242)</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Transaction ID</div>
+                        <div class="info-value">ch_1234567890abcdef</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Confirmation Date</div>
+                        <div class="info-value">January 15, 2025 at 2:30 PM EST</div>
+                    </div>
+                </div>
+            </div>
+
+            <p><strong>Questions?</strong> Reply to this email or call us at (704) 555-PROS. We're here to help!</p>
+            
+            <p>See you on the field!<br>
+            <strong>The All Pro Sports Team</strong></p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>All Pro Sports</strong></p>
+            <p>123 Sports Drive, Charlotte, NC 28202</p>
+            <p>Phone: (704) 555-PROS | Email: info@allprosportsnc.com</p>
+            <p>Website: www.allprosportsnc.com</p>
+            <hr style="border: 1px solid #475569; margin: 20px 0;">
+            <p><small>This email was sent to marcus.johnson@email.com because you registered for All Pro Sports Flag Football League.</small></p>
+            <p><small>© 2025 All Pro Sports. All rights reserved.</small></p>
+        </div>
+    </div>
+</body>
+</html>

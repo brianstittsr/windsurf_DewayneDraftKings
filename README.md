@@ -4,7 +4,7 @@
 
 ## Phase 1: SMS Automation & Player Registration System
 
-A complete SMS automation system for All Pro Sports with comprehensive player registration, automated message journeys, QR code generation, and payment integration.
+A complete SMS automation system for All Pro Sports with comprehensive player registration, automated message journeys, QR code generation, and payment integration with database-driven pricing management.
 
 ## Features
 
@@ -13,6 +13,7 @@ A complete SMS automation system for All Pro Sports with comprehensive player re
 - **Player Profile System**: Complete player profiles with stats, emergency contacts, and medical information
 - **QR Code Generation**: Auto-generated QR codes for players, teams, and league with profile linking
 - **Payment Integration**: Payment page with multiple options and SMS confirmation
+- **Database-Driven Pricing**: Dynamic pricing management with admin interface
 - **SMS Automation**: Welcome sequence, registration reminders, feedback collection, and payment confirmations
 - **Admin QR Management**: Interface for generating and managing league/team QR codes
 - **Player Profile Pages**: Individual player profiles accessible via QR codes with stats and information
@@ -38,20 +39,29 @@ A complete SMS automation system for All Pro Sports with comprehensive player re
 
 ```
 ├── app/
-│   ├── admin/              # SMS management dashboard
-│   ├── api/sms/           # SMS API endpoints
-│   │   ├── send/          # Send SMS messages
-│   │   ├── journeys/      # Journey management
-│   │   ├── webhook/       # Twilio webhooks
-│   │   └── analytics/     # Performance metrics
+│   ├── admin/              # Admin dashboard
+│   ├── api/
+│   │   ├── pricing/        # Pricing API endpoints
+│   │   └── sms/            # SMS API endpoints
+│   │       ├── send/       # Send SMS messages
+│   │       ├── journeys/   # Journey management
+│   │       ├── webhook/    # Twilio webhooks
+│   │       └── analytics/  # Performance metrics
+│   ├── pricing/            # Pricing page
+│   ├── checkout/           # Checkout page
 │   └── register/          # User registration page
+├── components/
+│   ├── AdminLayout.tsx     # Admin layout component
+│   ├── PricingManagement.tsx # Admin pricing management
+│   └── PaymentCheckout.tsx # Payment checkout component
 ├── lib/
-│   ├── firebase.ts        # Firebase configuration
-│   ├── twilio-service.ts  # SMS sending service
+│   ├── firebase.ts         # Firebase configuration
+│   ├── twilio-service.ts   # SMS sending service
 │   ├── sms-journey-service.ts # Journey automation
-│   ├── sms-analytics.ts   # Analytics tracking
-│   └── sms-schema.ts      # Database schema
+│   ├── sms-analytics.ts    # Analytics tracking
+│   └── firestore-schema.ts # Database schema
 └── scripts/
+    ├── seed-pricing-data.js # Pricing data seeding
     └── initialize-journeys.js # Setup script
 ```
 
@@ -110,10 +120,17 @@ https://yourdomain.com/api/sms/webhook
 
 ### API Endpoints
 
+#### SMS API
 - `POST /api/sms/send` - Send individual SMS
 - `POST /api/sms/journeys` - Manage journey workflows
 - `POST /api/sms/webhook` - Handle Twilio status updates
 - `GET /api/sms/analytics` - Retrieve performance metrics
+
+#### Pricing API
+- `GET /api/pricing` - Get all active pricing plans
+- `POST /api/pricing` - Create a new pricing plan
+- `PUT /api/pricing/[id]` - Update an existing pricing plan
+- `DELETE /api/pricing/[id]` - Soft delete a pricing plan
 
 ## SMS Journeys
 

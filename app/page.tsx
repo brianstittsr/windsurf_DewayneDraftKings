@@ -85,7 +85,7 @@ export default function Home() {
               <li className="nav-item"><Link className="nav-link" href="/leaderboard">League</Link></li>
               <li className="nav-item"><Link className="nav-link" href="/leaderboard">Leaderboard</Link></li>
               <li className="nav-item"><Link className="nav-link" href="/register">Pricing</Link></li>
-              <li className="nav-item"><Link className="nav-link" href="/admin">Admin</Link></li>
+              {/* <li className="nav-item"><Link className="nav-link" href="/admin">Admin</Link></li> */}
             </ul>
           </div>
         </div>

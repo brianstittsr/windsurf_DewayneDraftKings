@@ -892,6 +892,21 @@ export interface RegistrationData {
   submittedAt: Timestamp;
 }
 
+export interface PricingPlan extends BaseDocument {
+  // Plan Details
+  title: string;
+  subtitle: string;
+  price: number;
+  serviceFee: number;
+  features: string[];
+  popular: boolean;
+  buttonText: string;
+  buttonClass: string;
+  itemType: 'jamboree' | 'season' | 'bundle' | 'assistant_coach' | 'head_coach';
+  category: 'player' | 'coach';
+  isActive: boolean;
+}
+
 // Collection names for Firestore
 export const COLLECTIONS = {
   PLAYERS: 'players',
@@ -914,11 +929,28 @@ export const COLLECTIONS = {
   QR_CODES: 'qr_codes',
   NOTIFICATIONS: 'notifications',
   DRAFT_HISTORY: 'draft-history',
-  REFERRAL_TREES: 'referral-trees',
   SYSTEM_SETTINGS: 'system-settings',
   AUDIT_LOGS: 'audit-logs',
   COUPONS: 'coupons',
-  SMS_OPT_INS: 'sms_opt_ins'
+  SMS_OPT_INS: 'sms_opt_ins',
+  MEAL_PLANS: 'meal_plans',
+  MEAL_PLAN_ORDERS: 'meal_plan_orders',
+  MEAL_PLAN_CATEGORIES: 'meal_plan_categories',
+  PRICING: 'pricing',
+  // Enhanced Flag Football League Collections
+  LEADS: 'leads',
+  ENHANCED_TEAMS: 'enhanced_teams',
+  ENHANCED_PLAYERS: 'enhanced_players',
+  JERSEY_QR_CODES: 'jersey_qr_codes',
+  DRAFT_EVENTS: 'draft_events',
+  ENHANCED_DRAFT_PICKS: 'enhanced_draft_picks',
+  ENHANCED_LEADERBOARDS: 'enhanced_leaderboards',
+  REFERRAL_TREES: 'referral_trees',
+  UPSELL_CAMPAIGNS: 'upsell_campaigns',
+  STAFF_KPIS: 'staff_kpis',
+  ENHANCED_EVENTS: 'enhanced_events',
+  ANALYTICS: 'analytics',
+  CONSENT_RECORDS: 'consent_records'
 } as const;
 
 // Subcollections
@@ -1105,4 +1137,653 @@ export interface SMSOptIn extends BaseDocument {
   // Compliance
   tcpaCompliant: boolean;
   consentText: string;
+}
+
+// Meal Plan Interface
+export interface MealPlan extends BaseDocument {
+  // Basic Information
+  name: string;
+  description: string;
+  shortDescription?: string;
+  
+  // Pricing
+  price: number;
+  originalPrice?: number; // For showing discounts
+  currency: 'USD';
+  
+  // Plan Details
+  duration: number; // Number of days
+  mealsPerDay: number;
+  totalMeals: number;
+  
+  // Meal Categories
+  categories: {
+    breakfast: boolean;
+    lunch: boolean;
+    dinner: boolean;
+    snacks: boolean;
+  };
+  
+  // Dietary Options
+  dietaryOptions: {
+    vegetarian: boolean;
+    vegan: boolean;
+    glutenFree: boolean;
+    keto: boolean;
+    lowCarb: boolean;
+    highProtein: boolean;
+    dairyFree: boolean;
+    nutFree: boolean;
+  };
+  
+  // Features and Benefits
+  features: string[];
+  benefits: string[];
+  
+  // Media
+  imageUrl?: string;
+  galleryImages?: string[];
+  
+  // Availability
+  isActive: boolean;
+  isPopular: boolean;
+  isFeatured: boolean;
+  maxOrders?: number; // Maximum number of orders allowed
+  currentOrders: number; // Current number of active orders
+  
+  // Scheduling
+  availableStartDates?: Timestamp[];
+  blackoutDates?: Timestamp[]; // Dates when plan is not available
+  
+  // Nutritional Information
+  nutrition?: {
+    caloriesPerDay: number;
+    proteinGrams: number;
+    carbsGrams: number;
+    fatGrams: number;
+    fiberGrams: number;
+    sodiumMg: number;
+  };
+  
+  // Sample Menu
+  sampleMeals?: {
+    day: number;
+    breakfast?: string;
+    lunch?: string;
+    dinner?: string;
+    snacks?: string[];
+  }[];
+  
+  // Admin Information
+  createdBy: string; // Staff ID
+  lastModifiedBy: string;
+  
+  // Status
+  status: 'draft' | 'active' | 'inactive' | 'discontinued';
+  
+  // Sales Metrics
+  salesStats: {
+    totalSold: number;
+    revenue: number;
+    averageRating?: number;
+    reviewCount: number;
+  };
+}
+
+// Meal Plan Order Interface
+export interface MealPlanOrder extends BaseDocument {
+  // Customer Information
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  
+  // Meal Plan Details
+  mealPlanId: string;
+  mealPlanName: string;
+  planDuration: number;
+  mealsPerDay: number;
+  
+  // Pricing
+  planPrice: number;
+  serviceFee?: number;
+  deliveryFee?: number;
+  totalAmount: number;
+  
+  // Delivery Information
+  deliveryAddress: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+    instructions?: string;
+  };
+  
+  // Schedule
+  startDate: Timestamp;
+  endDate: Timestamp;
+  deliveryDays: ('monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday')[];
+  deliveryTime: 'morning' | 'afternoon' | 'evening';
+  
+  // Dietary Preferences
+  dietaryRestrictions?: string[];
+  allergies?: string[];
+  specialInstructions?: string;
+  
+  // Order Status
+  status: 'pending' | 'confirmed' | 'preparing' | 'delivering' | 'delivered' | 'completed' | 'cancelled' | 'refunded';
+  
+  // Payment Information
+  paymentId?: string;
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  stripeSessionId?: string;
+  
+  // Delivery Tracking
+  deliveries: {
+    date: Timestamp;
+    status: 'scheduled' | 'out_for_delivery' | 'delivered' | 'failed' | 'rescheduled';
+    deliveredAt?: Timestamp;
+    deliveryNotes?: string;
+    recipientName?: string;
+    photoUrl?: string; // Proof of delivery
+  }[];
+  
+  // Customer Feedback
+  rating?: number; // 1-5 stars
+  review?: string;
+  reviewDate?: Timestamp;
+  
+  // Admin Notes
+  adminNotes?: string;
+  assignedTo?: string; // Staff ID responsible for order
+}
+
+// Meal Plan Category Interface
+export interface MealPlanCategory extends BaseDocument {
+  name: string;
+  description: string;
+  slug: string;
+  imageUrl?: string;
+  isActive: boolean;
+  sortOrder: number;
+  
+  // SEO
+  metaTitle?: string;
+  metaDescription?: string;
+  
+  // Admin
+  createdBy: string;
+}
+
+// ========================================
+// ENHANCED FLAG FOOTBALL LEAGUE INTERFACES
+// ========================================
+
+// Lead Management Interface
+export interface Lead extends BaseDocument {
+  // Personal Information
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  
+  // Lead Classification
+  source: 'sms' | 'email' | 'referral' | 'event' | 'social' | 'website';
+  status: 'prospect' | 'nurturing' | 'hot' | 'converted' | 'lost';
+  score: number; // 0-100
+  tags: string[];
+  
+  // Engagement Tracking
+  lastContact: Timestamp;
+  conversionProbability: number; // 0-1
+  assignedStaff: string; // userId
+  
+  // Communication History
+  notes: {
+    timestamp: Timestamp;
+    staffId: string;
+    content: string;
+    type: 'call' | 'email' | 'sms' | 'meeting' | 'other';
+  }[];
+  
+  // Touchpoint Tracking
+  touchpoints: {
+    timestamp: Timestamp;
+    channel: 'sms' | 'email' | 'call' | 'web' | 'social';
+    campaign?: string;
+    response?: 'positive' | 'negative' | 'neutral' | 'no-response';
+  }[];
+}
+
+// Enhanced Team Interface
+export interface EnhancedTeam extends BaseDocument {
+  // Basic Information
+  name: string;
+  capacity: number;
+  currentSize: number;
+  waitlistSize: number;
+  
+  // Coaching Staff
+  coachId: string;
+  assistantCoaches: string[];
+  
+  // Team Status
+  status: 'forming' | 'full' | 'draft-ready' | 'active' | 'inactive';
+  draftOrder: number;
+  division: string;
+  homeField: string;
+  
+  // Branding
+  teamColor: string;
+  logoUrl?: string;
+  qrCodeUrl?: string;
+  
+  // Social Media
+  socialLinks: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+  };
+  
+  // Performance Stats
+  stats: {
+    wins: number;
+    losses: number;
+    ties: number;
+    pointsFor: number;
+    pointsAgainst: number;
+    gamesPlayed: number;
+    winPercentage: number;
+  };
+}
+
+// Enhanced Player Interface
+export interface EnhancedPlayer extends BaseDocument {
+  // Personal Information
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: Timestamp;
+  
+  // Player Status
+  status: 'prospect' | 'pending-payment' | 'paid-registered' | 'draft-pool' | 'team-assigned' | 'waitlist';
+  position: 'quarterback' | 'rusher' | 'receiver' | 'defender' | 'flex';
+  playerTag: 'free-agent' | 'draft-pick' | 'prospect' | 'meet-greet' | 'client' | 'veteran' | 'rookie';
+  
+  // Jersey Information
+  jerseyNumber?: number;
+  jerseySize: string;
+  
+  // Team Assignment
+  teamId?: string;
+  draftRound?: number;
+  draftPick?: number;
+  isDrafted: boolean;
+  
+  // Availability
+  availability: {
+    weekdays: string[];
+    weekends: string[];
+    timePreference: 'morning' | 'afternoon' | 'evening';
+  };
+  
+  // Preferences
+  preferences: {
+    position: string[];
+    teamStyle: 'competitive' | 'recreational' | 'social';
+    notifications: {
+      sms: boolean;
+      email: boolean;
+      push: boolean;
+    };
+  };
+  
+  // Profile & QR Code
+  qrCodeUrl?: string;
+  profileUrl?: string;
+  
+  // Performance Stats
+  stats: {
+    gamesPlayed: number;
+    touchdowns: number;
+    receptions: number;
+    yards: number;
+    tackles?: number;
+    interceptions?: number;
+  };
+  
+  // Emergency Contact
+  emergencyContact: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
+  
+  // Medical Information
+  medicalInfo: {
+    conditions: string;
+    allergies: string;
+    lastUpdated: Timestamp;
+  };
+  
+  // Referral System
+  referredBy?: string;
+  referralCount: number;
+}
+
+// Jersey QR Code Interface
+export interface JerseyQRCode extends BaseDocument {
+  // Assignment
+  playerId: string;
+  teamId: string;
+  jerseyNumber: number;
+  
+  // QR Code Details
+  qrCodeUrl: string;
+  landingPageUrl: string;
+  
+  // Tracking
+  scanCount: number;
+  lastScanned?: Timestamp;
+  
+  // Production Status
+  printStatus: 'pending' | 'printed' | 'delivered' | 'active';
+  vendorOrderId?: string;
+  
+  // Specifications
+  specifications: {
+    placement: string;
+    size: string;
+    color: string;
+    material: string;
+  };
+}
+
+// Draft Event Interface
+export interface DraftEvent extends BaseDocument {
+  // Event Details
+  name: string;
+  status: 'setup' | 'active' | 'paused' | 'completed';
+  
+  // Draft Configuration
+  currentRound: number;
+  currentPick: number;
+  pickTimeLimit: number; // seconds
+  
+  // Participants
+  teams: string[]; // team IDs
+  draftOrder: string[]; // team IDs in draft order
+  
+  // Rules
+  rules: {
+    rounds: number;
+    positionLimits: {
+      quarterback: number;
+      rusher: number;
+      receiver: number;
+      defender: number;
+      flex: number;
+    };
+    tradingAllowed: boolean;
+    autodraftEnabled: boolean;
+  };
+  
+  // Timing
+  startTime?: Timestamp;
+  endTime?: Timestamp;
+}
+
+// Enhanced Draft Pick Interface
+export interface EnhancedDraftPick extends BaseDocument {
+  // Draft Context
+  draftEventId: string;
+  round: number;
+  pick: number;
+  overallPick: number;
+  
+  // Assignment
+  teamId: string;
+  selectedPlayerId?: string;
+  
+  // Status
+  status: 'upcoming' | 'active' | 'completed' | 'skipped' | 'traded';
+  pickTimestamp?: Timestamp;
+  timeRemaining: number;
+  
+  // Trading
+  tradedTo?: string;
+}
+
+// Enhanced Leaderboard Interface
+export interface EnhancedLeaderboard extends BaseDocument {
+  // Configuration
+  category: 'stats' | 'referrals' | 'participation' | 'revenue' | 'attendance';
+  period: 'daily' | 'weekly' | 'monthly' | 'season' | 'all-time';
+  
+  // Entries
+  entries: {
+    playerId: string;
+    playerName: string;
+    teamName?: string;
+    value: number;
+    rank: number;
+    change: number;
+    trend: 'up' | 'down' | 'same';
+    avatar?: string;
+    additionalInfo?: string;
+  }[];
+  
+  // Display Settings
+  displaySettings: {
+    title: string;
+    subtitle: string;
+    showTop: number;
+    updateFrequency: 'hourly' | 'daily' | 'weekly';
+  };
+  
+  // Timestamps
+  lastUpdated: Timestamp;
+}
+
+// Referral Tree Interface
+export interface ReferralTree extends BaseDocument {
+  // Root Referrer
+  referrerId: string;
+  
+  // Referral Data
+  referrals: {
+    playerId: string;
+    playerName: string;
+    registrationDate: Timestamp;
+    rewardEarned: number;
+    status: 'active' | 'inactive';
+  }[];
+  
+  // Metrics
+  totalReferrals: number;
+  totalRewards: number;
+  level: number;
+  
+  // Status
+  status: 'active' | 'inactive' | 'suspended';
+  rewardsTier: 'bronze' | 'silver' | 'gold' | 'platinum';
+}
+
+// Upsell Campaign Interface
+export interface UpsellCampaign extends BaseDocument {
+  // Campaign Details
+  name: string;
+  targetAudience: string[];
+  trigger: 'registration' | 'milestone' | 'seasonal' | 'manual' | 'behavior';
+  
+  // Offers
+  offers: {
+    productId: string;
+    productName: string;
+    originalPrice: number;
+    discountPercent: number;
+    finalPrice: number;
+    expirationDays: number;
+    conversionCount: number;
+  }[];
+  
+  // Performance
+  conversionRate: number;
+  revenue: number;
+  status: 'draft' | 'active' | 'paused' | 'completed';
+  
+  // Scheduling
+  schedule: {
+    delay: number; // hours
+    reminderIntervals: number[]; // hours
+    maxAttempts: number;
+  };
+  
+  // Messaging
+  messaging: {
+    subject: string;
+    channels: ('email' | 'sms')[];
+    personalization: boolean;
+  };
+}
+
+// Staff KPI Interface
+export interface StaffKPI extends BaseDocument {
+  // Staff Information
+  staffId: string;
+  role: 'registration' | 'jersey-qr' | 'meal-plan' | 'classes' | 'draft-stats' | 'general-manager';
+  period: 'daily' | 'weekly' | 'monthly' | 'quarterly';
+  
+  // Metrics
+  metrics: {
+    name: string;
+    value: number;
+    target: number;
+    unit: 'count' | 'percentage' | 'currency';
+    trend: 'up' | 'down' | 'stable';
+    percentOfTarget: number;
+  }[];
+  
+  // Goals
+  goals: {
+    name: string;
+    target: number;
+    current: number;
+    deadline: Timestamp;
+    status: 'on-track' | 'at-risk' | 'behind' | 'completed';
+  }[];
+  
+  // Performance
+  performance: number; // Overall performance score 0-100
+  
+  // Achievements
+  achievements: {
+    name: string;
+    description: string;
+    earnedDate: Timestamp;
+    badge: 'bronze' | 'silver' | 'gold';
+  }[];
+}
+
+// Enhanced Event Interface
+export interface EnhancedEvent extends BaseDocument {
+  // Event Details
+  name: string;
+  type: 'jamboree' | 'draft' | 'game' | 'practice' | 'social';
+  date: Timestamp;
+  venue: string;
+  
+  // Status
+  status: 'planning' | 'setup' | 'active' | 'completed' | 'cancelled';
+  
+  // Registrations
+  registrations: {
+    playerId: string;
+    registrationTime: Timestamp;
+    checkInTime?: Timestamp;
+    paymentStatus: 'pending' | 'completed' | 'failed';
+    method: 'online' | 'onsite';
+    specialRequests?: string;
+  }[];
+  
+  // Staff Assignment
+  staff: {
+    staffId: string;
+    role: string;
+    shiftStart: Timestamp;
+    shiftEnd: Timestamp;
+    responsibilities: string[];
+  }[];
+  
+  // Equipment
+  equipment: {
+    item: string;
+    quantity: number;
+    status: 'reserved' | 'delivered' | 'setup' | 'returned';
+    assignedTo?: string;
+  }[];
+  
+  // Budget
+  budget: {
+    allocated: number;
+    spent: number;
+    remaining: number;
+  };
+  
+  // Attendance
+  attendance: {
+    expected: number;
+    registered: number;
+    checkedIn: number;
+  };
+}
+
+// Analytics Interface
+export interface Analytics extends BaseDocument {
+  // Event Details
+  eventType: 'registration' | 'payment' | 'scan' | 'referral' | 'upsell' | 'login' | 'page-view';
+  userId?: string;
+  sessionId?: string;
+  
+  // UTM Parameters
+  source?: string;
+  medium?: string;
+  campaign?: string;
+  content?: string;
+  term?: string;
+  
+  // Value
+  value?: number;
+  
+  // Metadata
+  metadata: {
+    device?: string;
+    browser?: string;
+    location?: string;
+    referrer?: string;
+    conversionTime?: number;
+    [key: string]: any;
+  };
+  
+  // Timestamp
+  timestamp: Timestamp;
+}
+
+// Consent Records Interface
+export interface ConsentRecord extends BaseDocument {
+  // User Information
+  userId: string;
+  consentType: 'sms' | 'email' | 'marketing' | 'analytics' | 'cookies' | 'data-processing';
+  
+  // Consent Details
+  granted: boolean;
+  timestamp: Timestamp;
+  ipAddress?: string;
+  userAgent?: string;
+  
+  // Method
+  method: 'registration' | 'update' | 'withdrawal';
+  version: string;
 }

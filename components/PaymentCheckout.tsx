@@ -57,7 +57,10 @@ function CreditCardForm({ onPaymentSuccess, onPaymentError, planData, customerDa
 
     try {
       // Create payment intent
-      const amount = Math.round((planData?.pricing?.total || planData?.price || 0) * 100);
+      // Ensure service fee is included even if pricing.total is not present
+      const computedTotal =
+        (planData?.pricing?.total ?? ((planData?.price || 0) + (planData?.serviceFee || 0)));
+      const amount = Math.round(computedTotal * 100);
       
       const response = await fetch('/api/payments/create-payment-intent', {
         method: 'POST',
@@ -155,7 +158,10 @@ function CreditCardForm({ onPaymentSuccess, onPaymentError, planData, customerDa
           ) : (
             <>
               <i className="fas fa-lock me-2"></i>
-              Pay ${planData?.pricing?.total?.toFixed(2) || planData?.price?.toFixed(2)} Securely
+              {(() => {
+                const btnTotal = (planData?.pricing?.total ?? ((planData?.price || 0) + (planData?.serviceFee || 0)));
+                return `Pay $${btnTotal.toFixed(2)} Securely`;
+              })()}
             </>
           )}
         </button>
@@ -224,8 +230,9 @@ export default function PaymentCheckout({
       });
 
       const result = await response.json();
-
-      if (result.success && result.coupon) {
+      
+      // Handle both success and graceful failure responses
+      if (response.ok && result.success && result.coupon) {
         const couponData: CouponData = {
           code: result.coupon.code,
           type: result.coupon.discountType,
@@ -292,7 +299,10 @@ export default function PaymentCheckout({
     setLoading(true);
     
     try {
-      const amount = Math.round((planData?.pricing?.total || planData?.price || 0) * 100); // Convert to cents
+      // Ensure service fee is included even if pricing.total is not present
+      const computedTotal =
+        (planData?.pricing?.total ?? ((planData?.price || 0) + (planData?.serviceFee || 0)));
+      const amount = Math.round(computedTotal * 100); // Convert to cents
       
       const checkoutResponse = await fetch('/api/payments/create-checkout', {
         method: 'POST',
@@ -680,7 +690,10 @@ export default function PaymentCheckout({
             ) : (
               <>
                 <i className="fas fa-lock me-2"></i>
-                Pay ${planData?.pricing?.total?.toFixed(2) || planData?.price?.toFixed(2)} with {selectedPaymentMethod === 'klarna' ? 'Klarna' : 'Affirm'}
+                {(() => {
+                  const btnTotal = (planData?.pricing?.total ?? ((planData?.price || 0) + (planData?.serviceFee || 0)));
+                  return `Pay $${btnTotal.toFixed(2)} with ${selectedPaymentMethod === 'klarna' ? 'Klarna' : 'Affirm'}`;
+                })()}
               </>
             )}
           </button>

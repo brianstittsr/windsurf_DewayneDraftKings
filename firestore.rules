@@ -171,7 +171,7 @@ service cloud.firestore {
     }
 
     // User Profiles collection - Allow all operations for development
-    match /userProfiles/{profileId} {
+    match /user_profiles/{profileId} {
       allow read, write: if true;
     }
 
@@ -182,6 +182,11 @@ service cloud.firestore {
 
     // Disputes collection - Allow all operations for development
     match /disputes/{disputeId} {
+      allow read, write: if true;
+    }
+    
+    // Pricing collection - Allow all operations for development
+    match /pricing/{pricingId} {
       allow read, write: if true;
     }
   }

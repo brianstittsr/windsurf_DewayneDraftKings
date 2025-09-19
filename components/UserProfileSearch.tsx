@@ -15,8 +15,11 @@ export default function UserProfileSearch({ onProfileSelect }: UserProfileSearch
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodes, setQRCodes] = useState<{ profile?: string; contact?: string }>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     fetchProfiles();
@@ -119,171 +122,216 @@ export default function UserProfileSearch({ onProfileSelect }: UserProfileSearch
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2">Loading profiles...</span>
+      <div className="d-flex justify-content-center align-items-center p-4">
+        <div className="spinner-border text-primary me-3" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <span className="text-muted">Loading profiles...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Search and Filters */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search
-            </label>
-            <input
-              type="text"
-              placeholder="Name, email, or phone..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+    <div className="fade-in">
+      {/* Modern Header */}
+      <div className="dk-card mb-4">
+        <div className="card-header">
+          <div className="d-flex align-items-center">
+            <div className="feature-icon me-3">
+              <i className="fas fa-users"></i>
+            </div>
+            <div>
+              <h4 className="card-title mb-0">User Profile Management</h4>
+              <p className="text-muted mb-0">Search and manage user profiles</p>
+            </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="pending">Pending</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Role
-            </label>
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Roles</option>
-              <option value="player">Players</option>
-              <option value="coach">Coaches</option>
-            </select>
-          </div>
-          
-          <div className="flex items-end">
-            <button
-              onClick={fetchProfiles}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Refresh
-            </button>
+        </div>
+        
+        <div className="card-body">
+          <div className="row g-3">
+            <div className="col-md-3">
+              <label className="form-label">
+                <i className="fas fa-search me-2"></i>Search
+              </label>
+              <input
+                type="text"
+                placeholder="Name, email, or phone..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="dk-metric-input form-control"
+              />
+            </div>
+            
+            <div className="col-md-3">
+              <label className="form-label">
+                <i className="fas fa-filter me-2"></i>Status
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="dk-metric-input form-select"
+              >
+                <option value="all">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="pending">Pending</option>
+              </select>
+            </div>
+            
+            <div className="col-md-3">
+              <label className="form-label">
+                <i className="fas fa-user-tag me-2"></i>Role
+              </label>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="dk-metric-input form-select"
+              >
+                <option value="all">All Roles</option>
+                <option value="player">Players</option>
+                <option value="coach">Coaches</option>
+              </select>
+            </div>
+            
+            <div className="col-md-3 d-flex align-items-end">
+              <button
+                onClick={fetchProfiles}
+                className="dk-btn-primary w-100"
+              >
+                <i className="fas fa-sync-alt me-2"></i>Refresh
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Results Summary */}
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <p className="text-sm text-gray-600">
-          Showing {filteredProfiles.length} of {profiles.length} profiles
-        </p>
+      <div className="stats-card mb-4">
+        <div className="d-flex align-items-center justify-content-between">
+          <div>
+            <h6 className="mb-1">
+              <i className="fas fa-chart-bar me-2 text-primary"></i>
+              Profile Results
+            </h6>
+            <p className="text-muted mb-0">
+              Showing <strong>{filteredProfiles.length}</strong> of <strong>{profiles.length}</strong> profiles
+            </p>
+          </div>
+          <div className="modern-badge">
+            {filteredProfiles.length} Found
+          </div>
+        </div>
       </div>
 
       {/* Profiles Table */}
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+      <div className="dk-card">
+        <div className="table-responsive">
+          <table className="table table-hover mb-0">
+            <thead className="table-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
+                <th className="border-0">
+                  <i className="fas fa-user me-2"></i>Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact
+                <th className="border-0">
+                  <i className="fas fa-address-book me-2"></i>Contact
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
+                <th className="border-0">
+                  <i className="fas fa-user-tag me-2"></i>Role
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                <th className="border-0">
+                  <i className="fas fa-toggle-on me-2"></i>Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Payment
+                <th className="border-0">
+                  <i className="fas fa-credit-card me-2"></i>Payment
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                <th className="border-0">
+                  <i className="fas fa-cogs me-2"></i>Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {filteredProfiles.map((profile) => (
-                <tr key={profile.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {profile.firstName} {profile.lastName}
+                <tr key={profile.id} className="hover-lift">
+                  <td className="py-3">
+                    <div className="d-flex align-items-center">
+                      <div className="feature-icon me-3" style={{width: '32px', height: '32px', fontSize: '14px'}}>
+                        <i className={`fas ${profile.role === 'player' ? 'fa-running' : 'fa-whistle'}`}></i>
                       </div>
-                      <div className="text-sm text-gray-500">
-                        Jersey: {profile.jerseySize}
+                      <div>
+                        <div className="fw-semibold text-dark">
+                          {profile.firstName} {profile.lastName}
+                        </div>
+                        <div className="text-muted small">
+                          <i className="fas fa-tshirt me-1"></i>Jersey: {profile.jerseySize}
+                        </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{profile.email}</div>
-                    <div className="text-sm text-gray-500">{profile.phone}</div>
+                  <td className="py-3">
+                    <div className="text-dark">
+                      <i className="fas fa-envelope me-2 text-primary"></i>{profile.email}
+                    </div>
+                    <div className="text-muted small">
+                      <i className="fas fa-phone me-2 text-success"></i>{profile.phone}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                  <td className="py-3">
+                    <span className={`badge rounded-pill ${
                       profile.role === 'player' 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : 'bg-green-100 text-green-800'
+                        ? 'bg-primary' 
+                        : 'bg-success'
                     }`}>
+                      <i className={`fas ${profile.role === 'player' ? 'fa-running' : 'fa-whistle'} me-1`}></i>
                       {profile.role}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="py-3">
                     <select
                       value={profile.status}
                       onChange={(e) => updateProfileStatus(profile.id!, e.target.value)}
-                      className={`text-xs px-2 py-1 rounded-full border-0 ${
+                      className={`form-select form-select-sm border-0 ${
                         profile.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
+                          ? 'bg-success bg-opacity-10 text-success' 
                           : profile.status === 'inactive'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-yellow-100 text-yellow-800'
+                          ? 'bg-danger bg-opacity-10 text-danger'
+                          : 'bg-warning bg-opacity-10 text-warning'
                       }`}
+                      style={{width: 'auto', minWidth: '100px'}}
                     >
                       <option value="active">Active</option>
                       <option value="inactive">Inactive</option>
                       <option value="pending">Pending</option>
                     </select>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                  <td className="py-3">
+                    <span className={`badge rounded-pill ${
                       profile.paymentStatus === 'paid' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-success' 
+                        : 'bg-warning'
                     }`}>
+                      <i className={`fas ${profile.paymentStatus === 'paid' ? 'fa-check-circle' : 'fa-clock'} me-1`}></i>
                       {profile.paymentStatus}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => openProfileModal(profile)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      View
-                    </button>
-                    <button
-                      onClick={() => onProfileSelect?.(profile)}
-                      className="text-green-600 hover:text-green-900"
-                    >
-                      Select
-                    </button>
+                  <td className="py-3">
+                    <div className="btn-group" role="group">
+                      <button
+                        onClick={() => openProfileModal(profile)}
+                        className="btn btn-sm btn-outline-primary"
+                        title="View Profile"
+                      >
+                        <i className="fas fa-eye"></i>
+                      </button>
+                      {onProfileSelect && (
+                        <button
+                          onClick={() => onProfileSelect(profile)}
+                          className="btn btn-sm btn-outline-success"
+                          title="Select Profile"
+                        >
+                          <i className="fas fa-check"></i>
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -294,87 +342,182 @@ export default function UserProfileSearch({ onProfileSelect }: UserProfileSearch
 
       {/* Profile Detail Modal */}
       {showQRModal && selectedProfile && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">
-                  {selectedProfile.firstName} {selectedProfile.lastName}
-                </h3>
+        <div className="modal fade show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal-dialog modal-lg modal-dialog-scrollable">
+            <div className="modal-content">
+              <div className="modal-header bg-primary text-white">
+                <div className="d-flex align-items-center">
+                  <div className="feature-icon me-3 bg-white text-primary">
+                    <i className="fas fa-user"></i>
+                  </div>
+                  <div>
+                    <h5 className="modal-title mb-0">
+                      {selectedProfile.firstName} {selectedProfile.lastName}
+                    </h5>
+                    <small className="opacity-75">Profile Details & QR Codes</small>
+                  </div>
+                </div>
                 <button
+                  type="button"
+                  className="btn-close btn-close-white"
                   onClick={() => setShowQRModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ✕
-                </button>
+                ></button>
               </div>
+              <div className="modal-body">
+                <div className="row">
+                  {/* Profile Info */}
+                  <div className="col-md-6">
+                    <div className="stats-card h-100">
+                      <h6 className="card-title">
+                        <i className="fas fa-info-circle me-2 text-primary"></i>
+                        Profile Information
+                      </h6>
+                      <div className="row g-3">
+                        <div className="col-12">
+                          <div className="d-flex align-items-center">
+                            <i className="fas fa-envelope text-primary me-3"></i>
+                            <div>
+                              <small className="text-muted d-block">Email</small>
+                              <span className="fw-medium">{selectedProfile.email}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="col-12">
+                          <div className="d-flex align-items-center">
+                            <i className="fas fa-phone text-success me-3"></i>
+                            <div>
+                              <small className="text-muted d-block">Phone</small>
+                              <span className="fw-medium">{selectedProfile.phone}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="col-6">
+                          <div className="d-flex align-items-center">
+                            <i className="fas fa-user-tag text-info me-3"></i>
+                            <div>
+                              <small className="text-muted d-block">Role</small>
+                              <span className={`badge ${selectedProfile.role === 'player' ? 'bg-primary' : 'bg-success'}`}>
+                                {selectedProfile.role}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="col-6">
+                          <div className="d-flex align-items-center">
+                            <i className="fas fa-tshirt text-warning me-3"></i>
+                            <div>
+                              <small className="text-muted d-block">Jersey</small>
+                              <span className="fw-medium">{selectedProfile.jerseySize}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="col-6">
+                          <div className="d-flex align-items-center">
+                            <i className="fas fa-toggle-on text-secondary me-3"></i>
+                            <div>
+                              <small className="text-muted d-block">Status</small>
+                              <span className={`badge ${
+                                selectedProfile.status === 'active' ? 'bg-success' :
+                                selectedProfile.status === 'inactive' ? 'bg-danger' : 'bg-warning'
+                              }`}>
+                                {selectedProfile.status}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="col-6">
+                          <div className="d-flex align-items-center">
+                            <i className="fas fa-credit-card text-success me-3"></i>
+                            <div>
+                              <small className="text-muted d-block">Payment</small>
+                              <span className={`badge ${selectedProfile.paymentStatus === 'paid' ? 'bg-success' : 'bg-warning'}`}>
+                                {selectedProfile.paymentStatus}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Profile Info */}
-                <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900">Profile Information</h4>
-                  <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Email:</span> {selectedProfile.email}</p>
-                    <p><span className="font-medium">Phone:</span> {selectedProfile.phone}</p>
-                    <p><span className="font-medium">Role:</span> {selectedProfile.role}</p>
-                    <p><span className="font-medium">Jersey Size:</span> {selectedProfile.jerseySize}</p>
-                    <p><span className="font-medium">Status:</span> {selectedProfile.status}</p>
-                    <p><span className="font-medium">Payment:</span> {selectedProfile.paymentStatus}</p>
+                  {/* QR Codes */}
+                  <div className="col-md-6">
+                    <div className="stats-card h-100">
+                      <h6 className="card-title">
+                        <i className="fas fa-qrcode me-2 text-primary"></i>
+                        QR Codes
+                      </h6>
+                      
+                      <div className="row g-3">
+                        <div className="col-12">
+                          <div className="border rounded p-3 text-center">
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                              <span className="fw-medium">
+                                <i className="fas fa-user me-2 text-primary"></i>
+                                Profile QR
+                              </span>
+                              <button
+                                onClick={() => generateQRCode(selectedProfile.id!, 'profile')}
+                                className="btn btn-sm btn-primary"
+                              >
+                                <i className="fas fa-sync me-1"></i>
+                                Generate
+                              </button>
+                            </div>
+                            {qrCodes.profile && (
+                              <div className="dk-qr-container d-inline-block">
+                                <img src={qrCodes.profile} alt="Profile QR" className="img-fluid" style={{maxWidth: '120px'}} />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="col-12">
+                          <div className="border rounded p-3 text-center">
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                              <span className="fw-medium">
+                                <i className="fas fa-address-card me-2 text-success"></i>
+                                Contact QR
+                              </span>
+                              <button
+                                onClick={() => generateQRCode(selectedProfile.id!, 'contact')}
+                                className="btn btn-sm btn-success"
+                              >
+                                <i className="fas fa-sync me-1"></i>
+                                Generate
+                              </button>
+                            </div>
+                            {qrCodes.contact && (
+                              <div className="dk-qr-container d-inline-block">
+                                <img src={qrCodes.contact} alt="Contact QR" className="img-fluid" style={{maxWidth: '120px'}} />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* QR Codes */}
-                <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900">QR Codes</h4>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium">Profile QR</span>
-                        <button
-                          onClick={() => generateQRCode(selectedProfile.id!, 'profile')}
-                          className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded"
-                        >
-                          Generate
-                        </button>
-                      </div>
-                      {qrCodes.profile && (
-                        <img src={qrCodes.profile} alt="Profile QR" className="w-32 h-32 border" />
-                      )}
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium">Contact QR</span>
-                        <button
-                          onClick={() => generateQRCode(selectedProfile.id!, 'contact')}
-                          className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded"
-                        >
-                          Generate
-                        </button>
-                      </div>
-                      {qrCodes.contact && (
-                        <img src={qrCodes.contact} alt="Contact QR" className="w-32 h-32 border" />
-                      )}
-                    </div>
+                {/* Registration PDF */}
+                {selectedProfile.registrationPdfUrl && (
+                  <div className="mt-4 pt-3 border-top">
+                    <h6 className="card-title mb-3">
+                      <i className="fas fa-file-pdf me-2 text-danger"></i>
+                      Registration Document
+                    </h6>
+                    <a
+                      href={selectedProfile.registrationPdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-outline-danger"
+                    >
+                      <i className="fas fa-file-pdf me-2"></i>
+                      View PDF
+                    </a>
                   </div>
-                </div>
+                )}
               </div>
-
-              {/* Registration PDF */}
-              {selectedProfile.registrationPdfUrl && (
-                <div className="mt-6 pt-4 border-t">
-                  <h4 className="font-medium text-gray-900 mb-2">Registration Document</h4>
-                  <a
-                    href={selectedProfile.registrationPdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                  >
-                    📄 View PDF
-                  </a>
-                </div>
-              )}
             </div>
           </div>
         </div>

@@ -19,9 +19,14 @@ export async function POST(request: NextRequest) {
     // Check if Firebase environment variables are configured
     if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
       console.error('Firebase not configured - missing NEXT_PUBLIC_FIREBASE_PROJECT_ID');
+      // Return success with no discount instead of error for better UX
       return NextResponse.json({ 
-        error: 'Coupon validation service not available' 
-      }, { status: 503 });
+        success: false,
+        error: 'Coupon validation temporarily unavailable',
+        discount: 0,
+        finalAmount: orderAmount,
+        orderAmount: orderAmount
+      }, { status: 200 });
     }
 
     // Dynamic import with better error handling
@@ -35,9 +40,14 @@ export async function POST(request: NextRequest) {
       }
     } catch (firebaseError) {
       console.error('Firebase initialization error:', firebaseError);
+      // Return graceful fallback instead of error
       return NextResponse.json({ 
-        error: 'Database connection failed' 
-      }, { status: 503 });
+        success: false,
+        error: 'Database connection failed',
+        discount: 0,
+        finalAmount: orderAmount,
+        orderAmount: orderAmount
+      }, { status: 200 });
     }
 
     const { collection, query, where, getDocs } = await import('firebase/firestore');

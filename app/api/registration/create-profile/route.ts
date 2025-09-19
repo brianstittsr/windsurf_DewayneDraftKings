@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateRegistrationPDF } from '@/lib/pdf-generator';
 import { sendRegistrationEmail } from '@/lib/email-pdf-service';
+import { generateProfileQRCode } from '@/lib/qr-generator';
 import { RegistrationData, UserProfile, COLLECTIONS } from '@/lib/firestore-schema';
 
 export async function POST(request: NextRequest) {
@@ -68,9 +69,33 @@ export async function POST(request: NextRequest) {
     // Save to Firestore
     const docRef = await addDoc(collection(db, COLLECTIONS.USER_PROFILES), userProfile);
 
-    // Send confirmation email
+    // Generate QR code for the profile
+    let qrCodeDataUrl = '';
     try {
-      const emailResult = await sendRegistrationEmail(registrationData, registrationData.email);
+      qrCodeDataUrl = await generateProfileQRCode(
+        docRef.id,
+        process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+      );
+      
+      // Update the profile with QR code
+      const { updateDoc, doc } = await import('firebase/firestore');
+      await updateDoc(doc(db, COLLECTIONS.USER_PROFILES, docRef.id), {
+        qrCodeUrl: qrCodeDataUrl,
+        updatedAt: serverTimestamp()
+      });
+      
+      console.log('QR code generated and saved for profile:', docRef.id);
+    } catch (error) {
+      console.error('QR code generation failed:', error);
+    }
+
+    // Send confirmation email with QR code
+    try {
+      const emailResult = await sendRegistrationEmail(
+        registrationData, 
+        registrationData.email,
+        qrCodeDataUrl
+      );
       if (!emailResult.success) {
         console.error('Email sending failed:', emailResult.error);
       }
@@ -82,6 +107,7 @@ export async function POST(request: NextRequest) {
       success: true,
       profileId: docRef.id,
       registrationPdfUrl,
+      qrCodeUrl: qrCodeDataUrl,
       emailSent: true
     });
 

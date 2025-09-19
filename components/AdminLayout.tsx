@@ -174,6 +174,22 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </Link>
           </li>
 
+          {/* Nav Item - Pricing */}
+          <li className="nav-item">
+            <Link href="/admin?tab=pricing" className={`nav-link ${isActive('pricing') ? 'active' : ''}`}>
+              <i className="fas fa-fw fa-dollar-sign"></i>
+              <span>Pricing</span>
+            </Link>
+          </li>
+
+          {/* Nav Item - Meal Plans */}
+          <li className="nav-item">
+            <Link href="/admin/meal-plans" className={`nav-link ${pathname === '/admin/meal-plans' ? 'active' : ''}`}>
+              <i className="fas fa-fw fa-utensils"></i>
+              <span>Meal Plans</span>
+            </Link>
+          </li>
+
           {/* Nav Item - QR Codes */}
           <li className="nav-item">
             <Link href="/admin?tab=qr-codes" className={`nav-link ${isActive('qr-codes') ? 'active' : ''}`}>

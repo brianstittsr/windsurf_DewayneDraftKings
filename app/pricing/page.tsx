@@ -30,39 +30,20 @@ export default function PricingPage() {
     const loadPricingPlans = async () => {
       try {
         setLoading(true);
+        setError('');
         
-        // Dynamic import to avoid build errors
-        const { db } = await import('@/lib/firebase').catch(() => ({ db: null }));
+        // Fetch from API endpoint
+        const response = await fetch('/api/pricing');
+        const data = await response.json();
         
-        if (!db) {
-          console.warn('Firebase not available, using static pricing data');
-          setPricingPlans(getStaticPricingData());
-          setError(''); // Clear any previous errors
-          setLoading(false);
-          return;
-        }
-
-        const { collection, getDocs } = await import('firebase/firestore');
-        const pricingRef = collection(db, 'pricing');
-        const snapshot = await getDocs(pricingRef);
-        
-        if (snapshot.empty) {
-          console.log('No pricing data in Firebase, using static data');
-          setPricingPlans(getStaticPricingData());
-          setError(''); // Clear any previous errors
+        if (data.plans) {
+          setPricingPlans(data.plans);
         } else {
-          const plans = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          })) as PricingPlan[];
-          setPricingPlans(plans);
-          setError(''); // Clear any previous errors
+          setError('No pricing plans available at the moment. Please check back later.');
         }
       } catch (err) {
         console.error('Error loading pricing plans:', err);
-        console.log('Falling back to static pricing data');
-        setPricingPlans(getStaticPricingData());
-        setError(''); // Don't show error to user, just use fallback data
+        setError('Failed to load pricing plans. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -71,107 +52,7 @@ export default function PricingPage() {
     loadPricingPlans();
   }, []);
 
-  // Static pricing data as fallback
-  const getStaticPricingData = (): PricingPlan[] => [
-    {
-      title: 'Jamboree Game',
-      subtitle: 'Registration + Jersey',
-      price: 26.50,
-      serviceFee: 3.00,
-      features: [
-        'Single game registration',
-        'Official team jersey',
-        'Game day participation',
-        'Basic stats tracking',
-        'Team photo inclusion'
-      ],
-      popular: false,
-      buttonText: 'Register Now',
-      buttonClass: 'btn-outline-primary',
-      itemType: 'jamboree',
-      category: 'player'
-    },
-    {
-      title: 'Jamboree + Season',
-      subtitle: 'Complete package',
-      price: 88.50,
-      serviceFee: 3.00,
-      features: [
-        'Jamboree game registration',
-        'Complete season access',
-        'Official team jersey',
-        'Priority team placement',
-        'All games & playoffs',
-        'Premium stats package',
-        'Exclusive team events',
-        'Season highlight reel'
-      ],
-      popular: true,
-      buttonText: 'Get Started',
-      buttonClass: 'btn-primary',
-      itemType: 'bundle',
-      category: 'player'
-    },
-    {
-      title: 'Complete Season',
-      subtitle: 'Full season access',
-      price: 59.00,
-      serviceFee: 3.00,
-      features: [
-        'Complete season registration',
-        'All regular season games',
-        'Playoff eligibility',
-        'Official team jersey',
-        'Advanced stats tracking',
-        'Team events access',
-        'Season awards eligibility'
-      ],
-      popular: false,
-      buttonText: 'Join Season',
-      buttonClass: 'btn-outline-primary',
-      itemType: 'season',
-      category: 'player'
-    },
-    {
-      title: 'Assistant Coach',
-      subtitle: 'Support role',
-      price: 45.00,
-      serviceFee: 3.00,
-      features: [
-        'Assistant coaching role',
-        'Team management access',
-        'Player development training',
-        'Game day sideline access',
-        'Coach certification',
-        'Equipment provided'
-      ],
-      popular: false,
-      buttonText: 'Apply Now',
-      buttonClass: 'btn-outline-primary',
-      itemType: 'assistant_coach',
-      category: 'coach'
-    },
-    {
-      title: 'Head Coach',
-      subtitle: 'Leadership role',
-      price: 75.00,
-      serviceFee: 3.00,
-      features: [
-        'Head coaching position',
-        'Full team management',
-        'Strategic planning authority',
-        'Player recruitment rights',
-        'Advanced coach training',
-        'Leadership certification',
-        'Premium equipment package'
-      ],
-      popular: true,
-      buttonText: 'Lead Team',
-      buttonClass: 'btn-primary',
-      itemType: 'head_coach',
-      category: 'coach'
-    }
-  ];
+  // No static fallback - always use database
 
   // Filter pricing plans by category
   const currentPricing = pricingPlans.filter(plan => plan.category === activeTab);

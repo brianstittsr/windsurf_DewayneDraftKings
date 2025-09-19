@@ -6,6 +6,7 @@ import AdminLayout from '@/components/AdminLayout';
 import UserProfileSearch from '@/components/UserProfileSearch';
 import PaymentManagement from '@/components/PaymentManagement';
 import CouponManagement from '@/components/CouponManagement';
+import PricingManagement from '@/components/PricingManagement';
 
 function AdminDashboardContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -48,6 +49,16 @@ function AdminDashboardContent() {
               <h1 className="h3 mb-0 text-gray-800">Coupon Management</h1>
             </div>
             <CouponManagement />
+          </div>
+        );
+      
+      case 'pricing':
+        return (
+          <div>
+            <div className="d-sm-flex align-items-center justify-content-between mb-4">
+              <h1 className="h3 mb-0 text-gray-800">Pricing Management</h1>
+            </div>
+            <PricingManagement />
           </div>
         );
       

@@ -16,6 +16,7 @@ export interface EmailAttachment {
   filename: string;
   content: Buffer | Uint8Array;
   contentType: string;
+  cid?: string; // Content ID for inline embedding
 }
 
 export class EmailPDFService {
@@ -27,7 +28,8 @@ export class EmailPDFService {
 
   async sendRegistrationConfirmation(
     registrationData: RegistrationData,
-    recipientEmail: string
+    recipientEmail: string,
+    qrCodeDataUrl?: string
   ): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
       // Generate PDF
@@ -38,14 +40,27 @@ export class EmailPDFService {
       });
 
       // Prepare email content
-      const emailContent = this.generateEmailContent(registrationData);
+      const emailContent = this.generateEmailContent(registrationData, qrCodeDataUrl);
       
-      // Create attachment
-      const attachment: EmailAttachment = {
-        filename: `AllProSports_Registration_${registrationData.firstName}_${registrationData.lastName}.pdf`,
-        content: Buffer.from(pdfBuffer),
-        contentType: 'application/pdf'
-      };
+      // Create attachments
+      const attachments: EmailAttachment[] = [
+        {
+          filename: `AllProSports_Registration_${registrationData.firstName}_${registrationData.lastName}.pdf`,
+          content: Buffer.from(pdfBuffer),
+          contentType: 'application/pdf'
+        }
+      ];
+
+      // Add QR code as embedded attachment if provided
+      if (qrCodeDataUrl) {
+        const qrCodeBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
+        attachments.push({
+          filename: `${registrationData.firstName}_${registrationData.lastName}_QRCode.png`,
+          content: qrCodeBuffer,
+          contentType: 'image/png',
+          cid: 'qrcode' // Content ID for embedding in email
+        } as any);
+      }
 
       // Send email
       const mailOptions = {
@@ -54,7 +69,7 @@ export class EmailPDFService {
         subject: 'All Pro Sports Registration Confirmation',
         html: emailContent.html,
         text: emailContent.text,
-        attachments: [attachment]
+        attachments: attachments
       };
 
       const info = await this.transporter.sendMail(mailOptions);
@@ -72,7 +87,7 @@ export class EmailPDFService {
     }
   }
 
-  private generateEmailContent(data: RegistrationData): { html: string; text: string } {
+  private generateEmailContent(data: RegistrationData, qrCodeDataUrl?: string): { html: string; text: string } {
     const playerName = `${data.firstName} ${data.lastName}`;
     const role = data.role === 'player' ? 'Player' : 'Coach';
     
@@ -133,6 +148,23 @@ export class EmailPDFService {
               <p class="highlight">Please keep this document for your records.</p>
             </div>
             
+            ${qrCodeDataUrl ? `
+            <div class="info-box">
+              <h3>📱 Your Profile QR Code</h3>
+              <div style="text-align: center; margin: 20px 0;">
+                <img src="cid:qrcode" alt="Profile QR Code" style="max-width: 200px; height: auto; border: 2px solid #e5e7eb; border-radius: 8px;" />
+              </div>
+              <p>This QR code links directly to your player profile. You can:</p>
+              <ul>
+                <li>Save it to your phone for quick access</li>
+                <li>Share it with coaches and teammates</li>
+                <li>Use it for quick check-ins at events</li>
+                <li>Access your profile information instantly</li>
+              </ul>
+              <p class="highlight">Scan this code anytime to view your profile!</p>
+            </div>
+            ` : ''}
+            
             <div class="info-box">
               <h3>🎯 What's Next?</h3>
               <ul>
@@ -186,6 +218,17 @@ Please find your complete registration information attached as a PDF. This docum
 
 Please keep this document for your records.
 
+${qrCodeDataUrl ? `
+Your Profile QR Code:
+A QR code for your player profile is also attached. This code links directly to your profile and can be used for:
+- Quick access to your profile information
+- Sharing with coaches and teammates
+- Check-ins at events
+- Instant profile access
+
+Save this QR code to your phone for easy access!
+` : ''}
+
 What's Next?
 - You'll receive league schedules and team assignments soon
 - Check your email regularly for important updates
@@ -211,7 +254,8 @@ All Pro Sports - Building Champions On and Off the Field
 // Utility function to send registration email
 export async function sendRegistrationEmail(
   registrationData: RegistrationData,
-  recipientEmail: string
+  recipientEmail: string,
+  qrCodeDataUrl?: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const emailConfig: EmailConfig = {
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
@@ -224,5 +268,5 @@ export async function sendRegistrationEmail(
   };
 
   const emailService = new EmailPDFService(emailConfig);
-  return emailService.sendRegistrationConfirmation(registrationData, recipientEmail);
+  return emailService.sendRegistrationConfirmation(registrationData, recipientEmail, qrCodeDataUrl);
 }
