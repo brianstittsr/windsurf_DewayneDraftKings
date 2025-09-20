@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Nunito, Varela_Round } from 'next/font/google'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import './globals.css'
+import '../globals.css'
 import '../public/css/grayscale.min.css'
 import { Providers } from './providers'
 

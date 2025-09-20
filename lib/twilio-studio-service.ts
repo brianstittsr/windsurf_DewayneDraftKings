@@ -104,8 +104,10 @@ class TwilioStudioService {
    */
   async getJourneyStatus(executionSid: string): Promise<StudioExecution | null> {
     try {
+      // Fix: Use the correct Twilio Studio API path
       const execution = await this.client.studio.v2
-        .flows.executions(executionSid)
+        .flows('FW_FLOW_SID') // Replace with actual flow SID
+        .executions(executionSid)
         .fetch();
 
       return {
@@ -126,8 +128,10 @@ class TwilioStudioService {
    */
   async stopJourney(executionSid: string): Promise<boolean> {
     try {
+      // Fix: Use the correct Twilio Studio API path
       await this.client.studio.v2
-        .flows.executions(executionSid)
+        .flows('FW_FLOW_SID') // Replace with actual flow SID
+        .executions(executionSid)
         .update({ status: 'ended' });
 
       console.log(`Stopped journey execution: ${executionSid}`);

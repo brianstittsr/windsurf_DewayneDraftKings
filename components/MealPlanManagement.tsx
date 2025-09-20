@@ -19,7 +19,7 @@ export default function MealPlanManagement() {
     mealsPerDay: '',
     features: [] as string[],
     isActive: true,
-    status: 'active' as 'draft' | 'active' | 'inactive'
+    status: 'active' as 'draft' | 'active' | 'inactive' | 'discontinued'
   });
 
   const [newFeature, setNewFeature] = useState('');
@@ -478,6 +478,7 @@ export default function MealPlanManagement() {
                           <option value="draft">Draft</option>
                           <option value="active">Active</option>
                           <option value="inactive">Inactive</option>
+                          <option value="discontinued">Discontinued</option>
                         </select>
                       </div>
 
