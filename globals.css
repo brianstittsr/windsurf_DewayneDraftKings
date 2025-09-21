@@ -89,3 +89,129 @@ body {
 .nav-link:hover {
   color: #007bff !important;
 }
+
+/* Admin Layout Styles */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.sidebar {
+  background-color: #5a5c69;
+}
+
+.sidebar-dark .nav-link {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.sidebar-dark .nav-link:hover {
+  color: #fff;
+}
+
+.sidebar-dark .nav-link.active {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-brand {
+  color: #fff !important;
+  text-decoration: none;
+  padding: 1rem;
+}
+
+.sidebar-brand:hover {
+  color: #fff !important;
+}
+
+.sidebar-heading {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+  padding: 0.75rem 1rem;
+}
+
+.sidebar-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  margin: 0;
+}
+
+.topbar {
+  height: 4.375rem;
+}
+
+.shadow {
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+}
+
+.text-gray-600 {
+  color: #858796 !important;
+}
+
+.text-gray-800 {
+  color: #5a5c69 !important;
+}
+
+.bg-light {
+  background-color: #f8f9fc !important;
+}
+
+.border-0 {
+  border: 0 !important;
+}
+
+.small {
+  font-size: 0.875rem;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Card styles */
+.card {
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+  border: 1px solid #e3e6f0;
+  border-radius: 0.35rem;
+}
+
+.card-header {
+  background-color: #f8f9fc;
+  border-bottom: 1px solid #e3e6f0;
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+/* Table styles */
+.table {
+  color: #858796;
+}
+
+.table th {
+  border-top: none;
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 14rem;
+  }
+}
