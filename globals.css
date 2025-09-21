@@ -97,6 +97,20 @@ body {
 
 .sidebar {
   background-color: #5a5c69;
+  overflow-y: auto;
+}
+
+.sidebar .nav-item {
+  width: 100%;
+}
+
+.sidebar .nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  border-radius: 0;
+  white-space: nowrap;
 }
 
 .sidebar-dark .nav-link {

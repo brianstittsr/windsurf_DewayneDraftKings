@@ -51,8 +51,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <>
       <style jsx global>{`
+        body {
+          overflow-x: hidden;
+        }
         #wrapper {
           display: flex;
+          width: 100%;
         }
         .sidebar {
           width: 14rem;
@@ -61,15 +65,25 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           top: 0;
           left: 0;
           z-index: 1000;
+          flex-shrink: 0;
         }
         #content-wrapper {
           margin-left: 14rem;
           width: calc(100% - 14rem);
           min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+        }
+        #content {
+          flex: 1;
+        }
+        .container-fluid {
+          padding: 1.5rem;
         }
         @media (max-width: 768px) {
           .sidebar {
             margin-left: -14rem;
+            transition: margin-left 0.3s ease;
           }
           #content-wrapper {
             margin-left: 0;
