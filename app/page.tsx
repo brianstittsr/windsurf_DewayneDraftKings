@@ -84,7 +84,7 @@ export default function Home() {
             <ul className="navbar-nav ms-auto">
               <li className="nav-item"><Link className="nav-link" href="/leaderboard">League</Link></li>
               <li className="nav-item"><Link className="nav-link" href="/leaderboard">Leaderboard</Link></li>
-              <li className="nav-item"><Link className="nav-link" href="/register">Pricing</Link></li>
+              <li className="nav-item"><Link className="nav-link" href="/pricing">Pricing</Link></li>
               {/* <li className="nav-item"><Link className="nav-link" href="/admin">Admin</Link></li> */}
             </ul>
           </div>
@@ -101,7 +101,7 @@ export default function Home() {
             muted 
             playsInline
             loop={false}
-            style={{ display: 'block' }}
+            preload="metadata"
           >
             <source src="/img/2249402-uhd_3840_2160_24fps.mp4" type="video/mp4" />
             Your browser does not support the video tag.
@@ -112,7 +112,7 @@ export default function Home() {
             muted 
             playsInline
             loop={false}
-            style={{ display: 'block' }}
+            preload="metadata"
           >
             <source src="/img/2249402-uhd_3840_2160_24fps (1).mp4" type="video/mp4" />
             Your browser does not support the video tag.
@@ -123,7 +123,7 @@ export default function Home() {
             muted 
             playsInline
             loop={false}
-            style={{ display: 'block' }}
+            preload="metadata"
           >
             <source src="/img/4112090-hd_1920_1080_25fps.mp4" type="video/mp4" />
             Your browser does not support the video tag.
@@ -134,7 +134,7 @@ export default function Home() {
             muted 
             playsInline
             loop={false}
-            style={{ display: 'block' }}
+            preload="metadata"
           >
             <source src="/img/7187055-hd_1920_1080_24fps.mp4" type="video/mp4" />
             Your browser does not support the video tag.
