@@ -10,14 +10,24 @@ export default function Home() {
   useEffect(() => {
     // Initialize video rotation
     const videos = videoRefs.current.filter(Boolean) as HTMLVideoElement[]
-    if (videos.length === 0) return
+    console.log('Videos found:', videos.length)
+    
+    if (videos.length === 0) {
+      console.warn('No videos found for animation')
+      return
+    }
 
     const rotateVideo = () => {
       const current = videos[currentVideoIndex.current]
       const nextIndex = (currentVideoIndex.current + 1) % videos.length
       const next = videos[nextIndex]
 
-      if (!current || !next) return
+      console.log(`Rotating from video ${currentVideoIndex.current} to ${nextIndex}`)
+
+      if (!current || !next) {
+        console.error('Missing video elements for rotation')
+        return
+      }
 
       // Check if user prefers reduced motion
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -26,13 +36,16 @@ export default function Home() {
       // Fade out current video
       current.style.opacity = '0'
       current.classList.remove('active')
+      current.pause()
 
       setTimeout(() => {
         // Fade in next video
         next.classList.add('active')
         next.currentTime = 0
         next.style.opacity = '1'
-        next.play().catch(console.error)
+        next.play().catch((error) => {
+          console.error(`Error playing video ${nextIndex}:`, error)
+        })
         currentVideoIndex.current = nextIndex
       }, transitionTime)
     }
@@ -42,26 +55,36 @@ export default function Home() {
       if (video) {
         video.addEventListener('ended', rotateVideo)
         video.addEventListener('loadeddata', () => {
-          console.log(`Video ${index + 1} loaded`)
+          console.log(`Video ${index + 1} loaded successfully`)
         })
         video.addEventListener('error', (e) => {
           console.error(`Video ${index + 1} error:`, e)
         })
+        video.addEventListener('canplay', () => {
+          console.log(`Video ${index + 1} can play`)
+        })
       }
     })
 
-    // Start first video
-    if (videos[0]) {
-      videos[0].classList.add('active')
-      videos[0].style.opacity = '1'
-      videos[0].play().catch(console.error)
-    }
+    // Start first video with a slight delay to ensure DOM is ready
+    setTimeout(() => {
+      if (videos[0]) {
+        console.log('Starting first video')
+        videos[0].classList.add('active')
+        videos[0].style.opacity = '1'
+        videos[0].currentTime = 0
+        videos[0].play().catch((error) => {
+          console.error('Error starting first video:', error)
+        })
+      }
+    }, 100)
 
     // Cleanup
     return () => {
       videos.forEach(video => {
         if (video) {
           video.removeEventListener('ended', rotateVideo)
+          video.pause()
         }
       })
     }

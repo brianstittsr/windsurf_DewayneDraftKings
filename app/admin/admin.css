@@ -1,0 +1,160 @@
+/* ===== ADMIN-SPECIFIC STYLES ===== */
+/* This file contains styles that only apply to the admin area */
+
+/* Scope all admin styles to .admin-layout class */
+.admin-layout {
+  /* Override global styles for admin area */
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Admin-specific CSS variables */
+.admin-layout {
+  --admin-primary: #4e73df;
+  --admin-secondary: #858796;
+  --admin-success: #1cc88a;
+  --admin-info: #36b9cc;
+  --admin-warning: #f6c23e;
+  --admin-danger: #e74a3b;
+  --admin-light: #f8f9fc;
+  --admin-dark: #5a5c69;
+}
+
+/* Admin sidebar styles */
+.admin-layout .sidebar {
+  background: linear-gradient(180deg, var(--admin-primary) 10%, #224abe 100%);
+}
+
+/* Admin button overrides */
+.admin-layout .btn-primary {
+  background-color: var(--admin-primary) !important;
+  border-color: var(--admin-primary) !important;
+}
+
+.admin-layout .btn-primary:hover {
+  background-color: #224abe !important;
+  border-color: #224abe !important;
+}
+
+/* Admin text colors */
+.admin-layout .text-primary {
+  color: var(--admin-primary) !important;
+}
+
+/* Admin stats cards */
+.admin-layout .stats-card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+  border: 1px solid #e3e6f0;
+}
+
+.admin-layout .stats-card .card-body {
+  padding: 1.5rem;
+}
+
+.admin-layout .stats-card .metric-title {
+  color: var(--admin-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.admin-layout .stats-card .metric-number {
+  color: var(--admin-dark);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+/* Admin table styles */
+.admin-layout .table {
+  background: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.admin-layout .table th {
+  background-color: var(--admin-light);
+  border-color: #e3e6f0;
+  color: var(--admin-dark);
+  font-weight: 600;
+}
+
+.admin-layout .table td {
+  border-color: #e3e6f0;
+}
+
+/* Admin form styles */
+.admin-layout .form-control:focus {
+  border-color: var(--admin-primary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25) !important;
+}
+
+.admin-layout .form-select:focus {
+  border-color: var(--admin-primary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25) !important;
+}
+
+/* Admin card styles */
+.admin-layout .card {
+  border: 1px solid #e3e6f0;
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.admin-layout .card-header {
+  background-color: var(--admin-light);
+  border-bottom: 1px solid #e3e6f0;
+}
+
+/* Admin navigation pills */
+.admin-layout .nav-pills .nav-link {
+  color: var(--admin-secondary);
+  background: transparent;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-right: 0.5rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.admin-layout .nav-pills .nav-link:hover {
+  background-color: rgba(78, 115, 223, 0.1);
+  color: var(--admin-primary);
+}
+
+.admin-layout .nav-pills .nav-link.active {
+  background-color: var(--admin-primary);
+  color: white;
+}
+
+/* Admin badges */
+.admin-layout .badge-success {
+  background-color: var(--admin-success);
+}
+
+.admin-layout .badge-warning {
+  background-color: var(--admin-warning);
+}
+
+.admin-layout .badge-danger {
+  background-color: var(--admin-danger);
+}
+
+.admin-layout .badge-info {
+  background-color: var(--admin-info);
+}
+
+/* Admin responsive adjustments */
+@media (max-width: 768px) {
+  .admin-layout .sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .admin-layout .sidebar.toggled {
+    transform: translateX(0);
+  }
+  
+  .admin-layout #content-wrapper {
+    margin-left: 0;
+    width: 100%;
+  }
+}
