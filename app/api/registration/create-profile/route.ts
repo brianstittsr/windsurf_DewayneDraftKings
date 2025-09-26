@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '../../../../lib/firebase';
-import { collection, addDoc, doc, setDoc, Timestamp } from 'firebase/firestore';
 
 // POST /api/registration/create-profile - Create player/coach profile from registration wizard
 export async function POST(request: NextRequest) {
@@ -51,6 +49,9 @@ export async function POST(request: NextRequest) {
     
     // Generate a unique ID based on role
     const userId = `${userRole}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Dynamic import for Firestore Timestamp
+    const { Timestamp } = await import('firebase/firestore');
     
     // Create profile object with Firestore Timestamps
     const profile = {
@@ -152,6 +153,18 @@ export async function POST(request: NextRequest) {
 
     // Save to Firebase
     try {
+      // Dynamic import to avoid build-time issues
+      const { db } = await import('../../../../lib/firebase').catch(() => ({ db: null }));
+      
+      if (!db) {
+        return NextResponse.json({
+          success: false,
+          error: 'Database unavailable'
+        }, { status: 503 });
+      }
+
+      const { doc, setDoc } = await import('firebase/firestore');
+      
       const collectionName = selectedPlan?.category === 'coach' ? 'coaches' : 'players';
       const docRef = doc(db, collectionName, userId);
       await setDoc(docRef, profile);

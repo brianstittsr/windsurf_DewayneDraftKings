@@ -41,21 +41,28 @@ const validateFirebaseConfig = () => {
 
 // Initialize Firebase app (prevent multiple initialization)
 let app;
-try {
-  if (!getApps().length) {
-    if (validateFirebaseConfig()) {
-      app = initializeApp(firebaseConfig);
-      console.log('Firebase initialized successfully');
-    } else {
-      console.error('Firebase configuration incomplete');
-      throw new Error('Firebase configuration incomplete');
-    }
-  } else {
-    app = getApps()[0];
-  }
-} catch (error) {
-  console.error('Error initializing Firebase app:', error);
+
+// Skip Firebase initialization during build time
+if (typeof window === 'undefined' && process.env.NODE_ENV === 'production' && !process.env.FIREBASE_ADMIN_SDK_CONFIG) {
+  console.log('Skipping Firebase initialization during build');
   app = null;
+} else {
+  try {
+    if (!getApps().length) {
+      if (validateFirebaseConfig()) {
+        app = initializeApp(firebaseConfig);
+        console.log('Firebase initialized successfully');
+      } else {
+        console.error('Firebase configuration incomplete');
+        throw new Error('Firebase configuration incomplete');
+      }
+    } else {
+      app = getApps()[0];
+    }
+  } catch (error) {
+    console.error('Error initializing Firebase app:', error);
+    app = null;
+  }
 }
 
 // Initialize Firebase services with error handling
