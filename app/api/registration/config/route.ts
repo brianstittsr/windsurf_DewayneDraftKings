@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '../../../../lib/firebase';
-import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 
 // GET /api/registration/config - Get registration form configuration options
 export async function GET(request: NextRequest) {
@@ -40,6 +38,20 @@ export async function GET(request: NextRequest) {
     };
 
     try {
+      // Dynamic import to avoid build-time issues
+      const { db } = await import('../../../../lib/firebase').catch(() => ({ db: null }));
+      
+      if (!db) {
+        // Return default config if Firebase unavailable
+        return NextResponse.json({
+          success: true,
+          config: defaultConfig,
+          source: 'default_no_db'
+        });
+      }
+
+      const { doc, getDoc } = await import('firebase/firestore');
+      
       // Try to fetch from Firebase
       const configDoc = await getDoc(doc(db, 'configuration', 'registration'));
       
@@ -99,6 +111,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Dynamic import to avoid build-time issues
+    const { db } = await import('../../../../lib/firebase').catch(() => ({ db: null }));
+    
+    if (!db) {
+      return NextResponse.json({
+        success: false,
+        error: 'Database unavailable'
+      }, { status: 503 });
+    }
+
+    const { doc, setDoc } = await import('firebase/firestore');
+    
     // Save to Firebase
     const configRef = doc(db, 'configuration', 'registration');
     await setDoc(configRef, {
