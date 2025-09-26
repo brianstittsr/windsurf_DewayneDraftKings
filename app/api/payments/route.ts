@@ -1,64 +1,123 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// GET /api/payments - Get all payments from Firebase
+// GET /api/payments - Get all payments from Stripe and Firebase
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const type = searchParams.get('type');
     const search = searchParams.get('search');
-    
-    // Dynamic import to avoid build-time issues
-    const { db } = await import('../../../lib/firebase').catch(() => ({ db: null }));
-    
-    if (!db) {
-      console.warn('Firebase not available, returning empty payments');
-      return NextResponse.json({
-        success: true,
-        payments: [],
-        summary: {
-          total: 0,
-          totalAmount: 0,
-          successful: 0,
-          failed: 0,
-          successRate: '0%'
-        },
-        message: 'Database connection unavailable'
-      });
-    }
-
-    const { collection, getDocs, query, where, orderBy } = await import('firebase/firestore');
+    const limit = parseInt(searchParams.get('limit') || '100');
     
     let allPayments: any[] = [];
     
+    // Fetch from Stripe if available
+    if (process.env.STRIPE_SECRET_KEY) {
+      try {
+        const stripe = await import('stripe').then(m => 
+          new m.default(process.env.STRIPE_SECRET_KEY!, {
+            apiVersion: '2023-10-16'
+          })
+        );
+
+        console.log('Fetching payments from Stripe...');
+        
+        // Fetch payment intents from Stripe
+        const paymentIntents = await stripe.paymentIntents.list({
+          limit: limit
+        });
+
+        // Fetch checkout sessions
+        const checkoutSessions = await stripe.checkout.sessions.list({
+          limit: limit,
+          expand: ['data.payment_intent']
+        });
+
+        console.log(`Found ${paymentIntents.data.length} payment intents from Stripe`);
+
+        // Process payment intents
+        const stripePayments = paymentIntents.data.map(intent => {
+          // Find corresponding checkout session
+          const session = checkoutSessions.data.find(s => s.payment_intent === intent.id);
+          
+          return {
+            id: intent.id,
+            amount: intent.amount / 100, // Convert from cents
+            currency: intent.currency.toUpperCase(),
+            status: intent.status === 'succeeded' ? 'succeeded' : 
+                   intent.status === 'requires_payment_method' ? 'failed' : 
+                   intent.status,
+            paymentMethod: intent.payment_method_types?.[0] || 'card',
+            customerName: session?.customer_details?.name || 
+                         intent.metadata?.customerName || 
+                         'Unknown Customer',
+            customerEmail: session?.customer_details?.email || 
+                          intent.metadata?.customerEmail || 
+                          intent.receipt_email || '',
+            description: intent.description || 
+                        intent.metadata?.planTitle || 
+                        'Registration Payment',
+            stripePaymentIntentId: intent.id,
+            sessionId: session?.id || '',
+            createdAt: new Date(intent.created * 1000),
+            updatedAt: new Date(intent.created * 1000),
+            metadata: intent.metadata || {},
+            source: 'stripe'
+          };
+        });
+
+        allPayments = stripePayments;
+
+      } catch (stripeError) {
+        console.error('Error fetching from Stripe:', stripeError);
+      }
+    }
+    
+    // Fetch from Firebase and merge
     try {
-      // Fetch payments from Firebase
-      const paymentsRef = collection(db, 'payments');
-      const paymentsSnapshot = await getDocs(paymentsRef);
+      const { db } = await import('../../../lib/firebase').catch(() => ({ db: null }));
       
-      allPayments = paymentsSnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          amount: data.amount || 0,
-          currency: data.currency || 'usd',
-          status: data.status || 'pending',
-          paymentMethod: data.paymentMethod || 'card',
-          customerName: data.customerName || '',
-          customerEmail: data.customerEmail || '',
-          description: data.description || '',
-          stripePaymentIntentId: data.stripePaymentIntentId || '',
-          stripeSessionId: data.stripeSessionId || '',
-          metadata: data.metadata || {},
-          refunds: data.refunds || [],
-          createdAt: data.createdAt?.toDate?.() || new Date(),
-          updatedAt: data.updatedAt?.toDate?.() || new Date()
-        };
-      });
-      
+      if (db) {
+        const { collection, getDocs } = await import('firebase/firestore');
+        
+        const paymentsRef = collection(db, 'payments');
+        const paymentsSnapshot = await getDocs(paymentsRef);
+        
+        const firebasePayments = paymentsSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            amount: data.amount || 0,
+            currency: data.currency || 'USD',
+            status: data.status || 'pending',
+            paymentMethod: data.paymentMethod || 'card',
+            customerName: data.customerName || '',
+            customerEmail: data.customerEmail || '',
+            description: data.description || '',
+            stripePaymentIntentId: data.stripePaymentIntentId || '',
+            stripeSessionId: data.stripeSessionId || '',
+            metadata: data.metadata || {},
+            refunds: data.refunds || [],
+            createdAt: data.createdAt?.toDate?.() || new Date(),
+            updatedAt: data.updatedAt?.toDate?.() || new Date(),
+            source: 'firebase'
+          };
+        });
+        
+        // Merge Firebase payments with Stripe payments (avoid duplicates)
+        firebasePayments.forEach(fbPayment => {
+          const existsInStripe = allPayments.find(p => 
+            p.stripePaymentIntentId === fbPayment.stripePaymentIntentId && 
+            fbPayment.stripePaymentIntentId
+          );
+          
+          if (!existsInStripe) {
+            allPayments.push(fbPayment);
+          }
+        });
+      }
     } catch (firebaseError) {
       console.error('Firebase query error:', firebaseError);
-      allPayments = [];
     }
 
     // Apply filters
@@ -82,56 +141,82 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Calculate summary statistics
-    const totalAmount = allPayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-    const successful = allPayments.filter(p => p.status === 'succeeded').length;
-    const failed = allPayments.filter(p => p.status === 'failed').length;
-    const successRate = allPayments.length > 0 ? ((successful / allPayments.length) * 100).toFixed(1) + '%' : '0%';
-
-    const summary = {
-      total: allPayments.length,
-      totalAmount,
-      successful,
-      failed,
-      successRate
-    };
-
     // Sort by creation date (newest first)
-    filteredPayments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    filteredPayments.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    // Calculate summary
+    const summary = {
+      total: filteredPayments.length,
+      totalAmount: filteredPayments.reduce((sum, payment) => sum + payment.amount, 0),
+      successful: filteredPayments.filter(p => p.status === 'succeeded').length,
+      failed: filteredPayments.filter(p => p.status === 'failed').length,
+      successRate: filteredPayments.length > 0 ? 
+        `${Math.round((filteredPayments.filter(p => p.status === 'succeeded').length / filteredPayments.length) * 100)}%` : 
+        '0%'
+    };
 
     return NextResponse.json({
       success: true,
       payments: filteredPayments,
       summary,
-      total: filteredPayments.length
+      message: `Found ${filteredPayments.length} payments`
     });
+
   } catch (error) {
     console.error('Error fetching payments:', error);
-    return NextResponse.json({ 
-      success: false, 
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to fetch payments',
       payments: [],
-      summary: null,
-      error: 'Failed to fetch payments' 
+      summary: {
+        total: 0,
+        totalAmount: 0,
+        successful: 0,
+        failed: 0,
+        successRate: '0%'
+      }
     }, { status: 500 });
   }
 }
 
-// POST /api/payments - Create new payment
+// POST /api/payments - Create new payment record
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
     
-    // Mock response - replace with actual payment processing
+    const { db } = await import('../../../lib/firebase').catch(() => ({ db: null }));
+    
+    if (!db) {
+      return NextResponse.json({
+        success: false,
+        error: 'Database unavailable'
+      }, { status: 503 });
+    }
+
+    const { collection, addDoc, Timestamp } = await import('firebase/firestore');
+    
+    const paymentData = {
+      ...data,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    };
+    
+    const paymentsRef = collection(db, 'payments');
+    const docRef = await addDoc(paymentsRef, paymentData);
+    
     return NextResponse.json({
       success: true,
-      message: 'Payment created successfully',
-      paymentId: 'mock-payment-id'
+      paymentId: docRef.id,
+      message: 'Payment record created successfully'
     });
+
   } catch (error) {
     console.error('Error creating payment:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Failed to create payment' 
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to create payment record'
     }, { status: 500 });
   }
 }

@@ -18,6 +18,9 @@ export interface Player extends BaseDocument {
   profilePhoto?: string;
   jerseySize: string;
   
+  // Role Assignment
+  role: 'player';
+  
   // Registration Information
   registrationDate: Timestamp;
   registrationStatus: 'pending' | 'confirmed' | 'cancelled';
@@ -93,6 +96,9 @@ export interface Coach extends BaseDocument {
   dateOfBirth: Timestamp;
   profilePhoto?: string;
   jerseySize?: string;
+  
+  // Role Assignment
+  role: 'coach';
   
   // Registration Information
   registrationDate: Timestamp;

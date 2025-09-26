@@ -271,17 +271,8 @@ export default function RegistrationSuccessPage() {
                       Need Help?
                     </h6>
                     <div className="row g-3 text-start">
-                      <div className="col-md-6">
-                        <div className="d-flex align-items-center">
-                          <i className="fas fa-phone text-info me-2"></i>
-                          <div>
-                            <small className="text-muted d-block">Phone</small>
-                            <small className="fw-semibold">(555) 123-4567</small>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="d-flex align-items-center">
+                      <div className="col-12">
+                        <div className="d-flex align-items-center justify-content-center">
                           <i className="fas fa-envelope text-info me-2"></i>
                           <div>
                             <small className="text-muted d-block">Email</small>

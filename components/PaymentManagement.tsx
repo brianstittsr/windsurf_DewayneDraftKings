@@ -206,6 +206,7 @@ export default function PaymentManagement() {
   const getStatusBadge = (status: string) => {
     const statusClasses = {
       succeeded: 'success',
+      completed: 'success',
       pending: 'warning',
       processing: 'info',
       failed: 'danger',
@@ -358,9 +359,10 @@ export default function PaymentManagement() {
                   <tr>
                     <th>Customer</th>
                     <th>Amount</th>
-                    <th>Type</th>
+                    <th>Description</th>
                     <th>Method</th>
                     <th>Status</th>
+                    <th>Source</th>
                     <th>Date</th>
                     <th>Actions</th>
                   </tr>
@@ -379,19 +381,45 @@ export default function PaymentManagement() {
                         <small className="text-muted">{payment.currency}</small>
                       </td>
                       <td>
-                        <span className="badge bg-light text-dark">{payment.paymentType}</span>
+                        <div className="fw-semibold">{payment.description}</div>
+                        {payment.stripePaymentIntentId && (
+                          <small className="text-muted d-block">
+                            <i className="fab fa-stripe me-1"></i>
+                            {payment.stripePaymentIntentId.substring(0, 20)}...
+                          </small>
+                        )}
                       </td>
                       <td>
-                        <i className={`${getPaymentMethodIcon(payment.paymentMethod?.type || 'card')} me-2`}></i>
-                        {payment.paymentMethod?.type}
-                        {payment.paymentMethod?.last4 && (
-                          <small className="text-muted d-block">****{payment.paymentMethod.last4}</small>
-                        )}
+                        <i className={`${getPaymentMethodIcon(typeof payment.paymentMethod === 'string' ? payment.paymentMethod : payment.paymentMethod?.type || 'card')} me-2`}></i>
+                        {typeof payment.paymentMethod === 'string' ? payment.paymentMethod : payment.paymentMethod?.type || 'card'}
                       </td>
                       <td>{getStatusBadge(payment.status)}</td>
                       <td>
-                        {payment.paidAt?.toDate?.()?.toLocaleDateString() || 
-                         payment.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A'}
+                        {(payment as any).source === 'stripe' ? (
+                          <span className="badge bg-primary">
+                            <i className="fab fa-stripe me-1"></i>
+                            Stripe
+                          </span>
+                        ) : (
+                          <span className="badge bg-secondary">
+                            <i className="fas fa-database me-1"></i>
+                            Local
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="fw-semibold">
+                          {payment.createdAt?.toDate ? 
+                            payment.createdAt.toDate().toLocaleDateString() : 
+                            payment.createdAt ? new Date(payment.createdAt as any).toLocaleDateString() : 'N/A'
+                          }
+                        </div>
+                        <small className="text-muted">
+                          {payment.createdAt?.toDate ? 
+                            payment.createdAt.toDate().toLocaleTimeString() : 
+                            payment.createdAt ? new Date(payment.createdAt as any).toLocaleTimeString() : 'N/A'
+                          }
+                        </small>
                       </td>
                       <td>
                         <div className="btn-group btn-group-sm">
@@ -406,7 +434,7 @@ export default function PaymentManagement() {
                             <button
                               className="btn btn-outline-warning"
                               onClick={() => handleRefund(payment)}
-                              title="Refund"
+                              title="Process Refund"
                             >
                               <i className="fas fa-undo"></i>
                             </button>

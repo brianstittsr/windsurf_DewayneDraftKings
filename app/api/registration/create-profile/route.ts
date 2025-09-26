@@ -46,12 +46,15 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Generate a unique player ID
-    const playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
+    // Determine role based on selected plan
+    const userRole = selectedPlan?.category === 'coach' ? 'coach' : 'player';
+    
+    // Generate a unique ID based on role
+    const userId = `${userRole}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     // Create profile object with Firestore Timestamps
     const profile = {
-      id: playerId,
+      id: userId,
       firstName,
       lastName,
       email,
@@ -61,14 +64,54 @@ export async function POST(request: NextRequest) {
       position: position || 'flex',
       experience: experience || '',
       
+      // Role Assignment
+      role: userRole,
+      
       // Registration Information
       registrationDate: Timestamp.now(),
       registrationStatus: 'pending' as const,
       paymentStatus: 'pending' as const,
       
-      // Player Classification
-      playerTag: selectedPlan?.category === 'coach' ? 'client' as const : 'free-agent' as const,
-      isDrafted: false,
+      // Player Classification (for players only)
+      ...(userRole === 'player' && {
+        playerTag: 'free-agent' as const,
+        isDrafted: false,
+        stats: {
+          gamesPlayed: 0,
+          touchdowns: 0,
+          yards: 0,
+          tackles: 0,
+          interceptions: 0,
+          attendance: 0
+        },
+        metrics: {
+          currentWeight: 0,
+          weighIns: [],
+          workouts: [],
+          totalWeightLoss: 0
+        },
+        referrals: [],
+        referralRewards: 0,
+        referralLevel: 1,
+        qrCode: '',
+        qrCodeUrl: '',
+        funnelStatus: {
+          currentStep: 0,
+          lastInteraction: Timestamp.now(),
+          isOptedOut: false
+        }
+      }),
+      
+      // Coach-specific fields
+      ...(userRole === 'coach' && {
+        isActive: true,
+        coachingLevel: selectedPlan?.planType === 'coach_head' ? 'head' as const : 'assistant' as const,
+        certifications: [],
+        specialties: [],
+        assignedTeams: [],
+        qrCode: '',
+        qrCodeUrl: ''
+      }),
       
       // Emergency Contact
       emergencyContact: emergencyContactName ? {
@@ -110,17 +153,17 @@ export async function POST(request: NextRequest) {
     // Save to Firebase
     try {
       const collectionName = selectedPlan?.category === 'coach' ? 'coaches' : 'players';
-      const docRef = doc(db, collectionName, playerId);
+      const docRef = doc(db, collectionName, userId);
       await setDoc(docRef, profile);
       
-      console.log(`${collectionName.slice(0, -1)} profile saved to Firebase:`, playerId);
+      console.log(`${collectionName.slice(0, -1)} profile saved to Firebase:`, userId);
       
       // Complete registration with QR codes, PDF, and email
       try {
         const { completeUserRegistration } = await import('../../../../lib/registration-completion-service');
         
         const completionResult = await completeUserRegistration({
-          playerId,
+          playerId: userId,
           firstName,
           lastName,
           email,
@@ -162,9 +205,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Profile created successfully',
-      playerId,
+      userId,
       profile: {
-        id: playerId,
+        id: userId,
         firstName,
         lastName,
         email,

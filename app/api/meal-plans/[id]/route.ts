@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MealPlan } from '@/lib/firestore-schema';
 
 // Mock data - in real implementation, this would come from Firebase
-const mockMealPlans: MealPlan[] = [
+const mockMealPlans: any[] = [
   {
     id: '1',
     name: 'Athletic Performance Plan',
