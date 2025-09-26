@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -17,7 +17,7 @@ interface RegistrationDetails {
   paymentMethod?: string;
 }
 
-export default function RegistrationSuccessPage() {
+function RegistrationSuccessContent() {
   const searchParams = useSearchParams();
   const [registrationDetails, setRegistrationDetails] = useState<RegistrationDetails>({});
   const [loading, setLoading] = useState(true);
@@ -357,5 +357,26 @@ export default function RegistrationSuccessPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-vh-100 d-flex align-items-center justify-content-center">
+      <div className="text-center">
+        <div className="spinner-border text-primary mb-3" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <p className="text-muted">Loading registration details...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function RegistrationSuccessPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <RegistrationSuccessContent />
+    </Suspense>
   );
 }
