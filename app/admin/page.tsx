@@ -3,12 +3,138 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
+import AdminAuthWrapper from '@/components/AdminAuthWrapper';
 import UserProfileSearch from '@/components/UserProfileSearch';
+import AdminUserManagement from '@/components/AdminUserManagement';
 import TeamManagement from '@/components/TeamManagement';
 import PaymentManagement from '@/components/PaymentManagement';
 import CouponManagement from '@/components/CouponManagement';
 import PricingManagement from '@/components/PricingManagement';
 import MealPlanManagement from '@/components/MealPlanManagement';
+import ProfileManagement from '@/components/ProfileManagement';
+
+// Simple dashboard components
+function StatsOverview() {
+  return (
+    <div className="row">
+      <div className="col-xl-3 col-md-6 mb-4">
+        <div className="card border-left-primary shadow h-100 py-2">
+          <div className="card-body">
+            <div className="row no-gutters align-items-center">
+              <div className="col mr-2">
+                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                  Total Users
+                </div>
+                <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+              </div>
+              <div className="col-auto">
+                <i className="fas fa-users fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="col-xl-3 col-md-6 mb-4">
+        <div className="card border-left-success shadow h-100 py-2">
+          <div className="card-body">
+            <div className="row no-gutters align-items-center">
+              <div className="col mr-2">
+                <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
+                  Active Players
+                </div>
+                <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+              </div>
+              <div className="col-auto">
+                <i className="fas fa-user-friends fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="col-xl-3 col-md-6 mb-4">
+        <div className="card border-left-info shadow h-100 py-2">
+          <div className="card-body">
+            <div className="row no-gutters align-items-center">
+              <div className="col mr-2">
+                <div className="text-xs font-weight-bold text-info text-uppercase mb-1">
+                  Total Teams
+                </div>
+                <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+              </div>
+              <div className="col-auto">
+                <i className="fas fa-futbol fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="col-xl-3 col-md-6 mb-4">
+        <div className="card border-left-warning shadow h-100 py-2">
+          <div className="card-body">
+            <div className="row no-gutters align-items-center">
+              <div className="col mr-2">
+                <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                  Pending Payments
+                </div>
+                <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+              </div>
+              <div className="col-auto">
+                <i className="fas fa-credit-card fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RecentActivity() {
+  return (
+    <div className="card shadow mb-4">
+      <div className="card-header py-3">
+        <h6 className="m-0 font-weight-bold text-primary">Recent Activity</h6>
+      </div>
+      <div className="card-body">
+        <div className="text-center">
+          <p className="text-muted">No recent activity to display</p>
+          <small className="text-muted">Activity will appear here as users interact with the system</small>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CallToAction() {
+  return (
+    <div className="card shadow mb-4">
+      <div className="card-header py-3">
+        <h6 className="m-0 font-weight-bold text-primary">Quick Actions</h6>
+      </div>
+      <div className="card-body">
+        <div className="d-grid gap-2">
+          <button className="btn btn-primary btn-sm">
+            <i className="fas fa-user-plus mr-2"></i>
+            Add New Player
+          </button>
+          <button className="btn btn-success btn-sm">
+            <i className="fas fa-users mr-2"></i>
+            Create Team
+          </button>
+          <button className="btn btn-info btn-sm">
+            <i className="fas fa-calendar mr-2"></i>
+            Schedule Game
+          </button>
+          <button className="btn btn-warning btn-sm">
+            <i className="fas fa-qrcode mr-2"></i>
+            Generate QR Code
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function AdminPageContent() {
   const searchParams = useSearchParams();
@@ -51,14 +177,7 @@ function AdminPageContent() {
       case 'user-profiles':
         return (
           <div className="fade-in">
-            <div className="page-header flex items-center justify-between mb-8">
-              <h1 className="page-title">User Profile Management</h1>
-              <button className="btn btn-primary">
-                <i className="fas fa-plus mr-2"></i>
-                Add User
-              </button>
-            </div>
-            <UserProfileSearch />
+            <AdminUserManagement />
           </div>
         );
 
@@ -374,14 +493,16 @@ function AdminPageContent() {
 
 export default function AdminPage() {
   return (
-    <Suspense fallback={
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
+    <AdminAuthWrapper>
+      <Suspense fallback={
+        <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
         </div>
-      </div>
-    }>
-      <AdminPageContent />
-    </Suspense>
+      }>
+        <AdminPageContent />
+      </Suspense>
+    </AdminAuthWrapper>
   );
 }

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '../../../../lib/firebase';
+import { collection, addDoc, doc, setDoc, Timestamp } from 'firebase/firestore';
 
 // POST /api/registration/create-profile - Create player/coach profile from registration wizard
 export async function POST(request: NextRequest) {
@@ -47,52 +49,115 @@ export async function POST(request: NextRequest) {
     // Generate a unique player ID
     const playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Create profile object
+    // Create profile object with Firestore Timestamps
     const profile = {
       id: playerId,
       firstName,
       lastName,
       email,
       phone,
-      dateOfBirth,
+      dateOfBirth: dateOfBirth ? Timestamp.fromDate(new Date(dateOfBirth)) : null,
       jerseySize,
       position: position || 'flex',
       experience: experience || '',
-      emergencyContact: {
+      
+      // Registration Information
+      registrationDate: Timestamp.now(),
+      registrationStatus: 'pending' as const,
+      paymentStatus: 'pending' as const,
+      
+      // Player Classification
+      playerTag: selectedPlan?.category === 'coach' ? 'client' as const : 'free-agent' as const,
+      isDrafted: false,
+      
+      // Emergency Contact
+      emergencyContact: emergencyContactName ? {
         name: emergencyContactName,
         phone: emergencyContactPhone,
         relation: emergencyContactRelation || ''
-      },
-      medicalInfo: {
+      } : undefined,
+      
+      // Medical Information
+      medicalInfo: (medicalConditions || medications || allergies) ? {
         conditions: medicalConditions || '',
         medications: medications || '',
-        allergies: allergies || ''
-      },
+        allergies: allergies || '',
+        lastUpdated: Timestamp.now()
+      } : undefined,
+      
+      // Preferences
       preferences: {
         communication: preferredCommunication || 'email',
         marketingConsent: marketingConsent || false
       },
+      
+      // Agreements
       agreements: {
         waiverAccepted,
         termsAccepted,
-        acceptedAt: new Date().toISOString()
+        acceptedAt: Timestamp.now()
       },
+      
+      // Plan and Registration Info
       selectedPlan,
       registrationSource: registrationSource || 'registration_wizard',
-      status: 'pending_payment',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      
+      // Timestamps
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
     };
 
-    // TODO: Save to Firebase/database
-    // For now, we'll just log it and return success
-    console.log('Profile created:', profile);
-
-    // In a real implementation, you would:
-    // 1. Save profile to Firebase
-    // 2. Generate QR code
-    // 3. Send confirmation email
-    // 4. Create SMS opt-in record if phone provided
+    // Save to Firebase
+    try {
+      const collectionName = selectedPlan?.category === 'coach' ? 'coaches' : 'players';
+      const docRef = doc(db, collectionName, playerId);
+      await setDoc(docRef, profile);
+      
+      console.log(`${collectionName.slice(0, -1)} profile saved to Firebase:`, playerId);
+      
+      // Complete registration with QR codes, PDF, and email
+      try {
+        const { completeUserRegistration } = await import('../../../../lib/registration-completion-service');
+        
+        const completionResult = await completeUserRegistration({
+          playerId,
+          firstName,
+          lastName,
+          email,
+          phone,
+          role: selectedPlan?.category === 'coach' ? 'coach' : 'player',
+          selectedPlan,
+          registrationData: {
+            dateOfBirth,
+            position,
+            jerseySize,
+            emergencyContactName,
+            emergencyContactPhone,
+            emergencyContactRelation,
+            medicalConditions,
+            medications,
+            allergies
+          }
+        });
+        
+        if (completionResult.success) {
+          console.log('Registration completion successful:', completionResult);
+        } else {
+          console.error('Registration completion failed:', completionResult.error);
+          // Don't fail the registration if completion fails, just log it
+        }
+      } catch (completionError) {
+        console.error('Registration completion service error:', completionError);
+        // Continue with registration success even if completion fails
+      }
+      
+    } catch (firebaseError) {
+      console.error('Firebase save error:', firebaseError);
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to save profile to database'
+      }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,

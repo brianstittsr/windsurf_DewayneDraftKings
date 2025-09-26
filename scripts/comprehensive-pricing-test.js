@@ -71,7 +71,12 @@ async function comprehensivePricingTest() {
         const deleteResponse = await fetch(`http://localhost:3000/api/pricing/${postData.id}`, {
           method: 'DELETE'
         });
-        console.log(`   Cleaned up test plan: ${deleteResponse.ok ? 'SUCCESS' : 'FAILED'}\n`);
+        console.log(`   Cleaned up test plan: ${deleteResponse.ok ? 'SUCCESS' : 'FAILED'}`);
+        if (!deleteResponse.ok) {
+          const deleteError = await deleteResponse.json();
+          console.log(`   Delete error: ${deleteError.error}`);
+        }
+        console.log('');
       }
     } else {
       const errorData = await postResponse.json();

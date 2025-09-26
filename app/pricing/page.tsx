@@ -50,7 +50,7 @@ export default function PricingPage() {
     {
       title: "Jamboree Game",
       subtitle: "Single game participation",
-      price: 26.50,
+      price: 29.50,
       serviceFee: 3.00,
       features: [
         "Single game entry",
@@ -66,29 +66,9 @@ export default function PricingPage() {
       category: "player"
     },
     {
-      title: "Complete Season",
-      subtitle: "Full season participation",
-      price: 59.00,
-      serviceFee: 3.00,
-      features: [
-        "All season games",
-        "Official jersey",
-        "Complete statistics tracking",
-        "Team photos",
-        "SMS updates",
-        "Playoff eligibility",
-        "Awards ceremony"
-      ],
-      popular: true,
-      buttonText: "Register Now",
-      buttonClass: "btn-primary",
-      itemType: "season",
-      category: "player"
-    },
-    {
       title: "Jamboree + Season",
       subtitle: "Complete package deal",
-      price: 88.50,
+      price: 91.50,
       serviceFee: 3.00,
       features: [
         "Jamboree game entry",
@@ -101,16 +81,36 @@ export default function PricingPage() {
         "Awards ceremony",
         "Priority team selection"
       ],
+      popular: true,
+      buttonText: "Register Now",
+      buttonClass: "btn-primary",
+      itemType: "bundle",
+      category: "player"
+    },
+    {
+      title: "Complete Season",
+      subtitle: "Full season participation",
+      price: 62.00,
+      serviceFee: 3.00,
+      features: [
+        "All season games",
+        "Official jersey",
+        "Complete statistics tracking",
+        "Team photos",
+        "SMS updates",
+        "Playoff eligibility",
+        "Awards ceremony"
+      ],
       popular: false,
       buttonText: "Register Now",
       buttonClass: "btn-outline-primary",
-      itemType: "bundle",
+      itemType: "season",
       category: "player"
     },
     {
       title: "Assistant Coach",
       subtitle: "Support coaching role",
-      price: 45.00,
+      price: 48.00,
       serviceFee: 3.00,
       features: [
         "Team assignment",
@@ -128,7 +128,7 @@ export default function PricingPage() {
     {
       title: "Head Coach",
       subtitle: "Lead coaching position",
-      price: 75.00,
+      price: 78.00,
       serviceFee: 3.00,
       features: [
         "Team leadership",
@@ -154,7 +154,6 @@ export default function PricingPage() {
       plan: plan.itemType,
       title: plan.title,
       price: plan.price.toString(),
-      serviceFee: plan.serviceFee.toString(),
       category: plan.category
     });
     
@@ -226,30 +225,24 @@ export default function PricingPage() {
           </div>
 
           {/* Pricing Cards */}
-          <div className="row justify-content-center g-4">
+          <div className="row justify-content-center g-4" style={{paddingTop: '25px'}}>
             {filteredPlans.map((plan, index) => (
               <div key={index} className="col-lg-4 col-md-6">
-                <div className={`card h-100 shadow-sm position-relative ${plan.popular ? 'border-primary' : ''}`}>
+                <div className="position-relative" style={{paddingTop: plan.popular ? '25px' : '0'}}>
                   {plan.popular && (
-                    <div className="position-absolute top-0 start-50 translate-middle">
-                      <span className="badge bg-primary px-3 py-2">
+                    <div className="position-absolute w-100 d-flex justify-content-center" style={{top: '0', zIndex: 10}}>
+                      <span className="badge bg-primary px-3 py-2 text-nowrap shadow-sm">
                         <i className="fas fa-star me-1"></i>
                         Most Popular
                       </span>
                     </div>
                   )}
-                  
-                  <div className="card-header bg-transparent text-center py-4">
+                  <div className={`card h-100 shadow-sm ${plan.popular ? 'border-primary' : ''}`}>
+                    <div className={`card-header bg-transparent text-center ${plan.popular ? 'pt-5 pb-4' : 'py-4'}`}>
                     <h4 className="card-title mb-2">{plan.title}</h4>
                     <p className="text-muted mb-3">{plan.subtitle}</p>
                     <div className="pricing-display">
-                      <span className="h2 fw-bold text-primary">${plan.price}</span>
-                      <div className="small text-muted mt-1">
-                        + ${plan.serviceFee} service fee
-                      </div>
-                      <div className="small fw-semibold text-dark mt-1">
-                        Total: ${(plan.price + plan.serviceFee).toFixed(2)}
-                      </div>
+                      <span className="h2 fw-bold text-primary">${plan.price.toFixed(2)}</span>
                     </div>
                   </div>
                   
@@ -273,6 +266,7 @@ export default function PricingPage() {
                       {plan.buttonText}
                     </button>
                   </div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -288,13 +282,10 @@ export default function PricingPage() {
                     Important Information
                   </h4>
                   <p className="mb-2">
-                    <strong>Service Fee:</strong> A $3.00 processing fee applies to all registrations to cover payment processing and administrative costs.
-                  </p>
-                  <p className="mb-2">
                     <strong>Refund Policy:</strong> Full refunds available up to 7 days before season start. Partial refunds may apply thereafter.
                   </p>
                   <p className="mb-0">
-                    <strong>Questions?</strong> Contact our support team at support@allprosports.com or call (555) 123-4567
+                    <strong>Questions?</strong> Contact our support team at info@allprosportsnc.com
                   </p>
                 </div>
               </div>

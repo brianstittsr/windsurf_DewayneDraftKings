@@ -106,6 +106,31 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           {/* Divider */}
           <hr className="sidebar-divider" />
 
+          {/* Direct Access Links */}
+          <li className="nav-item">
+            <Link href="/admin?tab=user-profiles" className={`nav-link ${isActive('user-profiles') ? 'active' : ''}`}>
+              <i className="fas fa-fw fa-users"></i>
+              <span>User Profiles</span>
+            </Link>
+          </li>
+
+          <li className="nav-item">
+            <Link href="/admin?tab=payments" className={`nav-link ${isActive('payments') ? 'active' : ''}`}>
+              <i className="fas fa-fw fa-credit-card"></i>
+              <span>Payments</span>
+            </Link>
+          </li>
+
+          <li className="nav-item">
+            <Link href="/admin?tab=coupons" className={`nav-link ${isActive('coupons') ? 'active' : ''}`}>
+              <i className="fas fa-fw fa-gift"></i>
+              <span>Coupons / Gift Cards</span>
+            </Link>
+          </li>
+
+          {/* Divider */}
+          <hr className="sidebar-divider" />
+
           {/* Heading */}
           <div className="sidebar-heading">
             Business Operations

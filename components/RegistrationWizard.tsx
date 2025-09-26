@@ -40,8 +40,21 @@ interface FormData {
   // Step 5: Preferences & Agreements
   preferredCommunication: string;
   marketingConsent: boolean;
+  disclosureRead: boolean;
   waiverAccepted: boolean;
   termsAccepted: boolean;
+}
+
+interface ConfigOption {
+  value: string;
+  label: string;
+}
+
+interface RegistrationConfig {
+  jerseySizes: ConfigOption[];
+  playerPositions: ConfigOption[];
+  emergencyRelations: ConfigOption[];
+  communicationMethods: ConfigOption[];
 }
 
 const STEPS = [
@@ -53,9 +66,30 @@ const STEPS = [
   { id: 6, title: 'Payment', icon: 'fas fa-credit-card' }
 ];
 
+// Validation functions
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email);
+};
+
+const isValidPhone = (phone: string): boolean => {
+  // Remove all non-digit characters for validation
+  const cleanPhone = phone.replace(/\D/g, '');
+  // Check if it's 10 digits (US format) or 11 digits (with country code)
+  return cleanPhone.length === 10 || (cleanPhone.length === 11 && cleanPhone.startsWith('1'));
+};
+
 export default function RegistrationWizard({ selectedPlan }: RegistrationWizardProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [configError, setConfigError] = useState<string | null>(null);
+  const [config, setConfig] = useState<RegistrationConfig>({
+    jerseySizes: [],
+    playerPositions: [],
+    emergencyRelations: [],
+    communicationMethods: []
+  });
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -73,9 +107,41 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
     allergies: '',
     preferredCommunication: 'email',
     marketingConsent: false,
+    disclosureRead: false,
     waiverAccepted: false,
     termsAccepted: false,
   });
+
+  // Fetch configuration options from API
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/registration/config');
+        const data = await response.json();
+        
+        if (data.success) {
+          setConfig(data.config);
+          // Set default values based on fetched config
+          setFormData(prev => ({
+            ...prev,
+            jerseySize: data.config.jerseySizes[0]?.value || 'M',
+            position: data.config.playerPositions[0]?.value || 'flex',
+            preferredCommunication: data.config.communicationMethods[0]?.value || 'email'
+          }));
+        } else {
+          setConfigError('Failed to load form configuration');
+        }
+      } catch (error) {
+        console.error('Error fetching registration config:', error);
+        setConfigError('Unable to load form options');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConfig();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -88,15 +154,26 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!(formData.firstName && formData.lastName && formData.email && formData.phone);
+        return !!(
+          formData.firstName && 
+          formData.lastName && 
+          formData.email && 
+          isValidEmail(formData.email) &&
+          formData.phone && 
+          isValidPhone(formData.phone)
+        );
       case 2:
         return !!(formData.jerseySize);
       case 3:
-        return !!(formData.emergencyContactName && formData.emergencyContactPhone);
+        return !!(
+          formData.emergencyContactName && 
+          formData.emergencyContactPhone && 
+          isValidPhone(formData.emergencyContactPhone)
+        );
       case 4:
         return true; // Medical info is optional
       case 5:
-        return !!(formData.waiverAccepted && formData.termsAccepted);
+        return !!(formData.disclosureRead && formData.waiverAccepted && formData.termsAccepted);
       default:
         return true;
     }
@@ -138,8 +215,15 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
 
       if (response.ok) {
         const result = await response.json();
-        // Redirect to checkout with player ID
-        router.push(`/checkout?playerId=${result.playerId}&plan=${selectedPlan?.plan || 'basic'}`);
+        // Redirect to checkout with player ID and pricing details
+        const params = new URLSearchParams({
+          playerId: result.playerId,
+          plan: selectedPlan?.plan || 'basic',
+          title: selectedPlan?.title || 'Registration Plan',
+          price: selectedPlan?.price?.toString() || '0',
+          category: selectedPlan?.category || 'player'
+        });
+        router.push(`/checkout?${params.toString()}`);
       } else {
         throw new Error('Failed to create profile');
       }
@@ -189,24 +273,44 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
               <label className="form-label">Email Address *</label>
               <input
                 type="email"
-                className="form-control"
+                className={`form-control ${
+                  formData.email && !isValidEmail(formData.email) ? 'is-invalid' : 
+                  formData.email && isValidEmail(formData.email) ? 'is-valid' : ''
+                }`}
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
+                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                placeholder="example@email.com"
                 required
               />
+              {formData.email && !isValidEmail(formData.email) && (
+                <div className="invalid-feedback">
+                  Please enter a valid email address.
+                </div>
+              )}
             </div>
             
             <div className="col-md-6">
               <label className="form-label">Phone Number *</label>
               <input
                 type="tel"
-                className="form-control"
+                className={`form-control ${
+                  formData.phone && !isValidPhone(formData.phone) ? 'is-invalid' : 
+                  formData.phone && isValidPhone(formData.phone) ? 'is-valid' : ''
+                }`}
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
+                pattern="[\+]?[1]?[\-\.\s]?[\(]?[0-9]{3}[\)]?[\-\.\s]?[0-9]{3}[\-\.\s]?[0-9]{4}"
+                placeholder="(555) 123-4567"
                 required
               />
+              {formData.phone && !isValidPhone(formData.phone) && (
+                <div className="invalid-feedback">
+                  Please enter a valid phone number (e.g., (555) 123-4567).
+                </div>
+              )}
             </div>
             
             <div className="col-md-6">
@@ -241,12 +345,11 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
                 onChange={handleInputChange}
                 required
               >
-                <option value="XS">XS</option>
-                <option value="S">S</option>
-                <option value="M">M</option>
-                <option value="L">L</option>
-                <option value="XL">XL</option>
-                <option value="XXL">XXL</option>
+                {config.jerseySizes.map((size) => (
+                  <option key={size.value} value={size.value}>
+                    {size.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -259,12 +362,11 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
                   value={formData.position}
                   onChange={handleInputChange}
                 >
-                  <option value="flex">Flexible</option>
-                  <option value="offense">Offense</option>
-                  <option value="defense">Defense</option>
-                  <option value="quarterback">Quarterback</option>
-                  <option value="receiver">Receiver</option>
-                  <option value="rusher">Rusher</option>
+                  {config.playerPositions.map((position) => (
+                    <option key={position.value} value={position.value}>
+                      {position.label}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
@@ -311,12 +413,22 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
               <label className="form-label">Emergency Contact Phone *</label>
               <input
                 type="tel"
-                className="form-control"
+                className={`form-control ${
+                  formData.emergencyContactPhone && !isValidPhone(formData.emergencyContactPhone) ? 'is-invalid' : 
+                  formData.emergencyContactPhone && isValidPhone(formData.emergencyContactPhone) ? 'is-valid' : ''
+                }`}
                 name="emergencyContactPhone"
                 value={formData.emergencyContactPhone}
                 onChange={handleInputChange}
+                pattern="[\+]?[1]?[\-\.\s]?[\(]?[0-9]{3}[\)]?[\-\.\s]?[0-9]{3}[\-\.\s]?[0-9]{4}"
+                placeholder="(555) 123-4567"
                 required
               />
+              {formData.emergencyContactPhone && !isValidPhone(formData.emergencyContactPhone) && (
+                <div className="invalid-feedback">
+                  Please enter a valid phone number (e.g., (555) 123-4567).
+                </div>
+              )}
             </div>
             
             <div className="col-md-6">
@@ -328,12 +440,11 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
                 onChange={handleInputChange}
               >
                 <option value="">Select relationship</option>
-                <option value="parent">Parent</option>
-                <option value="guardian">Guardian</option>
-                <option value="spouse">Spouse</option>
-                <option value="sibling">Sibling</option>
-                <option value="friend">Friend</option>
-                <option value="other">Other</option>
+                {config.emergencyRelations.map((relation) => (
+                  <option key={relation.value} value={relation.value}>
+                    {relation.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -406,14 +517,91 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
                 value={formData.preferredCommunication}
                 onChange={handleInputChange}
               >
-                <option value="email">Email</option>
-                <option value="sms">SMS/Text</option>
-                <option value="phone">Phone Call</option>
-                <option value="both">Email & SMS</option>
+                {config.communicationMethods.map((method) => (
+                  <option key={method.value} value={method.value}>
+                    {method.label}
+                  </option>
+                ))}
               </select>
             </div>
             
+            {/* Disclosure Document */}
             <div className="col-12 mt-4">
+              <div className="card border-info">
+                <div className="card-header bg-info text-white">
+                  <h6 className="mb-0">
+                    <i className="fas fa-info-circle me-2"></i>
+                    Important Disclosure & Information
+                  </h6>
+                </div>
+                <div className="card-body" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                  <div className="small">
+                    <h6 className="text-primary">Liability and Risk Acknowledgment</h6>
+                    <p className="mb-3">
+                      Participation in All Pro Sports activities involves inherent risks including but not limited to: 
+                      physical injury, property damage, and other unforeseen circumstances. By registering, you acknowledge 
+                      these risks and agree to participate at your own risk.
+                    </p>
+
+                    <h6 className="text-primary">Medical Information</h6>
+                    <p className="mb-3">
+                      Participants are required to disclose any medical conditions that may affect their ability to 
+                      participate safely. All Pro Sports reserves the right to require medical clearance before participation.
+                    </p>
+
+                    <h6 className="text-primary">Code of Conduct</h6>
+                    <p className="mb-3">
+                      All participants must adhere to our code of conduct which includes: respectful behavior toward 
+                      all participants, coaches, and staff; following all safety guidelines; and maintaining good 
+                      sportsmanship at all times.
+                    </p>
+
+                    <h6 className="text-primary">Payment and Refund Policy</h6>
+                    <p className="mb-3">
+                      Registration fees are due at time of registration. Refunds are available up to 7 days before 
+                      the season start date. After this period, partial refunds may be available at management discretion.
+                    </p>
+
+                    <h6 className="text-primary">Photography and Media</h6>
+                    <p className="mb-3">
+                      All Pro Sports may photograph or record activities for promotional purposes. By registering, 
+                      you consent to the use of your likeness in promotional materials.
+                    </p>
+
+                    <h6 className="text-primary">Emergency Contact</h6>
+                    <p className="mb-3">
+                      Emergency contact information must be accurate and current. This person will be contacted 
+                      in case of injury or emergency during activities.
+                    </p>
+
+                    <h6 className="text-primary">Equipment and Safety</h6>
+                    <p className="mb-0">
+                      Participants are responsible for wearing appropriate athletic attire and any required safety 
+                      equipment. All Pro Sports provides jerseys but participants must provide their own cleats 
+                      and protective gear as needed.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="col-12 mt-3">
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  name="disclosureRead"
+                  checked={formData.disclosureRead}
+                  onChange={handleInputChange}
+                  required
+                />
+                <label className="form-check-label">
+                  <strong>I have read and understand the above disclosure information. *</strong>
+                </label>
+              </div>
+            </div>
+            
+            <div className="col-12 mt-3">
               <div className="form-check">
                 <input
                   className="form-check-input"
@@ -466,6 +654,57 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
         return null;
     }
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="container mt-5 pt-4">
+        <div className="row justify-content-center">
+          <div className="col-lg-6 text-center">
+            <div className="card">
+              <div className="card-body py-5">
+                <div className="spinner-border text-primary mb-3" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <h5>Loading Registration Form...</h5>
+                <p className="text-muted">Please wait while we prepare your registration options.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (configError) {
+    return (
+      <div className="container mt-5 pt-4">
+        <div className="row justify-content-center">
+          <div className="col-lg-6">
+            <div className="card border-danger">
+              <div className="card-header bg-danger text-white">
+                <h5 className="mb-0">
+                  <i className="fas fa-exclamation-triangle me-2"></i>
+                  Configuration Error
+                </h5>
+              </div>
+              <div className="card-body">
+                <p className="mb-3">{configError}</p>
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => window.location.reload()}
+                >
+                  <i className="fas fa-refresh me-2"></i>
+                  Retry
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-5 pt-4">

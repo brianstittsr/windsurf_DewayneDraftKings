@@ -29,6 +29,9 @@ function CheckoutPageContent() {
   useEffect(() => {
     const playerId = searchParams.get('playerId');
     const plan = searchParams.get('plan');
+    const title = searchParams.get('title');
+    const price = searchParams.get('price');
+    const category = searchParams.get('category');
 
     if (!playerId) {
       setError('Player ID is required');
@@ -36,20 +39,21 @@ function CheckoutPageContent() {
       return;
     }
 
-    // For now, create a mock profile based on the plan
-    // In a real implementation, you would fetch the profile from the API
+    // Get pricing from URL parameters (passed from registration)
+    const planPrice = price ? parseFloat(price) : 0;
+    
     const mockProfile: PlayerProfile = {
       id: playerId,
       firstName: 'John',
       lastName: 'Doe',
       email: 'john.doe@example.com',
       selectedPlan: {
-        plan: plan || 'jamboree_and_season',
-        title: 'Complete Season Package',
-        price: 88.50,
-        serviceFee: 3.00,
-        category: 'player',
-        total: 91.50
+        plan: plan || 'jamboree',
+        title: title || 'Registration Plan',
+        price: planPrice,
+        serviceFee: 0, // Service fee already included in price
+        category: category || 'player',
+        total: planPrice // Price already includes everything
       }
     };
 
@@ -181,15 +185,26 @@ function CheckoutPageContent() {
               <div className="card-body">
                 {playerProfile.selectedPlan && (
                   <PaymentCheckout
-                    planTitle={playerProfile.selectedPlan.title}
-                    planPrice={playerProfile.selectedPlan.price}
-                    serviceFee={playerProfile.selectedPlan.serviceFee}
-                    totalAmount={playerProfile.selectedPlan.total}
-                    planType={playerProfile.selectedPlan.plan}
-                    customerInfo={{
-                      name: `${playerProfile.firstName} ${playerProfile.lastName}`,
+                    planData={{
+                      title: playerProfile.selectedPlan.title,
+                      price: playerProfile.selectedPlan.price,
+                      serviceFee: playerProfile.selectedPlan.serviceFee,
+                      total: playerProfile.selectedPlan.total,
+                      itemType: playerProfile.selectedPlan.plan,
+                      category: playerProfile.selectedPlan.category
+                    }}
+                    customerData={{
+                      firstName: playerProfile.firstName,
+                      lastName: playerProfile.lastName,
                       email: playerProfile.email,
-                      playerId: playerProfile.id
+                      phone: '+1-555-0123' // Default phone, should come from registration
+                    }}
+                    onPaymentSuccess={() => {
+                      window.location.href = '/registration-success';
+                    }}
+                    onPaymentError={(error) => {
+                      console.error('Payment error:', error);
+                      alert('Payment failed: ' + error);
                     }}
                   />
                 )}
@@ -208,7 +223,6 @@ function CheckoutPageContent() {
                 <p className="mb-2">If you're experiencing issues with payment or have questions:</p>
                 <ul className="mb-3">
                   <li>Contact us at <strong>info@allprosportsnc.com</strong></li>
-                  <li>Call us at <strong>(555) 123-4567</strong></li>
                   <li>Visit our facility at <strong>All Pro Sports Complex</strong></li>
                 </ul>
                 <div className="d-flex gap-2">

@@ -15,10 +15,12 @@ export async function GET() {
     const q = query(pricingRef, where('isActive', '==', true));
     const snapshot = await getDocs(q);
     
-    const plans = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const plans = snapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      .filter((plan: any) => plan.title !== 'Test Plan'); // Filter out test plans
 
     return NextResponse.json({ plans });
   } catch (error) {

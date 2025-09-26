@@ -17,9 +17,32 @@ export default function UserProfileSearch({ onProfileSelect }: UserProfileSearch
   const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [qrCodes, setQRCodes] = useState<{ profile?: string; contact?: string }>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [editFormData, setEditFormData] = useState<any>({});
+  const [createFormData, setCreateFormData] = useState<any>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    role: 'player',
+    status: 'active',
+    dateOfBirth: '',
+    jerseySize: 'M',
+    position: 'flex',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    emergencyContactRelation: '',
+    medicalConditions: '',
+    medications: '',
+    allergies: '',
+    paymentStatus: 'pending',
+    isVerified: false
+  });
 
   useEffect(() => {
     fetchProfiles();
@@ -120,6 +143,133 @@ export default function UserProfileSearch({ onProfileSelect }: UserProfileSearch
     }
   };
 
+  // CRUD Operations
+  const handleEdit = (profile: UserProfile) => {
+    setSelectedProfile(profile);
+    setEditFormData({
+      firstName: profile.firstName || '',
+      lastName: profile.lastName || '',
+      email: profile.email || '',
+      phone: profile.phone || '',
+      role: profile.role || 'player',
+      status: profile.status || 'active',
+      dateOfBirth: profile.registrationData?.dateOfBirth || '',
+      jerseySize: profile.jerseySize || 'M',
+      position: profile.registrationData?.position || 'flex',
+      emergencyContactName: profile.registrationData?.emergencyContactName || '',
+      emergencyContactPhone: profile.registrationData?.emergencyContactPhone || '',
+      emergencyContactRelation: (profile as any).emergencyContactRelation || '',
+      medicalConditions: (profile as any).medicalConditions || '',
+      medications: (profile as any).medications || '',
+      allergies: (profile as any).allergies || '',
+      paymentStatus: profile.paymentStatus || 'pending',
+      isVerified: profile.isVerified || false,
+      adminNotes: profile.adminNotes || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedProfile) return;
+
+    try {
+      const response = await fetch('/api/user-profiles', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedProfile.id,
+          role: selectedProfile.role,
+          ...editFormData
+        })
+      });
+
+      if (response.ok) {
+        await fetchProfiles();
+        setShowEditModal(false);
+        alert('Profile updated successfully!');
+      } else {
+        const data = await response.json();
+        alert(`Error updating profile: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Error updating profile. Please try again.');
+    }
+  };
+
+  const handleCreate = async () => {
+    try {
+      const response = await fetch('/api/registration/create-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...createFormData,
+          waiverAccepted: true,
+          termsAccepted: true,
+          registrationSource: 'admin_created'
+        })
+      });
+
+      if (response.ok) {
+        await fetchProfiles();
+        setShowCreateModal(false);
+        setCreateFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          role: 'player',
+          status: 'active',
+          dateOfBirth: '',
+          jerseySize: 'M',
+          position: 'flex',
+          emergencyContactName: '',
+          emergencyContactPhone: '',
+          emergencyContactRelation: '',
+          medicalConditions: '',
+          medications: '',
+          allergies: '',
+          paymentStatus: 'pending',
+          isVerified: false
+        });
+        alert('Profile created successfully!');
+      } else {
+        const data = await response.json();
+        alert(`Error creating profile: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error creating profile:', error);
+      alert('Error creating profile. Please try again.');
+    }
+  };
+
+  const handleDelete = (profile: UserProfile) => {
+    setSelectedProfile(profile);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedProfile) return;
+
+    try {
+      const response = await fetch(`/api/user-profiles?id=${selectedProfile.id}&role=${selectedProfile.role}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        await fetchProfiles();
+        setShowDeleteModal(false);
+        alert('Profile deleted successfully!');
+      } else {
+        const data = await response.json();
+        alert(`Error deleting profile: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      alert('Error deleting profile. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center p-4">
@@ -147,19 +297,18 @@ export default function UserProfileSearch({ onProfileSelect }: UserProfileSearch
           </div>
         </div>
         
-        <div className="card-body">
-          <div className="row g-3">
-            <div className="col-md-3">
-              <label className="form-label">
-                <i className="fas fa-search me-2"></i>Search
-              </label>
-              <input
-                type="text"
-                placeholder="Name, email, or phone..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="dk-metric-input form-control"
-              />
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h4>
+            <i className="fas fa-users me-2"></i>
+            User Profile Management
+          </h4>
+          <button 
+            className="btn btn-primary"
+            onClick={() => setShowCreateModal(true)}
+          >
+            <i className="fas fa-plus me-2"></i>
+            Add New User
+          </button>
             </div>
             
             <div className="col-md-3">

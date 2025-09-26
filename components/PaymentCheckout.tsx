@@ -40,6 +40,21 @@ function CreditCardForm({ onPaymentSuccess, onPaymentError, planData, customerDa
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
+  
+  // Billing information state
+  const [billingInfo, setBillingInfo] = useState({
+    name: `${customerData.firstName} ${customerData.lastName}`,
+    email: customerData.email,
+    phone: customerData.phone,
+    address: {
+      line1: '',
+      line2: '',
+      city: '',
+      state: '',
+      postal_code: '',
+      country: 'US'
+    }
+  });
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -91,9 +106,17 @@ function CreditCardForm({ onPaymentSuccess, onPaymentError, planData, customerDa
         payment_method: {
           card: cardElement,
           billing_details: {
-            name: `${customerData.firstName} ${customerData.lastName}`,
-            email: customerData.email,
-            phone: customerData.phone
+            name: billingInfo.name,
+            email: billingInfo.email,
+            phone: billingInfo.phone,
+            address: {
+              line1: billingInfo.address.line1,
+              line2: billingInfo.address.line2 || undefined,
+              city: billingInfo.address.city,
+              state: billingInfo.address.state,
+              postal_code: billingInfo.address.postal_code,
+              country: billingInfo.address.country
+            }
           }
         }
       });
@@ -115,6 +138,128 @@ function CreditCardForm({ onPaymentSuccess, onPaymentError, planData, customerDa
 
   return (
     <form onSubmit={handleSubmit}>
+      {/* Billing Information */}
+      <div className="card border-light mb-4">
+        <div className="card-header bg-light">
+          <h6 className="mb-0 fw-semibold">
+            <i className="fas fa-user me-2"></i>
+            Billing Information
+          </h6>
+        </div>
+        <div className="card-body">
+          <div className="row">
+            <div className="col-md-6 mb-3">
+              <label className="form-label">Full Name *</label>
+              <input
+                type="text"
+                className="form-control"
+                value={billingInfo.name}
+                onChange={(e) => setBillingInfo(prev => ({ ...prev, name: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="col-md-6 mb-3">
+              <label className="form-label">Email Address *</label>
+              <input
+                type="email"
+                className="form-control"
+                value={billingInfo.email}
+                onChange={(e) => setBillingInfo(prev => ({ ...prev, email: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="col-md-6 mb-3">
+              <label className="form-label">Phone Number</label>
+              <input
+                type="tel"
+                className="form-control"
+                value={billingInfo.phone}
+                onChange={(e) => setBillingInfo(prev => ({ ...prev, phone: e.target.value }))}
+              />
+            </div>
+            <div className="col-md-6 mb-3">
+              <label className="form-label">Address Line 1 *</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Street address"
+                value={billingInfo.address.line1}
+                onChange={(e) => setBillingInfo(prev => ({ 
+                  ...prev, 
+                  address: { ...prev.address, line1: e.target.value }
+                }))}
+                required
+              />
+            </div>
+            <div className="col-md-6 mb-3">
+              <label className="form-label">Address Line 2</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Apartment, suite, etc. (optional)"
+                value={billingInfo.address.line2}
+                onChange={(e) => setBillingInfo(prev => ({ 
+                  ...prev, 
+                  address: { ...prev.address, line2: e.target.value }
+                }))}
+              />
+            </div>
+            <div className="col-md-4 mb-3">
+              <label className="form-label">City *</label>
+              <input
+                type="text"
+                className="form-control"
+                value={billingInfo.address.city}
+                onChange={(e) => setBillingInfo(prev => ({ 
+                  ...prev, 
+                  address: { ...prev.address, city: e.target.value }
+                }))}
+                required
+              />
+            </div>
+            <div className="col-md-4 mb-3">
+              <label className="form-label">State *</label>
+              <select
+                className="form-select"
+                value={billingInfo.address.state}
+                onChange={(e) => setBillingInfo(prev => ({ 
+                  ...prev, 
+                  address: { ...prev.address, state: e.target.value }
+                }))}
+                required
+              >
+                <option value="">Select State</option>
+                <option value="NC">North Carolina</option>
+                <option value="SC">South Carolina</option>
+                <option value="VA">Virginia</option>
+                <option value="TN">Tennessee</option>
+                <option value="GA">Georgia</option>
+                <option value="FL">Florida</option>
+                <option value="AL">Alabama</option>
+                <option value="MS">Mississippi</option>
+                <option value="KY">Kentucky</option>
+                <option value="WV">West Virginia</option>
+              </select>
+            </div>
+            <div className="col-md-4 mb-3">
+              <label className="form-label">ZIP Code *</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="12345"
+                value={billingInfo.address.postal_code}
+                onChange={(e) => setBillingInfo(prev => ({ 
+                  ...prev, 
+                  address: { ...prev.address, postal_code: e.target.value }
+                }))}
+                required
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Credit Card Information */}
       <div className="card border-light mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0 fw-semibold">
@@ -124,7 +269,7 @@ function CreditCardForm({ onPaymentSuccess, onPaymentError, planData, customerDa
         </div>
         <div className="card-body">
           <div className="mb-3">
-            <label className="form-label">Card Details</label>
+            <label className="form-label">Card Details *</label>
             <div className="p-3 border rounded" style={{ backgroundColor: '#f8f9fa' }}>
               <CardElement
                 options={{
@@ -140,6 +285,10 @@ function CreditCardForm({ onPaymentSuccess, onPaymentError, planData, customerDa
                 }}
               />
             </div>
+            <small className="form-text text-muted">
+              <i className="fas fa-lock me-1"></i>
+              Your card information is encrypted and secure
+            </small>
           </div>
         </div>
       </div>

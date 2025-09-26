@@ -58,10 +58,20 @@ export default function CouponManagement() {
   const fetchCoupons = async () => {
     try {
       setLoading(true);
+      console.log('Fetching coupons...');
       const response = await fetch('/api/coupons');
+      console.log('Coupons API response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Coupons API response data:', data);
         setCoupons(data.coupons || []);
+        console.log('Coupons set to state:', data.coupons?.length || 0, 'items');
+      } else {
+        console.error('Failed to fetch coupons:', response.status, response.statusText);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Error details:', errorData);
+        setCoupons([]);
       }
     } catch (error) {
       console.error('Error fetching coupons:', error);
@@ -78,6 +88,8 @@ export default function CouponManagement() {
       const method = editingCoupon ? 'PUT' : 'POST';
       const url = editingCoupon ? `/api/coupons/${editingCoupon.id}` : '/api/coupons';
       
+      console.log('Submitting coupon:', method, url, formData);
+      
       const response = await fetch(url, {
         method,
         headers: {
@@ -86,14 +98,20 @@ export default function CouponManagement() {
         body: JSON.stringify(formData),
       });
 
+      console.log('Coupon submit response status:', response.status);
+
       if (response.ok) {
+        const result = await response.json();
+        console.log('Coupon submit success:', result);
         await fetchCoupons();
         setShowForm(false);
         setEditingCoupon(null);
         setFormData(initialFormData);
+        alert('Coupon saved successfully!');
       } else {
         const error = await response.json();
-        alert(`Error: ${error.message}`);
+        console.error('Coupon submit error:', error);
+        alert(`Error: ${error.error || error.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error saving coupon:', error);
@@ -251,17 +269,27 @@ export default function CouponManagement() {
           <h3 className="mb-1">Coupon Management</h3>
           <p className="text-muted mb-0">Create and manage discount coupons</p>
         </div>
-        <button
-          className="btn btn-primary"
-          onClick={() => {
-            setShowForm(true);
-            setEditingCoupon(null);
-            setFormData(initialFormData);
-          }}
-        >
-          <i className="fas fa-plus me-2"></i>
-          Create Coupon
-        </button>
+        <div className="d-flex gap-2">
+          <button
+            className="btn btn-outline-secondary"
+            onClick={fetchCoupons}
+            disabled={loading}
+          >
+            <i className="fas fa-sync-alt me-2"></i>
+            Refresh
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setShowForm(true);
+              setEditingCoupon(null);
+              setFormData(initialFormData);
+            }}
+          >
+            <i className="fas fa-plus me-2"></i>
+            Create Coupon
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}

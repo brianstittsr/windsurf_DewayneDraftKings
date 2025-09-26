@@ -14,17 +14,16 @@ function RegisterPageContent() {
     const plan = searchParams.get('plan');
     const title = searchParams.get('title');
     const price = searchParams.get('price');
-    const serviceFee = searchParams.get('serviceFee');
     const category = searchParams.get('category');
 
-    if (plan && title && price && serviceFee && category) {
+    if (plan && title && price && category) {
       setSelectedPlan({
         plan,
         title,
         price: parseFloat(price),
-        serviceFee: parseFloat(serviceFee),
+        serviceFee: 0, // Service fee is already included in price
         category,
-        total: parseFloat(price) + parseFloat(serviceFee)
+        total: parseFloat(price) // Price already includes service fee
       });
     }
   }, [searchParams]);

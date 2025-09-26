@@ -20,8 +20,8 @@ const db = getFirestore(app);
 const initialPricingData = [
   {
     title: 'Jamboree Game',
-    subtitle: 'Registration + Jersey',
-    price: 23.50,
+    subtitle: 'Single game participation',
+    price: 29.50,
     serviceFee: 3.00,
     features: [
       'Single game registration',
@@ -39,8 +39,8 @@ const initialPricingData = [
   },
   {
     title: 'Jamboree + Season',
-    subtitle: 'Complete package',
-    price: 85.50,
+    subtitle: 'Complete package deal',
+    price: 91.50,
     serviceFee: 3.00,
     features: [
       'Jamboree game registration',
@@ -61,8 +61,8 @@ const initialPricingData = [
   },
   {
     title: 'Complete Season',
-    subtitle: 'Full season access',
-    price: 56.00,
+    subtitle: 'Full season participation',
+    price: 62.00,
     serviceFee: 3.00,
     features: [
       'Complete season registration',
@@ -82,8 +82,8 @@ const initialPricingData = [
   },
   {
     title: 'Assistant Coach',
-    subtitle: 'Support role',
-    price: 42.00,
+    subtitle: 'Support coaching role',
+    price: 48.00,
     serviceFee: 3.00,
     features: [
       'Assistant coaching role',

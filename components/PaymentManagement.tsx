@@ -27,6 +27,14 @@ export default function PaymentManagement() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [refundAmount, setRefundAmount] = useState('');
   const [refundReason, setRefundReason] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    amount: '',
+    description: '',
+    customerName: '',
+    customerEmail: '',
+    paymentMethod: 'card'
+  });
 
   useEffect(() => {
     fetchPayments();
@@ -62,6 +70,42 @@ export default function PaymentManagement() {
     setSelectedPayment(payment);
     setModalMode('view');
     setShowModal(true);
+  };
+
+  const handleCreatePayment = async () => {
+    try {
+      const response = await fetch('/api/payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: parseFloat(createFormData.amount),
+          description: createFormData.description,
+          customerName: createFormData.customerName,
+          customerEmail: createFormData.customerEmail,
+          paymentMethod: createFormData.paymentMethod,
+          status: 'pending'
+        })
+      });
+
+      if (response.ok) {
+        await fetchPayments();
+        setShowCreateModal(false);
+        setCreateFormData({
+          amount: '',
+          description: '',
+          customerName: '',
+          customerEmail: '',
+          paymentMethod: 'card'
+        });
+        alert('Payment record created successfully!');
+      } else {
+        const data = await response.json();
+        alert(`Error creating payment: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      alert('Error creating payment. Please try again.');
+    }
   };
 
   const handleRefund = (payment: PaymentWithId) => {
@@ -277,17 +321,13 @@ export default function PaymentManagement() {
           </button>
         </div>
         <div className="col-md-2">
-          <div className="dropdown">
-            <button className="btn btn-success dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
-              <i className="fas fa-plus me-2"></i>
-              New Payment
-            </button>
-            <ul className="dropdown-menu">
-              <li><a className="dropdown-item" href="#" onClick={() => createCheckoutSession(100, 'Registration Fee')}>Registration ($100)</a></li>
-              <li><a className="dropdown-item" href="#" onClick={() => createCheckoutSession(50, 'Monthly Fee')}>Monthly Fee ($50)</a></li>
-              <li><a className="dropdown-item" href="#" onClick={() => createCheckoutSession(25, 'Equipment Fee')}>Equipment ($25)</a></li>
-            </ul>
-          </div>
+          <button 
+            className="btn btn-success w-100" 
+            onClick={() => setShowCreateModal(true)}
+          >
+            <i className="fas fa-plus me-2"></i>
+            New Payment
+          </button>
         </div>
       </div>
 
@@ -501,6 +541,112 @@ export default function PaymentManagement() {
         </div>
       )}
       {showModal && <div className="modal-backdrop fade show"></div>}
+
+      {/* Create Payment Modal */}
+      {showCreateModal && (
+        <div className="modal fade show" style={{ display: 'block' }} tabIndex={-1}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <i className="fas fa-plus me-2"></i>
+                  Create New Payment Record
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowCreateModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">Amount *</label>
+                  <div className="input-group">
+                    <span className="input-group-text">$</span>
+                    <input
+                      type="number"
+                      className="form-control"
+                      placeholder="0.00"
+                      value={createFormData.amount}
+                      onChange={(e) => setCreateFormData(prev => ({ ...prev, amount: e.target.value }))}
+                      step="0.01"
+                      min="0"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Description *</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g., Registration Fee, Monthly Payment"
+                    value={createFormData.description}
+                    onChange={(e) => setCreateFormData(prev => ({ ...prev, description: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Customer Name *</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="John Doe"
+                    value={createFormData.customerName}
+                    onChange={(e) => setCreateFormData(prev => ({ ...prev, customerName: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Customer Email *</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    placeholder="john@example.com"
+                    value={createFormData.customerEmail}
+                    onChange={(e) => setCreateFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Payment Method</label>
+                  <select
+                    className="form-select"
+                    value={createFormData.paymentMethod}
+                    onChange={(e) => setCreateFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                  >
+                    <option value="card">Credit/Debit Card</option>
+                    <option value="klarna">Klarna</option>
+                    <option value="affirm">Affirm</option>
+                    <option value="cash">Cash</option>
+                    <option value="check">Check</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowCreateModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={handleCreatePayment}
+                  disabled={!createFormData.amount || !createFormData.description || !createFormData.customerName || !createFormData.customerEmail}
+                >
+                  <i className="fas fa-plus me-2"></i>
+                  Create Payment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {showCreateModal && <div className="modal-backdrop fade show"></div>}
     </div>
   );
 }
