@@ -55,17 +55,15 @@ export async function POST(request: NextRequest) {
     // Generate a unique ID based on role
     const userId = `${userRole}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    // Dynamic import for Firestore Timestamp
-    const { Timestamp } = await import('firebase/firestore');
-    
-    // Create profile object with Firestore Timestamps
+    // Create profile object with standard Date objects (no Firebase dependency)
+    const now = new Date();
     const profile = {
       id: userId,
       firstName,
       lastName,
       email,
       phone,
-      dateOfBirth: dateOfBirth ? Timestamp.fromDate(new Date(dateOfBirth)) : null,
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
       jerseySize,
       position: position || 'flex',
       experience: experience || '',
@@ -74,7 +72,7 @@ export async function POST(request: NextRequest) {
       role: userRole,
       
       // Registration Information
-      registrationDate: Timestamp.now(),
+      registrationDate: now,
       registrationStatus: 'pending' as const,
       paymentStatus: 'pending' as const,
       
@@ -103,7 +101,7 @@ export async function POST(request: NextRequest) {
         qrCodeUrl: '',
         funnelStatus: {
           currentStep: 0,
-          lastInteraction: Timestamp.now(),
+          lastInteraction: now,
           isOptedOut: false
         }
       }),
@@ -131,7 +129,7 @@ export async function POST(request: NextRequest) {
         conditions: medicalConditions || '',
         medications: medications || '',
         allergies: allergies || '',
-        lastUpdated: Timestamp.now()
+        lastUpdated: now
       } : undefined,
       
       // Preferences
@@ -144,7 +142,7 @@ export async function POST(request: NextRequest) {
       agreements: {
         waiverAccepted,
         termsAccepted,
-        acceptedAt: Timestamp.now()
+        acceptedAt: now
       },
       
       // Plan and Registration Info
@@ -152,8 +150,8 @@ export async function POST(request: NextRequest) {
       registrationSource: registrationSource || 'registration_wizard',
       
       // Timestamps
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
+      createdAt: now,
+      updatedAt: now
     };
 
     // Save to Firebase
@@ -191,11 +189,38 @@ export async function POST(request: NextRequest) {
       
       console.log('Firebase imported successfully');
 
-      const { doc, setDoc } = await import('firebase/firestore');
+      const { doc, setDoc, Timestamp } = await import('firebase/firestore');
+      
+      // Convert Date objects to Firestore Timestamps for Firebase storage
+      const firebaseProfile = {
+        ...profile,
+        dateOfBirth: profile.dateOfBirth ? Timestamp.fromDate(profile.dateOfBirth) : null,
+        registrationDate: Timestamp.fromDate(profile.registrationDate),
+        createdAt: Timestamp.fromDate(profile.createdAt),
+        updatedAt: Timestamp.fromDate(profile.updatedAt),
+        ...(profile.medicalInfo && {
+          medicalInfo: {
+            ...profile.medicalInfo,
+            lastUpdated: Timestamp.fromDate(profile.medicalInfo.lastUpdated)
+          }
+        }),
+        ...(profile.agreements && {
+          agreements: {
+            ...profile.agreements,
+            acceptedAt: Timestamp.fromDate(profile.agreements.acceptedAt)
+          }
+        }),
+        ...(userRole === 'player' && profile.funnelStatus && {
+          funnelStatus: {
+            ...profile.funnelStatus,
+            lastInteraction: Timestamp.fromDate(profile.funnelStatus.lastInteraction)
+          }
+        })
+      };
       
       const collectionName = selectedPlan?.category === 'coach' ? 'coaches' : 'players';
       const docRef = doc(db, collectionName, userId);
-      await setDoc(docRef, profile);
+      await setDoc(docRef, firebaseProfile);
       
       console.log(`${collectionName.slice(0, -1)} profile saved to Firebase:`, userId);
       
