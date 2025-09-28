@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ModernNavbar from '../../components/ModernNavbar';
 import PaymentCheckout from '../../components/PaymentCheckout';
+import EnvironmentDebug from '../../components/EnvironmentDebug';
 
 interface PlayerProfile {
   id: string;
@@ -146,24 +147,25 @@ function CheckoutPageContent() {
   return (
     <>
       <ModernNavbar />
-      
-      <div className="container mt-5 pt-4">
+      <div className="container py-5">
         <div className="row justify-content-center">
           <div className="col-lg-8">
+            {/* Environment Debug (temporary) */}
+            <EnvironmentDebug />
+            
             {/* Registration Summary */}
-            <div className="card mb-4 border-success">
+            <div className="card border-success mb-4">
               <div className="card-header bg-success text-white">
-                <h5 className="mb-0">
+                <h4 className="mb-0">
                   <i className="fas fa-check-circle me-2"></i>
                   Registration Complete - Ready for Payment
-                </h5>
+                </h4>
               </div>
               <div className="card-body">
                 <div className="row">
                   <div className="col-md-6">
                     <h6 className="text-success mb-2">Participant Information</h6>
                     <p className="mb-1"><strong>Name:</strong> {playerProfile.firstName} {playerProfile.lastName}</p>
-                    <p className="mb-1"><strong>Email:</strong> {playerProfile.email}</p>
                     <p className="mb-0"><strong>Player ID:</strong> {playerProfile.id}</p>
                   </div>
                   <div className="col-md-6">
