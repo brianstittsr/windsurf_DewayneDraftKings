@@ -9,6 +9,9 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : Promise.resolve(null);
 
+// Check if Stripe is configured
+const isStripeConfigured = !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
 interface PaymentCheckoutProps {
   planData: any;
   customerData: {
@@ -325,6 +328,25 @@ function PaymentCheckoutForm({
   onPaymentSuccess, 
   onPaymentError 
 }: PaymentCheckoutProps) {
+  // Check if Stripe is configured
+  if (!isStripeConfigured) {
+    return (
+      <div className="alert alert-warning" role="alert">
+        <div className="d-flex align-items-center">
+          <i className="fas fa-exclamation-triangle me-3" style={{ fontSize: '2rem' }}></i>
+          <div>
+            <h5 className="alert-heading">Stripe Configuration Missing</h5>
+            <p className="mb-2">Please add your Stripe publishable key to <code>.env.local</code>:</p>
+            <code className="d-block bg-light p-2 rounded mb-2">
+              NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_...."
+            </code>
+            <small className="text-muted">Restart the server after adding the key</small>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'klarna' | 'affirm'>('card');
   const [loading, setLoading] = useState(false);
   const [bnplAccountStatus, setBnplAccountStatus] = useState<{
