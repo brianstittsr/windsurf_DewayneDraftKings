@@ -199,5 +199,15 @@ service cloud.firestore {
     match /gameStats/{gameStatsId} {
       allow read, write: if true;
     }
+
+    // GoHighLevel Integrations collection - Allow all operations for development
+    match /gohighlevel_integrations/{integrationId} {
+      allow read, write: if true;
+    }
+
+    // GoHighLevel Sync Logs collection - Allow all operations for development
+    match /gohighlevel_sync_logs/{syncLogId} {
+      allow read, write: if true;
+    }
   }
 }

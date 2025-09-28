@@ -15,6 +15,7 @@ import PricingManagement from '@/components/PricingManagement';
 import MealPlanManagement from '@/components/MealPlanManagement';
 import ProfileManagement from '@/components/ProfileManagement';
 import ProductManagement from '@/components/ProductManagement';
+import GoHighLevelIntegration from '@/components/GoHighLevelIntegration';
 
 // Simple dashboard components
 function StatsOverview() {
@@ -457,6 +458,13 @@ function AdminPageContent() {
                 </div>
               </div>
             </div>
+          </div>
+        );
+
+      case 'gohighlevel':
+        return (
+          <div className="fade-in">
+            <GoHighLevelIntegration />
           </div>
         );
 

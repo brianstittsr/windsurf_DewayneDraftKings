@@ -1986,3 +1986,92 @@ export interface GameStats extends BaseDocument {
   verifiedBy?: string; // User ID who verified stats
   isVerified: boolean;
 }
+
+// GoHighLevel Integration Interface
+export interface GoHighLevelIntegration extends BaseDocument {
+  // API Configuration
+  apiToken: string; // Encrypted API token
+  locationId: string; // GHL Location ID
+  agencyId?: string; // GHL Agency ID (if applicable)
+  
+  // Integration Settings
+  name: string; // Friendly name for this integration
+  description?: string;
+  isActive: boolean;
+  
+  // Sync Settings
+  syncContacts: boolean;
+  syncOpportunities: boolean;
+  syncCalendars: boolean;
+  syncPipelines: boolean;
+  syncCampaigns: boolean;
+  
+  // Mapping Configuration
+  contactMapping: {
+    [localField: string]: string; // Maps local fields to GHL custom fields
+  };
+  
+  // Pipeline Configuration
+  defaultPipelineId?: string;
+  defaultStageId?: string;
+  
+  // Webhook Configuration
+  webhookUrl?: string;
+  webhookSecret?: string;
+  enableWebhooks: boolean;
+  
+  // Last Sync Information
+  lastSyncAt?: Timestamp;
+  lastSyncStatus: 'success' | 'error' | 'pending' | 'never';
+  lastSyncError?: string;
+  totalContactsSynced: number;
+  totalOpportunitiesSynced: number;
+  
+  // Rate Limiting
+  rateLimitRemaining?: number;
+  rateLimitReset?: Timestamp;
+  
+  // Metadata
+  createdBy: string; // Admin user ID who created this integration
+  lastModifiedBy: string; // Admin user ID who last modified
+}
+
+// GoHighLevel Sync Log Interface
+export interface GoHighLevelSyncLog extends BaseDocument {
+  // Integration Reference
+  integrationId: string;
+  
+  // Sync Details
+  syncType: 'contacts' | 'opportunities' | 'calendars' | 'pipelines' | 'campaigns' | 'full';
+  status: 'started' | 'in_progress' | 'completed' | 'failed';
+  
+  // Sync Statistics
+  recordsProcessed: number;
+  recordsSuccessful: number;
+  recordsFailed: number;
+  
+  // Timing
+  startedAt: Timestamp;
+  completedAt?: Timestamp;
+  duration?: number; // in milliseconds
+  
+  // Error Information
+  errors: {
+    recordId?: string;
+    error: string;
+    details?: any;
+  }[];
+  
+  // Sync Summary
+  summary?: {
+    contactsCreated: number;
+    contactsUpdated: number;
+    opportunitiesCreated: number;
+    opportunitiesUpdated: number;
+    [key: string]: number;
+  };
+  
+  // Metadata
+  triggeredBy: string; // User ID or 'system' for automated syncs
+  triggerType: 'manual' | 'scheduled' | 'webhook' | 'event';
+}

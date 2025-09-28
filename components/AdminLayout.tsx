@@ -188,7 +188,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* Nav Item - Communication */}
           <li className="nav-item">
-            <a className={`nav-link collapsed ${isActive('sms') ? 'active' : ''}`} href="#" data-toggle="collapse" data-target="#collapseComms" aria-expanded="true" aria-controls="collapseComms">
+            <a className={`nav-link collapsed ${isActive('sms') || isActive('gohighlevel') ? 'active' : ''}`} href="#" data-toggle="collapse" data-target="#collapseComms" aria-expanded="true" aria-controls="collapseComms">
               <i className="fas fa-fw fa-comments"></i>
               <span>Communication</span>
             </a>
@@ -206,6 +206,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <Link className="collapse-item" href="/admin?tab=emails">
                   <i className="fas fa-envelope fa-sm fa-fw mr-2 text-gray-400"></i>
                   Email Templates
+                </Link>
+                <div className="dropdown-divider"></div>
+                <h6 className="collapse-header">Integrations:</h6>
+                <Link className="collapse-item" href="/admin?tab=gohighlevel">
+                  <i className="fas fa-plug fa-sm fa-fw mr-2 text-gray-400"></i>
+                  GoHighLevel
                 </Link>
               </div>
             </div>
