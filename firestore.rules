@@ -190,6 +190,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Products collection - Allow all operations for development
+    match /products/{productId} {
+      allow read, write: if true;
+    }
+
     // Schedules collection - Allow all operations for development
     match /schedules/{scheduleId} {
       allow read, write: if true;
