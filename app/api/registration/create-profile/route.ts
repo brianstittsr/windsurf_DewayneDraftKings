@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Force this route to be dynamic
+export const dynamic = 'force-dynamic';
+
 // POST /api/registration/create-profile - Create player/coach profile from registration wizard
 export async function POST(request: NextRequest) {
   try {
+    console.log('Registration create-profile endpoint called');
     const data = await request.json();
+    console.log('Request data received:', Object.keys(data));
     
     // Extract form data
     const {
@@ -153,15 +158,22 @@ export async function POST(request: NextRequest) {
 
     // Save to Firebase
     try {
+      console.log('Attempting to import Firebase...');
       // Dynamic import to avoid build-time issues
-      const { db } = await import('../../../../lib/firebase').catch(() => ({ db: null }));
+      const { db } = await import('../../../../lib/firebase').catch((importError) => {
+        console.error('Firebase import error:', importError);
+        return { db: null };
+      });
       
       if (!db) {
+        console.error('Firebase database not available');
         return NextResponse.json({
           success: false,
-          error: 'Database unavailable'
+          error: 'Database unavailable - Firebase not initialized'
         }, { status: 503 });
       }
+      
+      console.log('Firebase imported successfully');
 
       const { doc, setDoc } = await import('firebase/firestore');
       
@@ -230,9 +242,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error creating profile:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json({
       success: false,
-      error: 'Failed to create profile'
+      error: 'Failed to create profile',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
