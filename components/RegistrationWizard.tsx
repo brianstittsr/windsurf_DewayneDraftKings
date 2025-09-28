@@ -280,7 +280,7 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
                 placeholder="example@email.com"
                 required
               />
