@@ -86,12 +86,17 @@ export default function AdminUserManagement() {
       dateOfBirth: profile.dateOfBirth,
       jerseySize: profile.jerseySize,
       position: profile.position,
+      experience: profile.experience,
       emergencyContactName: profile.emergencyContactName,
       emergencyContactPhone: profile.emergencyContactPhone,
       emergencyContactRelation: profile.emergencyContactRelation,
       medicalConditions: profile.medicalConditions,
       medications: profile.medications,
       allergies: profile.allergies,
+      preferredCommunication: profile.preferredCommunication,
+      marketingConsent: profile.marketingConsent,
+      waiverAccepted: profile.waiverAccepted,
+      termsAccepted: profile.termsAccepted,
       paymentStatus: profile.paymentStatus
     });
     setModalMode('edit');
@@ -110,12 +115,17 @@ export default function AdminUserManagement() {
       dateOfBirth: '',
       jerseySize: 'M',
       position: 'flex',
+      experience: '',
       emergencyContactName: '',
       emergencyContactPhone: '',
       emergencyContactRelation: '',
       medicalConditions: '',
       medications: '',
       allergies: '',
+      preferredCommunication: 'email',
+      marketingConsent: false,
+      waiverAccepted: false,
+      termsAccepted: false,
       paymentStatus: 'pending'
     });
     setModalMode('create');
@@ -494,6 +504,10 @@ export default function AdminUserManagement() {
                   </div>
                 ) : (
                   <div className="row">
+                    {/* Personal Information */}
+                    <div className="col-12">
+                      <h6 className="text-primary mb-3">Personal Information</h6>
+                    </div>
                     <div className="col-md-6">
                       <div className="mb-3">
                         <label className="form-label">First Name *</label>
@@ -569,8 +583,40 @@ export default function AdminUserManagement() {
                           <option value="pending">Pending</option>
                         </select>
                       </div>
-                      {formData.role === 'player' && (
-                        <>
+                      <div className="mb-3">
+                        <label className="form-label">Payment Status</label>
+                        <select
+                          className="form-select"
+                          value={formData.paymentStatus || 'pending'}
+                          onChange={(e) => setFormData(prev => ({ ...prev, paymentStatus: e.target.value as 'pending' | 'paid' | 'failed' }))}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="paid">Paid</option>
+                          <option value="failed">Failed</option>
+                        </select>
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Preferred Communication</label>
+                        <select
+                          className="form-select"
+                          value={formData.preferredCommunication || 'email'}
+                          onChange={(e) => setFormData(prev => ({ ...prev, preferredCommunication: e.target.value }))}
+                        >
+                          <option value="email">Email</option>
+                          <option value="sms">SMS</option>
+                          <option value="phone">Phone</option>
+                          <option value="app">App Notifications</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Role-Specific Information */}
+                    <div className="col-12">
+                      <h6 className="text-info mb-3 mt-4">Role-Specific Details</h6>
+                    </div>
+                    {formData.role === 'player' ? (
+                      <>
+                        <div className="col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Position</label>
                             <select
@@ -585,6 +631,8 @@ export default function AdminUserManagement() {
                               <option value="flex">Flex</option>
                             </select>
                           </div>
+                        </div>
+                        <div className="col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Jersey Size</label>
                             <select
@@ -600,8 +648,28 @@ export default function AdminUserManagement() {
                               <option value="XXL">XXL</option>
                             </select>
                           </div>
-                        </>
-                      )}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Experience</label>
+                          <textarea
+                            className="form-control"
+                            rows={3}
+                            value={formData.experience || ''}
+                            onChange={(e) => setFormData(prev => ({ ...prev, experience: e.target.value }))}
+                            placeholder="Describe coaching experience..."
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Emergency Contact */}
+                    <div className="col-12">
+                      <h6 className="text-warning mb-3 mt-4">Emergency Contact</h6>
+                    </div>
+                    <div className="col-md-4">
                       <div className="mb-3">
                         <label className="form-label">Emergency Contact Name</label>
                         <input
@@ -611,6 +679,8 @@ export default function AdminUserManagement() {
                           onChange={(e) => setFormData(prev => ({ ...prev, emergencyContactName: e.target.value }))}
                         />
                       </div>
+                    </div>
+                    <div className="col-md-4">
                       <div className="mb-3">
                         <label className="form-label">Emergency Contact Phone</label>
                         <input
@@ -619,6 +689,111 @@ export default function AdminUserManagement() {
                           value={formData.emergencyContactPhone || ''}
                           onChange={(e) => setFormData(prev => ({ ...prev, emergencyContactPhone: e.target.value }))}
                         />
+                      </div>
+                    </div>
+                    <div className="col-md-4">
+                      <div className="mb-3">
+                        <label className="form-label">Relation</label>
+                        <select
+                          className="form-select"
+                          value={formData.emergencyContactRelation || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, emergencyContactRelation: e.target.value }))}
+                        >
+                          <option value="">Select Relation</option>
+                          <option value="parent">Parent</option>
+                          <option value="guardian">Guardian</option>
+                          <option value="spouse">Spouse</option>
+                          <option value="sibling">Sibling</option>
+                          <option value="friend">Friend</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Medical Information */}
+                    <div className="col-12">
+                      <h6 className="text-danger mb-3 mt-4">Medical Information</h6>
+                    </div>
+                    <div className="col-md-4">
+                      <div className="mb-3">
+                        <label className="form-label">Medical Conditions</label>
+                        <textarea
+                          className="form-control"
+                          rows={3}
+                          value={formData.medicalConditions || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, medicalConditions: e.target.value }))}
+                          placeholder="List any medical conditions..."
+                        />
+                      </div>
+                    </div>
+                    <div className="col-md-4">
+                      <div className="mb-3">
+                        <label className="form-label">Medications</label>
+                        <textarea
+                          className="form-control"
+                          rows={3}
+                          value={formData.medications || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, medications: e.target.value }))}
+                          placeholder="List current medications..."
+                        />
+                      </div>
+                    </div>
+                    <div className="col-md-4">
+                      <div className="mb-3">
+                        <label className="form-label">Allergies</label>
+                        <textarea
+                          className="form-control"
+                          rows={3}
+                          value={formData.allergies || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, allergies: e.target.value }))}
+                          placeholder="List any allergies..."
+                        />
+                      </div>
+                    </div>
+
+                    {/* Preferences & Agreements */}
+                    <div className="col-12">
+                      <h6 className="text-secondary mb-3 mt-4">Preferences & Agreements</h6>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            checked={formData.marketingConsent || false}
+                            onChange={(e) => setFormData(prev => ({ ...prev, marketingConsent: e.target.checked }))}
+                          />
+                          <label className="form-check-label">
+                            Marketing Consent
+                          </label>
+                        </div>
+                      </div>
+                      <div className="mb-3">
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            checked={formData.waiverAccepted || false}
+                            onChange={(e) => setFormData(prev => ({ ...prev, waiverAccepted: e.target.checked }))}
+                          />
+                          <label className="form-check-label">
+                            Waiver Accepted
+                          </label>
+                        </div>
+                      </div>
+                      <div className="mb-3">
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            checked={formData.termsAccepted || false}
+                            onChange={(e) => setFormData(prev => ({ ...prev, termsAccepted: e.target.checked }))}
+                          />
+                          <label className="form-check-label">
+                            Terms Accepted
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </div>
