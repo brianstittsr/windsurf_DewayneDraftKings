@@ -189,5 +189,15 @@ service cloud.firestore {
     match /pricing/{pricingId} {
       allow read, write: if true;
     }
+
+    // Schedules collection - Allow all operations for development
+    match /schedules/{scheduleId} {
+      allow read, write: if true;
+    }
+
+    // Game Statistics collection - Allow all operations for development
+    match /gameStats/{gameStatsId} {
+      allow read, write: if true;
+    }
   }
 }
