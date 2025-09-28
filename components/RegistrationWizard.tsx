@@ -215,13 +215,16 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
 
       if (response.ok) {
         const result = await response.json();
-        // Redirect to checkout with player ID and pricing details
+        // Redirect to checkout with player ID, pricing details, and user data
         const params = new URLSearchParams({
-          playerId: result.playerId,
+          playerId: result.playerId || result.userId,
           plan: selectedPlan?.plan || 'basic',
           title: selectedPlan?.title || 'Registration Plan',
           price: selectedPlan?.price?.toString() || '0',
-          category: selectedPlan?.category || 'player'
+          category: selectedPlan?.category || 'player',
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email
         });
         router.push(`/checkout?${params.toString()}`);
       } else {

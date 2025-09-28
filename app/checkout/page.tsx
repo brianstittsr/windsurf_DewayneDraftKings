@@ -42,11 +42,17 @@ function CheckoutPageContent() {
     // Get pricing from URL parameters (passed from registration)
     const planPrice = price ? parseFloat(price) : 0;
     
-    const mockProfile: PlayerProfile = {
+    // Try to get real profile data from the registration API response
+    // For now, use URL parameters since we simplified the registration API
+    const firstName = searchParams.get('firstName') || 'User';
+    const lastName = searchParams.get('lastName') || '';
+    const email = searchParams.get('email') || '';
+    
+    const profile: PlayerProfile = {
       id: playerId,
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@example.com',
+      firstName,
+      lastName,
+      email,
       selectedPlan: {
         plan: plan || 'jamboree',
         title: title || 'Registration Plan',
@@ -57,7 +63,7 @@ function CheckoutPageContent() {
       }
     };
 
-    setPlayerProfile(mockProfile);
+    setPlayerProfile(profile);
     setLoading(false);
   }, [searchParams]);
 

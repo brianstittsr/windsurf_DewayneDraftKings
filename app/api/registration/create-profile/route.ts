@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Profile created successfully',
+      playerId: userId, // Use playerId for compatibility with checkout page
       userId,
       profile: {
         id: userId,

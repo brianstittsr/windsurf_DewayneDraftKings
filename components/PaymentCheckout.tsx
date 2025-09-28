@@ -319,7 +319,7 @@ function CreditCardForm({ onPaymentSuccess, onPaymentError, planData, customerDa
   );
 }
 
-export default function PaymentCheckout({ 
+function PaymentCheckoutForm({ 
   planData, 
   customerData, 
   onPaymentSuccess, 
@@ -857,5 +857,14 @@ export default function PaymentCheckout({
         </small>
       </div>
     </div>
+  );
+}
+
+// Main component with Stripe Elements wrapper
+export default function PaymentCheckout(props: PaymentCheckoutProps) {
+  return (
+    <Elements stripe={stripePromise}>
+      <PaymentCheckoutForm {...props} />
+    </Elements>
   );
 }
