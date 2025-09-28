@@ -7,6 +7,8 @@ import AdminAuthWrapper from '@/components/AdminAuthWrapper';
 import UserProfileSearch from '@/components/UserProfileSearch';
 import AdminUserManagement from '@/components/AdminUserManagement';
 import TeamManagement from '@/components/TeamManagement';
+import LeagueManagement from '@/components/LeagueManagement';
+import ScheduleManagement from '@/components/ScheduleManagement';
 import PaymentManagement from '@/components/PaymentManagement';
 import CouponManagement from '@/components/CouponManagement';
 import PricingManagement from '@/components/PricingManagement';
@@ -215,18 +217,14 @@ function AdminPageContent() {
       case 'games':
         return (
           <div className="fade-in">
-            <div className="d-sm-flex align-items-center justify-content-between mb-4">
-              <h1 className="h3 mb-0 text-gray-800">Game Management</h1>
-            </div>
-            <div className="row">
-              <div className="col-12">
-                <div className="card shadow mb-4">
-                  <div className="card-body">
-                    <p className="text-muted">Game scheduling and management interface will be displayed here.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ScheduleManagement />
+          </div>
+        );
+
+      case 'leagues':
+        return (
+          <div className="fade-in">
+            <LeagueManagement />
           </div>
         );
 

@@ -1,542 +1,578 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Team } from '../lib/firestore-schema';
 
-interface Team {
-  id: string;
+interface TeamFormData {
   name: string;
+  shortName: string;
   division: 'men' | 'women' | 'mixed';
+  coachId: string;
   coachName: string;
-  currentRosterSize: number;
+  description: string;
   maxRosterSize: number;
-  stats: {
-    wins: number;
-    losses: number;
-    ties: number;
-    gamesPlayed: number;
-    winPercentage: number;
-    pointsFor: number;
-    pointsAgainst: number;
-  };
+  ageGroup: 'youth' | 'adult' | 'senior' | 'mixed';
+  skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'professional';
   primaryColor: string;
   secondaryColor: string;
+  homeField: string;
+  isActive: boolean;
 }
 
-interface Game {
-  id: string;
-  gameNumber: number;
-  week: number;
-  homeTeamName: string;
-  awayTeamName: string;
-  scheduledDate: any;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  score: {
-    home: number;
-    away: number;
-  };
-  venue: string;
-}
+const initialFormData: TeamFormData = {
+  name: '',
+  shortName: '',
+  division: 'mixed',
+  coachId: '',
+  coachName: '',
+  description: '',
+  maxRosterSize: 15,
+  ageGroup: 'adult',
+  skillLevel: 'intermediate',
+  primaryColor: '#007bff',
+  secondaryColor: '#6c757d',
+  homeField: '',
+  isActive: true
+};
 
 export default function TeamManagement() {
   const [teams, setTeams] = useState<Team[]>([]);
-  const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('teams');
-  const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
-  const [showCreateGameModal, setShowCreateGameModal] = useState(false);
-  const [showGameResultModal, setShowGameResultModal] = useState(false);
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view' | 'delete'>('create');
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [formData, setFormData] = useState<TeamFormData>(initialFormData);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [divisionFilter, setDivisionFilter] = useState('all');
 
-  // Form states
-  const [teamForm, setTeamForm] = useState({
-    name: '',
-    division: 'mixed' as 'men' | 'women' | 'mixed',
-    coachName: '',
-    primaryColor: '#007bff',
-    secondaryColor: '#6c757d'
-  });
-
-  const [gameForm, setGameForm] = useState({
-    homeTeamId: '',
-    awayTeamId: '',
-    scheduledDate: '',
-    week: 1,
-    venue: 'All Pro Sports Complex'
-  });
-
-  const [gameResult, setGameResult] = useState({
-    homeScore: 0,
-    awayScore: 0
-  });
+  // Available coaches for dropdown
+  const [availableCoaches, setAvailableCoaches] = useState<{id: string, name: string}[]>([]);
 
   useEffect(() => {
     fetchTeams();
-    fetchGames();
+    fetchCoaches();
   }, []);
 
   const fetchTeams = async () => {
     try {
-      const response = await fetch('/api/teams?seasonId=2024-fall');
+      setLoading(true);
+      const response = await fetch('/api/teams');
       if (response.ok) {
         const data = await response.json();
         setTeams(data.teams || []);
+      } else {
+        console.error('Failed to fetch teams');
       }
     } catch (error) {
       console.error('Error fetching teams:', error);
-    }
-  };
-
-  const fetchGames = async () => {
-    try {
-      const response = await fetch('/api/games?seasonId=2024-fall');
-      if (response.ok) {
-        const data = await response.json();
-        setGames(data.games || []);
-      }
-    } catch (error) {
-      console.error('Error fetching games:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateTeam = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchCoaches = async () => {
     try {
-      const response = await fetch('/api/teams', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...teamForm,
-          coachId: 'temp-coach-id',
-          seasonId: '2024-fall',
-          leagueId: 'all-pro-sports'
-        })
-      });
-
+      const response = await fetch('/api/users?role=coach');
       if (response.ok) {
-        setShowCreateTeamModal(false);
-        setTeamForm({
-          name: '',
-          division: 'mixed',
-          coachName: '',
-          primaryColor: '#007bff',
-          secondaryColor: '#6c757d'
-        });
-        fetchTeams();
+        const data = await response.json();
+        setAvailableCoaches(data.users?.map((coach: any) => ({
+          id: coach.id,
+          name: `${coach.firstName} ${coach.lastName}`
+        })) || []);
       }
     } catch (error) {
-      console.error('Error creating team:', error);
+      console.error('Error fetching coaches:', error);
     }
   };
 
-  const handleCreateGame = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const homeTeam = teams.find(t => t.id === gameForm.homeTeamId);
-      const awayTeam = teams.find(t => t.id === gameForm.awayTeamId);
+      const url = modalMode === 'create' ? '/api/teams' : `/api/teams/${selectedTeam?.id}`;
+      const method = modalMode === 'create' ? 'POST' : 'PUT';
 
-      if (!homeTeam || !awayTeam) return;
-
-      const response = await fetch('/api/games', {
-        method: 'POST',
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          gameNumber: games.length + 1,
-          week: gameForm.week,
-          seasonId: '2024-fall',
-          leagueId: 'all-pro-sports',
-          homeTeamId: gameForm.homeTeamId,
-          awayTeamId: gameForm.awayTeamId,
-          homeTeamName: homeTeam.name,
-          awayTeamName: awayTeam.name,
-          scheduledDate: gameForm.scheduledDate,
-          venue: gameForm.venue
-        })
+        body: JSON.stringify(formData)
       });
 
       if (response.ok) {
-        setShowCreateGameModal(false);
-        setGameForm({
-          homeTeamId: '',
-          awayTeamId: '',
-          scheduledDate: '',
-          week: 1,
-          venue: 'All Pro Sports Complex'
-        });
-        fetchGames();
+        await fetchTeams();
+        setShowModal(false);
+        setFormData(initialFormData);
+        setSelectedTeam(null);
+        alert(`Team ${modalMode === 'create' ? 'created' : 'updated'} successfully!`);
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error creating game:', error);
+      console.error('Error saving team:', error);
+      alert('Error saving team');
     }
   };
 
-  const handleRecordResult = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedGame) return;
+  const handleEdit = (team: Team) => {
+    setSelectedTeam(team);
+    setFormData({
+      name: team.name,
+      shortName: team.shortName || '',
+      division: team.division,
+      coachId: team.coachId,
+      coachName: team.coachName,
+      description: team.description || '',
+      maxRosterSize: team.maxRosterSize,
+      ageGroup: team.ageGroup || 'adult',
+      skillLevel: team.skillLevel || 'intermediate',
+      primaryColor: team.primaryColor,
+      secondaryColor: team.secondaryColor,
+      homeField: team.homeField || '',
+      isActive: team.isActive
+    });
+    setModalMode('edit');
+    setShowModal(true);
+  };
+
+  const handleView = (team: Team) => {
+    setSelectedTeam(team);
+    setModalMode('view');
+    setShowModal(true);
+  };
+
+  const handleDelete = async (team: Team) => {
+    if (!confirm(`Are you sure you want to delete team "${team.name}"?`)) return;
 
     try {
-      const response = await fetch('/api/games', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: selectedGame.id,
-          status: 'completed',
-          score: {
-            home: gameResult.homeScore,
-            away: gameResult.awayScore
-          },
-          seasonId: '2024-fall'
-        })
+      const response = await fetch(`/api/teams/${team.id}`, {
+        method: 'DELETE'
       });
 
       if (response.ok) {
-        setShowGameResultModal(false);
-        setSelectedGame(null);
-        setGameResult({ homeScore: 0, awayScore: 0 });
-        fetchGames();
+        await fetchTeams();
+        alert('Team deleted successfully!');
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error recording game result:', error);
+      console.error('Error deleting team:', error);
+      alert('Error deleting team');
     }
   };
 
-  if (loading) {
-    return (
-      <div className="text-center py-4">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
+  const handleCreate = () => {
+    setSelectedTeam(null);
+    setFormData(initialFormData);
+    setModalMode('create');
+    setShowModal(true);
+  };
+
+  const filteredTeams = teams.filter(team => {
+    const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         team.coachName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDivision = divisionFilter === 'all' || team.division === divisionFilter;
+    return matchesSearch && matchesDivision;
+  });
 
   return (
-    <div className="container-fluid">
-      {/* Tab Navigation */}
-      <ul className="nav nav-pills mb-4">
-        <li className="nav-item">
-          <button 
-            className={`nav-link ${activeTab === 'teams' ? 'active' : ''}`}
-            onClick={() => setActiveTab('teams')}
-          >
-            <i className="fas fa-users me-2"></i>Teams
-          </button>
-        </li>
-        <li className="nav-item">
-          <button 
-            className={`nav-link ${activeTab === 'games' ? 'active' : ''}`}
-            onClick={() => setActiveTab('games')}
-          >
-            <i className="fas fa-calendar-alt me-2"></i>Games & Schedule
-          </button>
-        </li>
-      </ul>
+    <div className="team-management">
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3 className="mb-1">Team Management</h3>
+          <p className="text-muted mb-0">Create and manage teams</p>
+        </div>
+        <button
+          className="btn btn-primary"
+          onClick={handleCreate}
+        >
+          <i className="fas fa-plus me-2"></i>
+          Create Team
+        </button>
+      </div>
 
-      {/* Teams Tab */}
-      {activeTab === 'teams' && (
-        <div className="fade-in">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h4>Team Management</h4>
-            <button 
-              className="btn btn-primary"
-              onClick={() => setShowCreateTeamModal(true)}
-            >
-              <i className="fas fa-plus me-2"></i>Create Team
-            </button>
-          </div>
-
-          <div className="row">
-            {teams.map((team) => (
-              <div key={team.id} className="col-md-6 col-lg-4 mb-4">
-                <div className="card stats-card h-100">
-                  <div className="card-header d-flex justify-content-between align-items-center">
-                    <h6 className="mb-0">{team.name}</h6>
-                    <span className={`badge ${team.division === 'men' ? 'bg-primary' : team.division === 'women' ? 'bg-success' : 'bg-info'}`}>
-                      {team.division}
-                    </span>
-                  </div>
-                  <div className="card-body">
-                    <p className="text-muted mb-2">Coach: {team.coachName}</p>
-                    <p className="text-muted mb-3">Roster: {team.currentRosterSize}/{team.maxRosterSize}</p>
-                    
-                    <div className="row text-center">
-                      <div className="col-4">
-                        <div className="h5 text-success mb-1">{team.stats.wins}</div>
-                        <small className="text-muted">Wins</small>
-                      </div>
-                      <div className="col-4">
-                        <div className="h5 text-danger mb-1">{team.stats.losses}</div>
-                        <small className="text-muted">Losses</small>
-                      </div>
-                      <div className="col-4">
-                        <div className="h5 text-primary mb-1">{Math.round(team.stats.winPercentage * 100)}%</div>
-                        <small className="text-muted">Win %</small>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+      {/* Filters */}
+      <div className="row mb-4">
+        <div className="col-md-6">
+          <div className="input-group">
+            <span className="input-group-text">
+              <i className="fas fa-search"></i>
+            </span>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search teams..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </div>
-      )}
+        <div className="col-md-3">
+          <select
+            className="form-select"
+            value={divisionFilter}
+            onChange={(e) => setDivisionFilter(e.target.value)}
+          >
+            <option value="all">All Divisions</option>
+            <option value="men">Men</option>
+            <option value="women">Women</option>
+            <option value="mixed">Mixed</option>
+          </select>
+        </div>
+      </div>
 
-      {/* Games Tab */}
-      {activeTab === 'games' && (
-        <div className="fade-in">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h4>Games & Schedule</h4>
-            <button 
-              className="btn btn-primary"
-              onClick={() => setShowCreateGameModal(true)}
-            >
-              <i className="fas fa-plus me-2"></i>Schedule Game
-            </button>
-          </div>
-
-          <div className="table-responsive">
-            <table className="table table-hover">
-              <thead>
-                <tr>
-                  <th>Week</th>
-                  <th>Matchup</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Score</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {games.map((game) => (
-                  <tr key={game.id}>
-                    <td>{game.week}</td>
-                    <td>{game.homeTeamName} vs {game.awayTeamName}</td>
-                    <td>{new Date(game.scheduledDate.seconds * 1000).toLocaleDateString()}</td>
-                    <td>
-                      <span className={`badge ${
-                        game.status === 'completed' ? 'bg-success' :
-                        game.status === 'in_progress' ? 'bg-warning' :
-                        game.status === 'scheduled' ? 'bg-primary' : 'bg-secondary'
-                      }`}>
-                        {game.status}
-                      </span>
-                    </td>
-                    <td>
-                      {game.status === 'completed' ? 
-                        `${game.score.home} - ${game.score.away}` : 
-                        '-'
-                      }
-                    </td>
-                    <td>
-                      {game.status === 'scheduled' && (
-                        <button 
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => {
-                            setSelectedGame(game);
-                            setShowGameResultModal(true);
-                          }}
-                        >
-                          Record Result
-                        </button>
-                      )}
-                    </td>
+      {/* Teams Table */}
+      <div className="card">
+        <div className="card-body">
+          {loading ? (
+            <div className="text-center py-4">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : filteredTeams.length === 0 ? (
+            <div className="text-center py-4">
+              <i className="fas fa-users fa-3x text-muted mb-3"></i>
+              <h5 className="text-muted">No teams found</h5>
+              <p className="text-muted">Create your first team to get started.</p>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <table className="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Team Name</th>
+                    <th>Division</th>
+                    <th>Coach</th>
+                    <th>Roster</th>
+                    <th>Record</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Create Team Modal */}
-      {showCreateTeamModal && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Create New Team</h5>
-                <button 
-                  className="btn-close"
-                  onClick={() => setShowCreateTeamModal(false)}
-                ></button>
-              </div>
-              <form onSubmit={handleCreateTeam}>
-                <div className="modal-body">
-                  <div className="mb-3">
-                    <label className="form-label">Team Name</label>
-                    <input 
-                      type="text"
-                      className="form-control"
-                      value={teamForm.name}
-                      onChange={(e) => setTeamForm({...teamForm, name: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Division</label>
-                    <select 
-                      className="form-select"
-                      value={teamForm.division}
-                      onChange={(e) => setTeamForm({...teamForm, division: e.target.value as any})}
-                    >
-                      <option value="mixed">Mixed</option>
-                      <option value="men">Men</option>
-                      <option value="women">Women</option>
-                    </select>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Coach Name</label>
-                    <input 
-                      type="text"
-                      className="form-control"
-                      value={teamForm.coachName}
-                      onChange={(e) => setTeamForm({...teamForm, coachName: e.target.value})}
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowCreateTeamModal(false)}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-primary">
-                    Create Team
-                  </button>
-                </div>
-              </form>
+                </thead>
+                <tbody>
+                  {filteredTeams.map((team) => (
+                    <tr key={team.id}>
+                      <td>
+                        <div className="d-flex align-items-center">
+                          <div
+                            className="team-color-indicator me-2"
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              backgroundColor: team.primaryColor,
+                              borderRadius: '3px'
+                            }}
+                          ></div>
+                          <div>
+                            <div className="fw-bold">{team.name}</div>
+                            {team.shortName && (
+                              <small className="text-muted">{team.shortName}</small>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`badge ${
+                          team.division === 'men' ? 'bg-primary' :
+                          team.division === 'women' ? 'bg-info' : 'bg-success'
+                        }`}>
+                          {team.division.charAt(0).toUpperCase() + team.division.slice(1)}
+                        </span>
+                      </td>
+                      <td>{team.coachName}</td>
+                      <td>
+                        <span className="text-muted">
+                          {team.currentRosterSize || 0}/{team.maxRosterSize}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="text-muted">
+                          {team.stats?.wins || 0}-{team.stats?.losses || 0}-{team.stats?.ties || 0}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`badge ${team.isActive ? 'bg-success' : 'bg-secondary'}`}>
+                          {team.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="btn-group" role="group">
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleView(team)}
+                            title="View"
+                          >
+                            <i className="fas fa-eye"></i>
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={() => handleEdit(team)}
+                            title="Edit"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleDelete(team)}
+                            title="Delete"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* Create Game Modal */}
-      {showCreateGameModal && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
+      {/* Modal */}
+      {showModal && (
+        <div className="modal show d-block" tabIndex={-1}>
+          <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Schedule New Game</h5>
-                <button 
+                <h5 className="modal-title">
+                  {modalMode === 'create' && <><i className="fas fa-plus me-2"></i>Create Team</>}
+                  {modalMode === 'edit' && <><i className="fas fa-edit me-2"></i>Edit Team</>}
+                  {modalMode === 'view' && <><i className="fas fa-eye me-2"></i>View Team</>}
+                </h5>
+                <button
+                  type="button"
                   className="btn-close"
-                  onClick={() => setShowCreateGameModal(false)}
+                  onClick={() => setShowModal(false)}
                 ></button>
               </div>
-              <form onSubmit={handleCreateGame}>
-                <div className="modal-body">
-                  <div className="mb-3">
-                    <label className="form-label">Home Team</label>
-                    <select 
-                      className="form-select"
-                      value={gameForm.homeTeamId}
-                      onChange={(e) => setGameForm({...gameForm, homeTeamId: e.target.value})}
-                      required
-                    >
-                      <option value="">Select Home Team</option>
-                      {teams.map(team => (
-                        <option key={team.id} value={team.id}>{team.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Away Team</label>
-                    <select 
-                      className="form-select"
-                      value={gameForm.awayTeamId}
-                      onChange={(e) => setGameForm({...gameForm, awayTeamId: e.target.value})}
-                      required
-                    >
-                      <option value="">Select Away Team</option>
-                      {teams.map(team => (
-                        <option key={team.id} value={team.id}>{team.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Game Date & Time</label>
-                    <input 
-                      type="datetime-local"
-                      className="form-control"
-                      value={gameForm.scheduledDate}
-                      onChange={(e) => setGameForm({...gameForm, scheduledDate: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Week</label>
-                    <input 
-                      type="number"
-                      className="form-control"
-                      value={gameForm.week}
-                      onChange={(e) => setGameForm({...gameForm, week: parseInt(e.target.value)})}
-                      min="1"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowCreateGameModal(false)}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-primary">
-                    Schedule Game
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Record Game Result Modal */}
-      {showGameResultModal && selectedGame && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Record Game Result</h5>
-                <button 
-                  className="btn-close"
-                  onClick={() => setShowGameResultModal(false)}
-                ></button>
-              </div>
-              <form onSubmit={handleRecordResult}>
-                <div className="modal-body">
-                  <h6 className="mb-3">{selectedGame.homeTeamName} vs {selectedGame.awayTeamName}</h6>
+              <div className="modal-body">
+                {modalMode === 'view' && selectedTeam ? (
                   <div className="row">
-                    <div className="col-6">
-                      <label className="form-label">{selectedGame.homeTeamName} Score</label>
-                      <input 
-                        type="number"
-                        className="form-control"
-                        value={gameResult.homeScore}
-                        onChange={(e) => setGameResult({...gameResult, homeScore: parseInt(e.target.value) || 0})}
-                        min="0"
-                        required
-                      />
+                    <div className="col-md-6">
+                      <h6 className="text-primary mb-3">Team Information</h6>
+                      <p><strong>Name:</strong> {selectedTeam.name}</p>
+                      <p><strong>Short Name:</strong> {selectedTeam.shortName || 'N/A'}</p>
+                      <p><strong>Division:</strong> {selectedTeam.division}</p>
+                      <p><strong>Coach:</strong> {selectedTeam.coachName}</p>
+                      <p><strong>Description:</strong> {selectedTeam.description || 'N/A'}</p>
+                      <p><strong>Home Field:</strong> {selectedTeam.homeField || 'N/A'}</p>
                     </div>
-                    <div className="col-6">
-                      <label className="form-label">{selectedGame.awayTeamName} Score</label>
-                      <input 
-                        type="number"
-                        className="form-control"
-                        value={gameResult.awayScore}
-                        onChange={(e) => setGameResult({...gameResult, awayScore: parseInt(e.target.value) || 0})}
-                        min="0"
-                        required
-                      />
+                    <div className="col-md-6">
+                      <h6 className="text-success mb-3">Team Details</h6>
+                      <p><strong>Max Roster Size:</strong> {selectedTeam.maxRosterSize}</p>
+                      <p><strong>Current Roster:</strong> {selectedTeam.currentRosterSize || 0}</p>
+                      <p><strong>Age Group:</strong> {selectedTeam.ageGroup || 'N/A'}</p>
+                      <p><strong>Skill Level:</strong> {selectedTeam.skillLevel || 'N/A'}</p>
+                      <p><strong>Status:</strong> 
+                        <span className={`badge ms-2 ${selectedTeam.isActive ? 'bg-success' : 'bg-secondary'}`}>
+                          {selectedTeam.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </p>
+                      <div className="d-flex align-items-center">
+                        <strong>Team Colors:</strong>
+                        <div className="ms-2 d-flex">
+                          <div
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              backgroundColor: selectedTeam.primaryColor,
+                              border: '1px solid #ccc',
+                              marginRight: '5px'
+                            }}
+                          ></div>
+                          <div
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              backgroundColor: selectedTeam.secondaryColor,
+                              border: '1px solid #ccc'
+                            }}
+                          ></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowGameResultModal(false)}>
-                    Cancel
+                ) : (
+                  <form onSubmit={handleSubmit}>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Team Name *</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.name}
+                            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                            required
+                          />
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Short Name</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.shortName}
+                            onChange={(e) => setFormData(prev => ({ ...prev, shortName: e.target.value }))}
+                            placeholder="e.g., LAK"
+                          />
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Division *</label>
+                          <select
+                            className="form-select"
+                            value={formData.division}
+                            onChange={(e) => setFormData(prev => ({ ...prev, division: e.target.value as 'men' | 'women' | 'mixed' }))}
+                            required
+                          >
+                            <option value="men">Men</option>
+                            <option value="women">Women</option>
+                            <option value="mixed">Mixed</option>
+                          </select>
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Coach *</label>
+                          <select
+                            className="form-select"
+                            value={formData.coachId}
+                            onChange={(e) => {
+                              const selectedCoach = availableCoaches.find(c => c.id === e.target.value);
+                              setFormData(prev => ({ 
+                                ...prev, 
+                                coachId: e.target.value,
+                                coachName: selectedCoach?.name || ''
+                              }));
+                            }}
+                            required
+                          >
+                            <option value="">Select a coach</option>
+                            {availableCoaches.map(coach => (
+                              <option key={coach.id} value={coach.id}>{coach.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Description</label>
+                          <textarea
+                            className="form-control"
+                            rows={3}
+                            value={formData.description}
+                            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                            placeholder="Team description..."
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Max Roster Size *</label>
+                          <input
+                            type="number"
+                            className="form-control"
+                            value={formData.maxRosterSize}
+                            onChange={(e) => setFormData(prev => ({ ...prev, maxRosterSize: parseInt(e.target.value) }))}
+                            min="1"
+                            max="50"
+                            required
+                          />
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Age Group</label>
+                          <select
+                            className="form-select"
+                            value={formData.ageGroup}
+                            onChange={(e) => setFormData(prev => ({ ...prev, ageGroup: e.target.value as any }))}
+                          >
+                            <option value="youth">Youth</option>
+                            <option value="adult">Adult</option>
+                            <option value="senior">Senior</option>
+                            <option value="mixed">Mixed</option>
+                          </select>
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Skill Level</label>
+                          <select
+                            className="form-select"
+                            value={formData.skillLevel}
+                            onChange={(e) => setFormData(prev => ({ ...prev, skillLevel: e.target.value as any }))}
+                          >
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                            <option value="professional">Professional</option>
+                          </select>
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Home Field</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.homeField}
+                            onChange={(e) => setFormData(prev => ({ ...prev, homeField: e.target.value }))}
+                            placeholder="e.g., All Pro Sports Complex"
+                          />
+                        </div>
+                        <div className="row">
+                          <div className="col-6">
+                            <div className="mb-3">
+                              <label className="form-label">Primary Color</label>
+                              <input
+                                type="color"
+                                className="form-control form-control-color"
+                                value={formData.primaryColor}
+                                onChange={(e) => setFormData(prev => ({ ...prev, primaryColor: e.target.value }))}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-6">
+                            <div className="mb-3">
+                              <label className="form-label">Secondary Color</label>
+                              <input
+                                type="color"
+                                className="form-control form-control-color"
+                                value={formData.secondaryColor}
+                                onChange={(e) => setFormData(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mb-3">
+                          <div className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              checked={formData.isActive}
+                              onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                            />
+                            <label className="form-check-label">
+                              Active Team
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowModal(false)}
+                >
+                  {modalMode === 'view' ? 'Close' : 'Cancel'}
+                </button>
+                {modalMode !== 'view' && (
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    onClick={handleSubmit}
+                  >
+                    {modalMode === 'create' ? 'Create Team' : 'Update Team'}
                   </button>
-                  <button type="submit" className="btn btn-primary">
-                    Record Result
-                  </button>
-                </div>
-              </form>
+                )}
+              </div>
             </div>
           </div>
         </div>

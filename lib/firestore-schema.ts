@@ -184,12 +184,16 @@ export interface Coach extends BaseDocument {
 
 export interface Team extends BaseDocument {
   name: string;
+  shortName?: string; // Team abbreviation
   division: 'men' | 'women' | 'mixed';
   coachId: string;
   coachName: string;
+  description?: string;
   
   // Roster Management
   players: string[]; // Array of Player IDs
+  coaches: string[]; // Array of Coach IDs
+  captainId?: string; // Player ID of team captain
   maxRosterSize: number;
   currentRosterSize: number;
   rosterLocked: boolean;
@@ -209,6 +213,17 @@ export interface Team extends BaseDocument {
   // Season Information
   seasonId: string;
   leagueId: string;
+  
+  // Team Settings
+  ageGroup?: 'youth' | 'adult' | 'senior' | 'mixed';
+  skillLevel?: 'beginner' | 'intermediate' | 'advanced' | 'professional';
+  
+  // Location and Contact
+  homeField?: string;
+  establishedDate?: Timestamp;
+  
+  // Status
+  isActive: boolean;
   
   // Social Media Integration
   facebookPageUrl?: string;
@@ -321,15 +336,28 @@ export interface Season extends BaseDocument {
 
 export interface League extends BaseDocument {
   name: string;
+  shortName?: string;
+  description?: string;
   sport: 'flag_football' | 'basketball' | 'soccer' | 'volleyball' | 'other';
   
   // League Configuration
   maxTeams: number;
+  minTeams?: number;
   maxPlayersPerTeam: number;
   gameLength: number; // minutes
+  type?: 'recreational' | 'competitive' | 'professional' | 'youth';
+  format?: 'round-robin' | 'playoff' | 'tournament' | 'ladder';
   
-  // Current Season
+  // Season Information
   currentSeasonId?: string;
+  seasonStartDate?: Timestamp;
+  seasonEndDate?: Timestamp;
+  registrationDeadline?: Timestamp;
+  
+  // Pricing and Registration
+  registrationFee?: number;
+  teamFee?: number;
+  playerFee?: number;
   
   // League Rules
   rules: {
@@ -337,6 +365,23 @@ export interface League extends BaseDocument {
     scoringSystem: string;
     playerEligibility: string;
   };
+  
+  // Age Restrictions
+  ageRestrictions?: {
+    minAge?: number;
+    maxAge?: number;
+  };
+  
+  // Status
+  isActive: boolean;
+  isAcceptingRegistrations?: boolean;
+  
+  // Contact and Location
+  organizerId?: string;
+  location?: string;
+  website?: string;
+  contactEmail?: string;
+  contactPhone?: string;
   
   // League Statistics
   stats: {
@@ -1830,4 +1875,114 @@ export interface ConsentRecord extends BaseDocument {
   // Method
   method: 'registration' | 'update' | 'withdrawal';
   version: string;
+}
+
+
+// Schedule Management Interface
+export interface Schedule extends BaseDocument {
+  // Game Information
+  homeTeamId: string;
+  awayTeamId: string;
+  leagueId: string;
+  
+  // Game Details
+  gameDate: Timestamp;
+  gameTime: string; // Format: "HH:MM"
+  duration: number; // in minutes
+  
+  // Location
+  venue: string;
+  field?: string;
+  address?: string;
+  
+  // Game Status
+  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled' | 'postponed';
+  
+  // Scores (when completed)
+  homeScore?: number;
+  awayScore?: number;
+  
+  // Game Details
+  week?: number;
+  round?: number;
+  gameType: 'regular' | 'playoff' | 'championship' | 'friendly';
+  
+  // Officials
+  referees: string[]; // Array of referee IDs or names
+  
+  // Weather and Conditions
+  weather?: string;
+  temperature?: number;
+  fieldConditions?: string;
+  
+  // Notifications
+  notificationsSent: boolean;
+  remindersSent: boolean;
+  
+  // Notes and Updates
+  notes?: string;
+  lastUpdated: Timestamp;
+  updatedBy: string; // User ID who last updated
+}
+
+// Game Statistics Interface
+export interface GameStats extends BaseDocument {
+  // Game Reference
+  scheduleId: string;
+  leagueId: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  
+  // Game Summary
+  finalScore: {
+    home: number;
+    away: number;
+  };
+  
+  // Player Statistics
+  playerStats: {
+    playerId: string;
+    teamId: string;
+    stats: {
+      goals?: number;
+      assists?: number;
+      saves?: number;
+      fouls?: number;
+      yellowCards?: number;
+      redCards?: number;
+      minutesPlayed?: number;
+      [statName: string]: number | undefined;
+    };
+  }[];
+  
+  // Team Statistics
+  teamStats: {
+    [teamId: string]: {
+      possession?: number;
+      shots?: number;
+      shotsOnTarget?: number;
+      corners?: number;
+      fouls?: number;
+      cards?: number;
+      [statName: string]: number | undefined;
+    };
+  };
+  
+  // Game Events
+  events: {
+    minute: number;
+    type: 'goal' | 'card' | 'substitution' | 'foul' | 'other';
+    playerId?: string;
+    teamId: string;
+    description: string;
+  }[];
+  
+  // Match Officials
+  referee: string;
+  assistantReferees?: string[];
+  
+  // Metadata
+  recordedBy: string; // User ID who recorded stats
+  verifiedBy?: string; // User ID who verified stats
+  isVerified: boolean;
 }
