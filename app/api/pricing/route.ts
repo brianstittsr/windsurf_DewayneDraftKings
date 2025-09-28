@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     const { collection, addDoc } = await import('firebase/firestore');
     const data = await request.json();
     
-    const pricingRef = collection(db, 'pricing');
+    const pricingRef = collection(db, 'products');
     const docRef = await addDoc(pricingRef, {
       ...data,
       createdAt: new Date(),
@@ -70,7 +70,7 @@ export async function PUT(request: NextRequest) {
     const { doc, updateDoc } = await import('firebase/firestore');
     const { id, ...data } = await request.json();
     
-    const docRef = doc(db, 'pricing', id);
+    const docRef = doc(db, 'products', id);
     await updateDoc(docRef, {
       ...data,
       updatedAt: new Date()
@@ -100,7 +100,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Plan ID is required' }, { status: 400 });
     }
     
-    const docRef = doc(db, 'pricing', id);
+    const docRef = doc(db, 'products', id);
     await updateDoc(docRef, {
       isActive: false,
       updatedAt: new Date()

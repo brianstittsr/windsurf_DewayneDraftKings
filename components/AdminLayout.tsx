@@ -71,63 +71,30 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             User Management
           </div>
 
-          {/* Nav Item - Players Collapse Menu */}
+          {/* Nav Item - User Management */}
           <li className="nav-item">
-            <a className={`nav-link collapsed ${isActive('players') ? 'active' : ''}`} href="#" data-toggle="collapse" data-target="#collapseUsers" aria-expanded="true" aria-controls="collapseUsers">
+            <a className={`nav-link collapsed ${isActive('user-profiles') || isActive('players') || isActive('coaches') ? 'active' : ''}`} href="#" data-toggle="collapse" data-target="#collapseUsers" aria-expanded="true" aria-controls="collapseUsers">
               <i className="fas fa-fw fa-users"></i>
               <span>User Management</span>
             </a>
             <div id="collapseUsers" className="collapse" aria-labelledby="headingUsers" data-parent="#accordionSidebar">
               <div className="bg-white py-2 collapse-inner rounded">
                 <h6 className="collapse-header">User Profiles:</h6>
-                <Link className="collapse-item" href="/admin?tab=user-profiles">All Users</Link>
-                <Link className="collapse-item" href="/admin?tab=players">Players</Link>
-                <Link className="collapse-item" href="/admin?tab=coaches">Coaches</Link>
+                <Link className="collapse-item" href="/admin?tab=user-profiles">
+                  <i className="fas fa-users fa-sm fa-fw mr-2 text-gray-400"></i>
+                  All Users
+                </Link>
+                <Link className="collapse-item" href="/admin?tab=players">
+                  <i className="fas fa-running fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Players
+                </Link>
+                <Link className="collapse-item" href="/admin?tab=coaches">
+                  <i className="fas fa-whistle fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Coaches
+                </Link>
               </div>
             </div>
           </li>
-
-          {/* Nav Item - Teams & Games */}
-          <li className="nav-item">
-            <a className={`nav-link collapsed ${isActive('teams') || isActive('games') ? 'active' : ''}`} href="#" data-toggle="collapse" data-target="#collapseLeague" aria-expanded="true" aria-controls="collapseLeague">
-              <i className="fas fa-fw fa-futbol"></i>
-              <span>League Management</span>
-            </a>
-            <div id="collapseLeague" className="collapse" aria-labelledby="headingLeague" data-parent="#accordionSidebar">
-              <div className="bg-white py-2 collapse-inner rounded">
-                <h6 className="collapse-header">League Operations:</h6>
-                <Link className="collapse-item" href="/admin?tab=teams">Teams</Link>
-                <Link className="collapse-item" href="/admin?tab=games">Games & Schedule</Link>
-                <Link className="collapse-item" href="/admin?tab=seasons">Seasons</Link>
-              </div>
-            </div>
-          </li>
-
-          {/* Divider */}
-          <hr className="sidebar-divider" />
-
-          {/* Direct Access Links */}
-          <li className="nav-item">
-            <Link href="/admin?tab=user-profiles" className={`nav-link ${isActive('user-profiles') ? 'active' : ''}`}>
-              <i className="fas fa-fw fa-users"></i>
-              <span>User Profiles</span>
-            </Link>
-          </li>
-
-          <li className="nav-item">
-            <Link href="/admin?tab=payments" className={`nav-link ${isActive('payments') ? 'active' : ''}`}>
-              <i className="fas fa-fw fa-credit-card"></i>
-              <span>Payments</span>
-            </Link>
-          </li>
-
-          <li className="nav-item">
-            <Link href="/admin?tab=coupons" className={`nav-link ${isActive('coupons') ? 'active' : ''}`}>
-              <i className="fas fa-fw fa-gift"></i>
-              <span>Coupons / Gift Cards</span>
-            </Link>
-          </li>
-
           {/* Divider */}
           <hr className="sidebar-divider" />
 
@@ -138,7 +105,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* Nav Item - Financial Management */}
           <li className="nav-item">
-            <a className={`nav-link collapsed ${isActive('payments') || isActive('pricing') || isActive('coupons') ? 'active' : ''}`} href="#" data-toggle="collapse" data-target="#collapseFinance" aria-expanded="true" aria-controls="collapseFinance">
+            <a className={`nav-link collapsed ${isActive('payments') || isActive('pricing') || isActive('coupons') || isActive('analytics') ? 'active' : ''}`} href="#" data-toggle="collapse" data-target="#collapseFinance" aria-expanded="true" aria-controls="collapseFinance">
               <i className="fas fa-fw fa-dollar-sign"></i>
               <span>Financial Management</span>
             </a>
@@ -156,6 +123,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <Link className="collapse-item" href="/admin?tab=coupons">
                   <i className="fas fa-percentage fa-sm fa-fw mr-2 text-gray-400"></i>
                   Coupons & Discounts
+                </Link>
+                <div className="dropdown-divider"></div>
+                <h6 className="collapse-header">Analytics:</h6>
+                <Link className="collapse-item" href="/admin?tab=analytics">
+                  <i className="fas fa-chart-area fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Analytics & Reports
                 </Link>
               </div>
             </div>
@@ -177,10 +150,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <Link className="collapse-item" href="/admin?tab=qr-codes">
                   <i className="fas fa-qrcode fa-sm fa-fw mr-2 text-gray-400"></i>
                   QR Codes
-                </Link>
-                <Link className="collapse-item" href="/admin?tab=analytics">
-                  <i className="fas fa-chart-area fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Analytics
                 </Link>
               </div>
             </div>
