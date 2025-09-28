@@ -9,9 +9,9 @@ To fix the "Stripe Configuration Missing" error, you need to add the following e
 Create a `.env.local` file in the root directory with the following variables:
 
 ```bash
-# Stripe Configuration (Required for payments)
-STRIPE_SECRET_KEY="sk_test_your_stripe_secret_key_here"
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_your_stripe_publishable_key_here"
+# Stripe Configuration (LIVE KEYS for production)
+STRIPE_SECRET_KEY="sk_live_your_stripe_secret_key_here"
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_live_your_stripe_publishable_key_here"
 
 # Firebase Configuration (Required for data storage)
 NEXT_PUBLIC_FIREBASE_API_KEY="your-firebase-api-key"
@@ -25,9 +25,10 @@ NEXT_PUBLIC_FIREBASE_APP_ID="your-app-id"
 ### 2. Get Stripe Keys
 
 1. Go to [Stripe Dashboard](https://dashboard.stripe.com/)
-2. Navigate to **Developers > API keys**
-3. Copy your **Publishable key** (starts with `pk_test_`)
-4. Copy your **Secret key** (starts with `sk_test_`)
+2. Make sure you're in **Live mode** (toggle in the top left)
+3. Navigate to **Developers > API keys**
+4. Copy your **Live Publishable key** (starts with `pk_live_`)
+5. Copy your **Live Secret key** (starts with `sk_live_`)
 
 ### 3. For Production (Vercel)
 
@@ -45,16 +46,14 @@ After adding environment variables:
 npm run dev
 ```
 
-## Testing Payment Flow
+## Production Payment Flow
 
-1. Use Stripe test card numbers:
-   - **Success**: `4242 4242 4242 4242`
-   - **Declined**: `4000 0000 0000 0002`
-   - **Requires Authentication**: `4000 0025 0000 3155`
+⚠️ **IMPORTANT**: This system uses LIVE Stripe keys and processes real payments.
 
-2. Use any future expiry date (e.g., 12/34)
-3. Use any 3-digit CVC (e.g., 123)
-4. Use any ZIP code (e.g., 12345)
+1. All payments will be charged to real credit cards
+2. Use actual customer payment information
+3. Payments will appear in your Stripe dashboard under Live transactions
+4. Refunds must be processed through the admin panel or Stripe dashboard
 
 ## Common Issues
 
@@ -64,7 +63,7 @@ npm run dev
 
 ### "Payment processing unavailable"
 - Make sure `STRIPE_SECRET_KEY` is set in your environment
-- Check that the key starts with `sk_test_` for test mode
+- Check that the key starts with `sk_live_` for production mode
 
 ### Firebase Errors
 - Ensure all Firebase environment variables are set
