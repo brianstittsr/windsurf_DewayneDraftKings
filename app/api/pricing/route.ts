@@ -10,17 +10,20 @@ export async function GET() {
       return NextResponse.json({ error: 'Database not available' }, { status: 500 });
     }
 
-    const { collection, getDocs, query, where } = await import('firebase/firestore');
-    const pricingRef = collection(db, 'pricing');
-    const q = query(pricingRef, where('isActive', '==', true));
+    const { collection, getDocs, query, where, orderBy } = await import('firebase/firestore');
+    const productsRef = collection(db, 'products');
+    const q = query(
+      productsRef, 
+      where('isActive', '==', true),
+      where('isVisible', '==', true),
+      orderBy('displayOrder', 'asc')
+    );
     const snapshot = await getDocs(q);
     
-    const plans = snapshot.docs
-      .map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      .filter((plan: any) => plan.title !== 'Test Plan'); // Filter out test plans
+    const plans = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
 
     return NextResponse.json({ plans });
   } catch (error) {

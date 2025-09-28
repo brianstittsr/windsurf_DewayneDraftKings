@@ -138,6 +138,9 @@ export async function POST(request: NextRequest) {
       selectedPlan,
       registrationSource: registrationSource || 'registration_wizard',
       
+      // PDF Storage (will be updated after generation)
+      registrationPdfUrl: '',
+      
       // Timestamps
       createdAt: now,
       updatedAt: now
@@ -192,8 +195,83 @@ export async function POST(request: NextRequest) {
       // Don't fail the registration if Firebase fails
     }
 
-    // Send welcome email
+    // Store references for PDF update
+    let savedDb = null;
+    let savedCollectionName = '';
     try {
+      const firebaseModule = await import('../../../../lib/firebase').catch(() => ({ db: null }));
+      savedDb = firebaseModule.db;
+      savedCollectionName = selectedPlan?.category === 'coach' ? 'coaches' : 'players';
+    } catch (error) {
+      console.log('Firebase not available for PDF update');
+    }
+
+    // Generate PDF and send welcome email
+    try {
+      console.log('Generating registration PDF...');
+      
+      // Dynamic import to avoid build issues
+      const { PDFService } = await import('../../../../lib/pdf-service').catch(() => ({ PDFService: null }));
+      
+      let pdfData = null;
+      let pdfFileName = null;
+      
+      if (PDFService) {
+        try {
+          pdfData = PDFService.generateRegistrationPDF({
+            firstName,
+            lastName,
+            email,
+            phone,
+            dateOfBirth,
+            role: userRole,
+            jerseySize,
+            position,
+            experience,
+            emergencyContactName,
+            emergencyContactPhone,
+            emergencyContactRelation,
+            medicalConditions,
+            medications,
+            allergies,
+            preferredCommunication,
+            marketingConsent,
+            waiverAccepted,
+            termsAccepted,
+            selectedPlan,
+            registrationDate: now,
+            playerId: userId
+          });
+          
+          pdfFileName = PDFService.generateFileName({
+            firstName,
+            lastName,
+            registrationDate: now,
+            playerId: userId
+          } as any);
+          
+          console.log('PDF generated successfully');
+          
+          // Update Firebase profile with PDF data
+          if (savedDb) {
+            try {
+              const { doc, updateDoc, Timestamp } = await import('firebase/firestore');
+              const docRef = doc(savedDb, savedCollectionName, userId);
+              await updateDoc(docRef, {
+                registrationPdfUrl: pdfData,
+                updatedAt: Timestamp.now()
+              });
+              console.log('Profile updated with PDF data');
+            } catch (updateError) {
+              console.error('Error updating profile with PDF:', updateError);
+            }
+          }
+        } catch (pdfError) {
+          console.error('PDF generation error:', pdfError);
+          // Continue without PDF if generation fails
+        }
+      }
+      
       console.log('Attempting to send welcome email...');
       
       const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/email/send`, {
@@ -204,6 +282,13 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           to: email,
           subject: 'Welcome to All Pro Sports NC - Registration Confirmation',
+          ...(pdfData && pdfFileName && {
+            attachments: [{
+              filename: pdfFileName,
+              content: pdfData.split(',')[1], // Remove data:application/pdf;base64, prefix
+              contentType: 'application/pdf'
+            }]
+          }),
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background-color: #28a745; color: white; padding: 20px; text-align: center;">
@@ -231,9 +316,22 @@ export async function POST(request: NextRequest) {
                     <li>Complete your payment to finalize registration</li>
                     <li>Check your email for payment confirmation</li>
                     <li>Save your Player ID for future reference</li>
+                    ${pdfData ? '<li><strong>Review your registration form (attached as PDF)</strong></li>' : ''}
                     <li>Contact us if you have any questions</li>
                   </ol>
                 </div>
+                
+                ${pdfData ? `
+                <div style="background-color: #d4edda; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3>📄 Registration Form Attached</h3>
+                  <p>Your complete registration form has been attached to this email as a PDF. Please:</p>
+                  <ul>
+                    <li>Save the PDF for your records</li>
+                    <li>Review all information for accuracy</li>
+                    <li>Bring a copy to your first session if required</li>
+                  </ul>
+                </div>
+                ` : ''}
                 
                 <div style="text-align: center; margin: 30px 0;">
                   <p><strong>Questions?</strong></p>

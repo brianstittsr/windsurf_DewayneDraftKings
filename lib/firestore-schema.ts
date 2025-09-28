@@ -8,6 +8,44 @@ interface BaseDocument {
   updatedAt: Timestamp;
 }
 
+// Product/Pricing Plans Interface
+export interface Product extends BaseDocument {
+  // Basic Information
+  title: string;
+  subtitle: string;
+  description?: string;
+  
+  // Pricing
+  price: number;
+  serviceFee: number;
+  totalPrice: number; // price + serviceFee
+  
+  // Product Details
+  features: string[];
+  itemType: 'jamboree' | 'season' | 'bundle' | 'assistant_coach' | 'head_coach';
+  category: 'player' | 'coach';
+  
+  // Display Options
+  popular: boolean;
+  buttonText: string;
+  buttonClass: string;
+  displayOrder: number;
+  
+  // Status
+  isActive: boolean;
+  isVisible: boolean;
+  
+  // Availability
+  availableFrom?: Timestamp;
+  availableUntil?: Timestamp;
+  maxCapacity?: number;
+  currentRegistrations?: number;
+  
+  // Metadata
+  tags?: string[];
+  notes?: string;
+}
+
 export interface Player extends BaseDocument {
   // Personal Information
   firstName: string;

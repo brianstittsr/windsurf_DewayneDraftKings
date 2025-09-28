@@ -13,14 +13,20 @@ interface UserProfile {
   dateOfBirth: string;
   jerseySize?: string;
   position?: string;
+  experience?: string; // for coaches
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelation?: string;
   medicalConditions?: string;
   medications?: string;
   allergies?: string;
+  preferredCommunication?: string;
+  marketingConsent?: boolean;
+  waiverAccepted?: boolean;
+  termsAccepted?: boolean;
   paymentStatus: 'pending' | 'paid' | 'failed';
   selectedPlan?: any;
+  registrationPdfUrl?: string; // PDF storage
   createdAt: string;
   updatedAt: string;
   registrationDate: string;
@@ -431,19 +437,59 @@ export default function AdminUserManagement() {
                       <p><strong>Date of Birth:</strong> {selectedProfile.dateOfBirth}</p>
                       <p><strong>Role:</strong> <span className={`badge ${selectedProfile.role === 'player' ? 'bg-primary' : 'bg-success'}`}>{selectedProfile.role}</span></p>
                       <p><strong>Status:</strong> <span className={`badge ${selectedProfile.status === 'active' ? 'bg-success' : selectedProfile.status === 'pending' ? 'bg-warning' : 'bg-danger'}`}>{selectedProfile.status}</span></p>
+                      
+                      <h6 className="text-info mb-3 mt-4">Role-Specific Details</h6>
+                      {selectedProfile.position && <p><strong>Position:</strong> {selectedProfile.position}</p>}
+                      {selectedProfile.experience && <p><strong>Experience:</strong> {selectedProfile.experience}</p>}
+                      {selectedProfile.jerseySize && <p><strong>Jersey Size:</strong> {selectedProfile.jerseySize}</p>}
+                      
+                      <h6 className="text-warning mb-3 mt-4">Emergency Contact</h6>
+                      {selectedProfile.emergencyContactName ? (
+                        <>
+                          <p><strong>Name:</strong> {selectedProfile.emergencyContactName}</p>
+                          <p><strong>Phone:</strong> {selectedProfile.emergencyContactPhone}</p>
+                          <p><strong>Relation:</strong> {selectedProfile.emergencyContactRelation}</p>
+                        </>
+                      ) : (
+                        <p className="text-muted">No emergency contact provided</p>
+                      )}
                     </div>
                     <div className="col-md-6">
-                      <h6 className="text-success mb-3">Additional Details</h6>
-                      {selectedProfile.position && <p><strong>Position:</strong> {selectedProfile.position}</p>}
-                      {selectedProfile.jerseySize && <p><strong>Jersey Size:</strong> {selectedProfile.jerseySize}</p>}
-                      {selectedProfile.emergencyContactName && (
+                      <h6 className="text-danger mb-3">Medical Information</h6>
+                      {selectedProfile.medicalConditions || selectedProfile.medications || selectedProfile.allergies ? (
                         <>
-                          <p><strong>Emergency Contact:</strong> {selectedProfile.emergencyContactName}</p>
-                          <p><strong>Emergency Phone:</strong> {selectedProfile.emergencyContactPhone}</p>
+                          {selectedProfile.medicalConditions && <p><strong>Conditions:</strong> {selectedProfile.medicalConditions}</p>}
+                          {selectedProfile.medications && <p><strong>Medications:</strong> {selectedProfile.medications}</p>}
+                          {selectedProfile.allergies && <p><strong>Allergies:</strong> {selectedProfile.allergies}</p>}
+                        </>
+                      ) : (
+                        <p className="text-muted">No medical information provided</p>
+                      )}
+                      
+                      <h6 className="text-secondary mb-3 mt-4">Preferences & Agreements</h6>
+                      {selectedProfile.preferredCommunication && <p><strong>Preferred Communication:</strong> {selectedProfile.preferredCommunication}</p>}
+                      <p><strong>Marketing Consent:</strong> <span className={`badge ${selectedProfile.marketingConsent ? 'bg-success' : 'bg-secondary'}`}>{selectedProfile.marketingConsent ? 'Yes' : 'No'}</span></p>
+                      <p><strong>Waiver Accepted:</strong> <span className={`badge ${selectedProfile.waiverAccepted ? 'bg-success' : 'bg-danger'}`}>{selectedProfile.waiverAccepted ? 'Yes' : 'No'}</span></p>
+                      <p><strong>Terms Accepted:</strong> <span className={`badge ${selectedProfile.termsAccepted ? 'bg-success' : 'bg-danger'}`}>{selectedProfile.termsAccepted ? 'Yes' : 'No'}</span></p>
+                      
+                      <h6 className="text-success mb-3 mt-4">Registration & Payment</h6>
+                      {selectedProfile.selectedPlan && (
+                        <>
+                          <p><strong>Plan:</strong> {selectedProfile.selectedPlan.title}</p>
+                          <p><strong>Plan Price:</strong> ${selectedProfile.selectedPlan.totalPrice?.toFixed(2) || selectedProfile.selectedPlan.price?.toFixed(2) || 'N/A'}</p>
                         </>
                       )}
                       <p><strong>Payment Status:</strong> <span className={`badge ${selectedProfile.paymentStatus === 'paid' ? 'bg-success' : selectedProfile.paymentStatus === 'pending' ? 'bg-warning' : 'bg-danger'}`}>{selectedProfile.paymentStatus}</span></p>
                       <p><strong>Registered:</strong> {new Date(selectedProfile.registrationDate).toLocaleDateString()}</p>
+                      
+                      {selectedProfile.registrationPdfUrl && (
+                        <div className="mt-3">
+                          <a href={selectedProfile.registrationPdfUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary btn-sm">
+                            <i className="fas fa-file-pdf me-2"></i>
+                            View Registration PDF
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (

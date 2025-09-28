@@ -9,12 +9,16 @@ interface PricingPlan {
   subtitle: string;
   price: number;
   serviceFee: number;
+  totalPrice: number;
   features: string[];
   popular: boolean;
   buttonText: string;
   buttonClass: string;
   itemType: 'jamboree' | 'season' | 'bundle' | 'assistant_coach' | 'head_coach';
   category: 'player' | 'coach';
+  displayOrder: number;
+  isActive: boolean;
+  isVisible: boolean;
 }
 
 export default function PricingPage() {
@@ -34,118 +38,16 @@ export default function PricingPage() {
       if (data.plans) {
         setPricingPlans(data.plans);
       } else {
-        // Fallback to default pricing if API fails
-        setPricingPlans(getDefaultPricing());
+        setPricingPlans([]);
       }
     } catch (error) {
       console.error('Error fetching pricing:', error);
-      // Fallback to default pricing
-      setPricingPlans(getDefaultPricing());
+      setPricingPlans([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const getDefaultPricing = (): PricingPlan[] => [
-    {
-      title: "Jamboree Game",
-      subtitle: "Single game participation",
-      price: 29.50,
-      serviceFee: 3.00,
-      features: [
-        "Single game entry",
-        "Official jersey",
-        "Game statistics tracking",
-        "Team photo",
-        "SMS updates"
-      ],
-      popular: false,
-      buttonText: "Register Now",
-      buttonClass: "btn-outline-primary",
-      itemType: "jamboree",
-      category: "player"
-    },
-    {
-      title: "Jamboree + Season",
-      subtitle: "Complete package deal",
-      price: 91.50,
-      serviceFee: 3.00,
-      features: [
-        "Jamboree game entry",
-        "Full season participation",
-        "Official jersey",
-        "Complete statistics tracking",
-        "Team photos",
-        "SMS updates",
-        "Playoff eligibility",
-        "Awards ceremony",
-        "Priority team selection"
-      ],
-      popular: true,
-      buttonText: "Register Now",
-      buttonClass: "btn-primary",
-      itemType: "bundle",
-      category: "player"
-    },
-    {
-      title: "Complete Season",
-      subtitle: "Full season participation",
-      price: 62.00,
-      serviceFee: 3.00,
-      features: [
-        "All season games",
-        "Official jersey",
-        "Complete statistics tracking",
-        "Team photos",
-        "SMS updates",
-        "Playoff eligibility",
-        "Awards ceremony"
-      ],
-      popular: false,
-      buttonText: "Register Now",
-      buttonClass: "btn-outline-primary",
-      itemType: "season",
-      category: "player"
-    },
-    {
-      title: "Assistant Coach",
-      subtitle: "Support coaching role",
-      price: 48.00,
-      serviceFee: 3.00,
-      features: [
-        "Team assignment",
-        "Coaching materials",
-        "Training resources",
-        "SMS updates",
-        "Coach recognition"
-      ],
-      popular: false,
-      buttonText: "Apply Now",
-      buttonClass: "btn-outline-success",
-      itemType: "assistant_coach",
-      category: "coach"
-    },
-    {
-      title: "Head Coach",
-      subtitle: "Lead coaching position",
-      price: 78.00,
-      serviceFee: 3.00,
-      features: [
-        "Team leadership",
-        "Full coaching materials",
-        "Advanced training resources",
-        "SMS updates",
-        "Coach recognition",
-        "Team management tools",
-        "Priority support"
-      ],
-      popular: true,
-      buttonText: "Apply Now",
-      buttonClass: "btn-success",
-      itemType: "head_coach",
-      category: "coach"
-    }
-  ];
 
   const filteredPlans = pricingPlans.filter(plan => plan.category === activeTab);
 
@@ -226,7 +128,27 @@ export default function PricingPage() {
 
           {/* Pricing Cards */}
           <div className="row justify-content-center g-4" style={{paddingTop: '25px'}}>
-            {filteredPlans.map((plan, index) => (
+            {loading ? (
+              <div className="col-12 text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="mt-3">Loading pricing plans...</p>
+              </div>
+            ) : filteredPlans.length === 0 ? (
+              <div className="col-12 text-center py-5">
+                <i className="fas fa-box fa-3x text-muted mb-3"></i>
+                <h4 className="text-muted">No {activeTab} plans available</h4>
+                <p className="text-muted">
+                  {activeTab === 'player' ? 'Player registration plans' : 'Coach registration plans'} will appear here once they are configured.
+                </p>
+                <p className="text-muted small">
+                  <i className="fas fa-info-circle me-1"></i>
+                  Plans are managed through the admin panel
+                </p>
+              </div>
+            ) : (
+              filteredPlans.map((plan, index) => (
               <div key={index} className="col-lg-4 col-md-6">
                 <div className="position-relative" style={{paddingTop: plan.popular ? '25px' : '0'}}>
                   {plan.popular && (
@@ -242,7 +164,12 @@ export default function PricingPage() {
                     <h4 className="card-title mb-2">{plan.title}</h4>
                     <p className="text-muted mb-3">{plan.subtitle}</p>
                     <div className="pricing-display">
-                      <span className="h2 fw-bold text-primary">${plan.price.toFixed(2)}</span>
+                      <span className="h2 fw-bold text-primary">${plan.totalPrice.toFixed(2)}</span>
+                      {plan.serviceFee > 0 && (
+                        <div className="small text-muted">
+                          ${plan.price.toFixed(2)} + ${plan.serviceFee.toFixed(2)} fee
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -269,7 +196,8 @@ export default function PricingPage() {
                   </div>
                 </div>
               </div>
-            ))}
+            ))
+            )}
           </div>
 
           {/* Important Information */}

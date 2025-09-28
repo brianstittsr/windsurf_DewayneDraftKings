@@ -12,6 +12,7 @@ import CouponManagement from '@/components/CouponManagement';
 import PricingManagement from '@/components/PricingManagement';
 import MealPlanManagement from '@/components/MealPlanManagement';
 import ProfileManagement from '@/components/ProfileManagement';
+import ProductManagement from '@/components/ProductManagement';
 
 // Simple dashboard components
 function StatsOverview() {
@@ -252,10 +253,7 @@ function AdminPageContent() {
       case 'pricing':
         return (
           <div className="fade-in">
-            <div className="d-sm-flex align-items-center justify-content-between mb-4">
-              <h1 className="h3 mb-0 text-gray-800">Pricing Management</h1>
-            </div>
-            <PricingManagement />
+            <ProductManagement />
           </div>
         );
 

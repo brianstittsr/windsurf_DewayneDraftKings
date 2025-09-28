@@ -48,6 +48,7 @@ export default function CouponManagement() {
   const [showForm, setShowForm] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [formData, setFormData] = useState<CouponFormData>(initialFormData);
+  const [initializingDefaults, setInitializingDefaults] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'expired' | 'inactive'>('all');
 
@@ -148,12 +149,38 @@ export default function CouponManagement() {
 
       if (response.ok) {
         await fetchCoupons();
+        alert('Coupon deleted successfully!');
       } else {
         alert('Error deleting coupon');
       }
     } catch (error) {
       console.error('Error deleting coupon:', error);
       alert('Error deleting coupon');
+    }
+  };
+
+  const initializeDefaultCoupons = async () => {
+    if (!confirm('This will create default coupons (SAVE100, EARLYBIRD, COACH50, JAMBOREE25, BUNDLE20). Continue?')) return;
+    
+    try {
+      setInitializingDefaults(true);
+      const response = await fetch('/api/coupons/init-defaults', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        await fetchCoupons();
+        alert(`Default coupons initialized! ${result.summary.created} created, ${result.summary.skipped} already existed.`);
+      } else {
+        const error = await response.json();
+        alert(`Error initializing default coupons: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error initializing default coupons:', error);
+      alert('Error initializing default coupons');
+    } finally {
+      setInitializingDefaults(false);
     }
   };
 
@@ -270,6 +297,23 @@ export default function CouponManagement() {
           <p className="text-muted mb-0">Create and manage discount coupons</p>
         </div>
         <div className="d-flex gap-2">
+          <button
+            className="btn btn-outline-info"
+            onClick={initializeDefaultCoupons}
+            disabled={initializingDefaults}
+          >
+            {initializingDefaults ? (
+              <>
+                <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                Initializing...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-magic me-2"></i>
+                Add Default Coupons
+              </>
+            )}
+          </button>
           <button
             className="btn btn-outline-secondary"
             onClick={fetchCoupons}
