@@ -59,14 +59,6 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                   <p className="text-muted">All Pro Sports NC</p>
                 </div>
 
-                {/* Development credentials info */}
-                <div className="alert alert-info alert-sm mb-3">
-                  <small>
-                    <strong>Demo Credentials:</strong><br/>
-                    <code>admin@example.com</code> / <code>admin123</code><br/>
-                    <code>admin</code> / <code>AllProSports2024!</code>
-                  </small>
-                </div>
 
                 {error && (
                   <div className="alert alert-danger" role="alert">

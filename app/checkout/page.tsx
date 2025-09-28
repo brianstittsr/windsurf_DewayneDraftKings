@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ModernNavbar from '../../components/ModernNavbar';
 import PaymentCheckout from '../../components/PaymentCheckout';
-import EnvironmentDebug from '../../components/EnvironmentDebug';
 
 interface PlayerProfile {
   id: string;
@@ -150,9 +149,6 @@ function CheckoutPageContent() {
       <div className="container py-5">
         <div className="row justify-content-center">
           <div className="col-lg-8">
-            {/* Environment Debug (temporary) */}
-            <EnvironmentDebug />
-            
             {/* Registration Summary */}
             <div className="card border-success mb-4">
               <div className="card-header bg-success text-white">
@@ -205,7 +201,8 @@ function CheckoutPageContent() {
                       firstName: playerProfile.firstName,
                       lastName: playerProfile.lastName,
                       email: playerProfile.email,
-                      phone: '+1-555-0123' // Default phone, should come from registration
+                      phone: '+1-555-0123', // Default phone, should come from registration
+                      playerId: playerProfile.id
                     }}
                     onPaymentSuccess={() => {
                       window.location.href = '/registration-success';

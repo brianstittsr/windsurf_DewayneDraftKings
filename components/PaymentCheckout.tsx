@@ -19,6 +19,7 @@ interface PaymentCheckoutProps {
     lastName: string;
     email: string;
     phone: string;
+    playerId?: string;
   };
   onPaymentSuccess: () => void;
   onPaymentError: (error: string) => void;
@@ -520,6 +521,7 @@ function PaymentCheckoutForm({
           paymentMethod: selectedPaymentMethod,
           appliedCoupon: appliedCoupon?.code || null,
           metadata: {
+            playerId: customerData.playerId || '',
             planTitle: planData?.title,
             planType: planData?.itemType,
             customerPhone: customerData.phone,
