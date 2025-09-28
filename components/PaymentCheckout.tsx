@@ -330,17 +330,26 @@ function PaymentCheckoutForm({
 }: PaymentCheckoutProps) {
   // Check if Stripe is configured
   if (!isStripeConfigured) {
+    const currentKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'Not set';
     return (
-      <div className="alert alert-warning" role="alert">
+      <div className="alert alert-danger" role="alert">
         <div className="d-flex align-items-center">
           <i className="fas fa-exclamation-triangle me-3" style={{ fontSize: '2rem' }}></i>
           <div>
             <h5 className="alert-heading">Stripe Configuration Missing</h5>
-            <p className="mb-2">Please add your Stripe publishable key to <code>.env.local</code>:</p>
+            <p className="mb-2">Current key status: <code>{currentKey}</code></p>
+            <p className="mb-2">Please add your Stripe LIVE publishable key to <code>.env.local</code>:</p>
             <code className="d-block bg-light p-2 rounded mb-2">
-              NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_...."
+              NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_live_your_live_key_here"
             </code>
-            <small className="text-muted">Restart the server after adding the key</small>
+            <div className="alert alert-info mt-2">
+              <strong>Steps to fix:</strong>
+              <ol className="mb-0 mt-2">
+                <li>Update your .env.local file with the correct variable name</li>
+                <li>Stop your server (Ctrl+C)</li>
+                <li>Run <code>npm run dev</code> again</li>
+              </ol>
+            </div>
           </div>
         </div>
       </div>
