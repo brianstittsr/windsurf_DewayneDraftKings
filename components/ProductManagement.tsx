@@ -30,6 +30,7 @@ export default function ProductManagement() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [formData, setFormData] = useState<Partial<Product>>({
     title: '',
     subtitle: '',
@@ -154,119 +155,22 @@ export default function ProductManagement() {
   };
 
   const seedSampleData = async () => {
-    if (!confirm('This will add 5 sample pricing plans. Continue?')) return;
-    
-    const samplePlans = [
-      {
-        title: 'Player Registration',
-        subtitle: 'Individual Player',
-        description: 'Complete player registration for the season',
-        price: 150,
-        serviceFee: 15,
-        features: ['Full season participation', 'Team jersey included', 'Professional coaching', 'Statistics tracking', 'End of season awards'],
-        itemType: 'season',
-        category: 'player',
-        popular: true,
-        buttonText: 'Register Now',
-        buttonClass: 'btn-primary',
-        displayOrder: 1,
-        isActive: true,
-        isVisible: true,
-        maxCapacity: 100,
-        tags: ['season', 'player', 'individual'],
-        notes: 'Most popular option for individual players'
-      },
-      {
-        title: 'Jamboree Entry',
-        subtitle: 'Single Event',
-        description: 'Entry for weekend jamboree tournament',
-        price: 75,
-        serviceFee: 7.50,
-        features: ['Weekend tournament entry', 'Multiple games guaranteed', 'Refreshments included', 'Awards ceremony', 'Photo opportunities'],
-        itemType: 'jamboree',
-        category: 'player',
-        popular: false,
-        buttonText: 'Enter Tournament',
-        buttonClass: 'btn-success',
-        displayOrder: 2,
-        isActive: true,
-        isVisible: true,
-        maxCapacity: 50,
-        tags: ['tournament', 'jamboree', 'weekend'],
-        notes: 'Perfect for trying out the league'
-      },
-      {
-        title: 'Season + Jamboree Bundle',
-        subtitle: 'Best Value',
-        description: 'Full season plus all jamboree events',
-        price: 200,
-        serviceFee: 20,
-        features: ['Full season participation', 'All jamboree tournaments included', 'Team jersey and gear', 'Priority team placement', 'Exclusive training sessions', 'End of season banquet'],
-        itemType: 'bundle',
-        category: 'player',
-        popular: false,
-        buttonText: 'Get Bundle',
-        buttonClass: 'btn-warning',
-        displayOrder: 3,
-        isActive: true,
-        isVisible: true,
-        maxCapacity: 75,
-        tags: ['bundle', 'season', 'jamboree', 'value'],
-        notes: 'Best value for committed players'
-      },
-      {
-        title: 'Assistant Coach',
-        subtitle: 'Coaching Staff',
-        description: 'Assistant coach registration and certification',
-        price: 100,
-        serviceFee: 10,
-        features: ['Coaching certification', 'Training materials', 'Background check included', 'Coach polo shirt', 'Season-long commitment'],
-        itemType: 'assistant_coach',
-        category: 'coach',
-        popular: false,
-        buttonText: 'Apply as Coach',
-        buttonClass: 'btn-info',
-        displayOrder: 4,
-        isActive: true,
-        isVisible: true,
-        maxCapacity: 20,
-        tags: ['coach', 'assistant', 'staff'],
-        notes: 'For volunteer assistant coaches'
-      },
-      {
-        title: 'Head Coach',
-        subtitle: 'Team Leadership',
-        description: 'Head coach registration with full responsibilities',
-        price: 150,
-        serviceFee: 15,
-        features: ['Advanced coaching certification', 'Complete training package', 'Background check included', 'Coach gear package', 'Team management tools', 'League leadership opportunities'],
-        itemType: 'head_coach',
-        category: 'coach',
-        popular: true,
-        buttonText: 'Lead a Team',
-        buttonClass: 'btn-primary',
-        displayOrder: 5,
-        isActive: true,
-        isVisible: true,
-        maxCapacity: 10,
-        tags: ['coach', 'head', 'leadership'],
-        notes: 'For experienced head coaches'
-      }
-    ];
+    if (!confirm('This will add 9 comprehensive pricing plans (6 player plans + 3 coach plans). Continue?')) return;
 
     try {
-      let created = 0;
-      for (const plan of samplePlans) {
-        const response = await fetch('/api/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(plan)
-        });
-        if (response.ok) created++;
-      }
+      const response = await fetch('/api/populate-products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
       
-      await fetchProducts();
-      alert(`Successfully created ${created} sample pricing plans!`);
+      const result = await response.json();
+      
+      if (result.success) {
+        await fetchProducts();
+        alert(`${result.message}\n\nSuccess Rate: ${result.summary.successRate}\nTotal Products: ${result.summary.total}`);
+      } else {
+        alert(`Error: ${result.error}`);
+      }
     } catch (error) {
       console.error('Error seeding sample data:', error);
       alert('Error creating sample data. Please try again.');
@@ -325,23 +229,42 @@ export default function ProductManagement() {
           <i className="fas fa-box me-2"></i>
           Product Management
         </h2>
-        <div className="btn-group">
-          {products.length === 0 && (
+        <div className="d-flex gap-2">
+          {/* View Toggle */}
+          <div className="btn-group me-3" role="group">
             <button
-              className="btn btn-success me-2"
-              onClick={seedSampleData}
+              className={`btn ${viewMode === 'cards' ? 'btn-primary' : 'btn-outline-primary'} btn-sm`}
+              onClick={() => setViewMode('cards')}
             >
-              <i className="fas fa-seedling me-2"></i>
-              Add Sample Data
+              <i className="fas fa-th me-1"></i>Cards
             </button>
-          )}
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowForm(true)}
-          >
-            <i className="fas fa-plus me-2"></i>
-            Add New Product
-          </button>
+            <button
+              className={`btn ${viewMode === 'table' ? 'btn-primary' : 'btn-outline-primary'} btn-sm`}
+              onClick={() => setViewMode('table')}
+            >
+              <i className="fas fa-table me-1"></i>Table
+            </button>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="btn-group">
+            {products.length === 0 && (
+              <button
+                className="btn btn-success me-2"
+                onClick={seedSampleData}
+              >
+                <i className="fas fa-seedling me-2"></i>
+                Add Sample Data
+              </button>
+            )}
+            <button
+              className="btn btn-primary"
+              onClick={() => setShowForm(true)}
+            >
+              <i className="fas fa-plus me-2"></i>
+              Add New Product
+            </button>
+          </div>
         </div>
       </div>
 
@@ -593,15 +516,16 @@ export default function ProductManagement() {
       )}
 
       {/* Products List */}
-      <div className="row">
-        {products.length === 0 ? (
-          <div className="col-12 text-center py-5">
-            <i className="fas fa-box fa-3x text-muted mb-3"></i>
-            <h4 className="text-muted">No products found</h4>
-            <p className="text-muted">Create your first product to get started.</p>
-          </div>
-        ) : (
-          products.map((product) => (
+      {products.length === 0 ? (
+        <div className="text-center py-5">
+          <i className="fas fa-box fa-3x text-muted mb-3"></i>
+          <h4 className="text-muted">No products found</h4>
+          <p className="text-muted">Create your first product to get started.</p>
+        </div>
+      ) : viewMode === 'cards' ? (
+        /* Card View */
+        <div className="row">
+          {products.map((product) => (
             <div key={product.id} className="col-lg-4 col-md-6 mb-4">
               <div className={`card h-100 ${product.popular ? 'border-warning' : ''}`}>
                 {product.popular && (
@@ -657,9 +581,94 @@ export default function ProductManagement() {
                 </div>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        /* Table View */
+        <div className="card shadow">
+          <div className="card-header py-3">
+            <h6 className="m-0 font-weight-bold text-primary">Products Overview</h6>
+          </div>
+          <div className="card-body">
+            <div className="table-responsive">
+              <table className="table table-bordered table-hover">
+                <thead className="table-light">
+                  <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>Price</th>
+                    <th>Service Fee</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Capacity</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((product) => (
+                    <tr key={product.id}>
+                      <td>
+                        <div>
+                          <strong>{product.title}</strong>
+                          {product.popular && <i className="fas fa-star text-warning ms-2" title="Popular"></i>}
+                          <div className="small text-muted">{product.subtitle}</div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`badge ${product.category === 'player' ? 'bg-primary' : 'bg-success'}`}>
+                          {product.category}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="badge bg-secondary">{product.itemType}</span>
+                      </td>
+                      <td>${product.price.toFixed(2)}</td>
+                      <td>${product.serviceFee.toFixed(2)}</td>
+                      <td><strong>${product.totalPrice.toFixed(2)}</strong></td>
+                      <td>
+                        <div className="d-flex flex-column gap-1">
+                          <span className={`badge ${product.isActive ? 'bg-success' : 'bg-secondary'}`}>
+                            {product.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                          {!product.isVisible && (
+                            <span className="badge bg-dark">Hidden</span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        {product.maxCapacity ? (
+                          <span>{product.currentRegistrations || 0} / {product.maxCapacity}</span>
+                        ) : (
+                          <span className="text-muted">Unlimited</span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="btn-group">
+                          <button
+                            className="btn btn-outline-primary btn-sm"
+                            onClick={() => handleEdit(product)}
+                            title="Edit"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => handleDelete(product.id!)}
+                            title="Delete"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

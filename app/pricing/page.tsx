@@ -32,11 +32,15 @@ export default function PricingPage() {
 
   const fetchPricingPlans = async () => {
     try {
-      const response = await fetch('/api/pricing');
+      const response = await fetch('/api/products');
       const data = await response.json();
       
-      if (data.plans) {
-        setPricingPlans(data.plans);
+      if (data.products) {
+        // Filter for active and visible products only
+        const activeProducts = data.products.filter((product: PricingPlan) => 
+          product.isActive && product.isVisible
+        );
+        setPricingPlans(activeProducts);
       } else {
         setPricingPlans([]);
       }
@@ -142,10 +146,21 @@ export default function PricingPage() {
                 <p className="text-muted">
                   {activeTab === 'player' ? 'Player registration plans' : 'Coach registration plans'} will appear here once they are configured.
                 </p>
-                <p className="text-muted small">
-                  <i className="fas fa-info-circle me-1"></i>
-                  Plans are managed through the admin panel
-                </p>
+                <div className="alert alert-info mx-auto" style={{maxWidth: '500px'}}>
+                  <h6><i className="fas fa-info-circle me-2"></i>How to add pricing plans:</h6>
+                  <ol className="mb-0 text-start">
+                    <li>Go to the <strong>Admin Panel</strong></li>
+                    <li>Navigate to <strong>Product Management</strong></li>
+                    <li>Click <strong>"Add Sample Data"</strong> for quick setup</li>
+                    <li>Or create custom plans with <strong>"Add New Product"</strong></li>
+                  </ol>
+                </div>
+                {pricingPlans.length > 0 && (
+                  <p className="text-muted small">
+                    <i className="fas fa-filter me-1"></i>
+                    {pricingPlans.length} total plans available, but none match the "{activeTab}" category
+                  </p>
+                )}
               </div>
             ) : (
               filteredPlans.map((plan, index) => (

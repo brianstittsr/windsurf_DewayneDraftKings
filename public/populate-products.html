@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Populate Products - All Pro Sports</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">
+                            <i class="fas fa-database me-2"></i>
+                            Product Database Population
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <h5><i class="fas fa-info-circle me-2"></i>About This Tool</h5>
+                            <p class="mb-0">
+                                This tool will populate your database with comprehensive pricing plans for the All Pro Sports league management system.
+                                It includes 9 different products covering player registrations, coach certifications, and specialty programs.
+                            </p>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="text-primary">Player Plans (5):</h6>
+                                <ul class="small">
+                                    <li>Player Registration ($165)</li>
+                                    <li>Jamboree Tournament ($82.50)</li>
+                                    <li>Season + Jamboree Bundle ($220)</li>
+                                    <li>Youth Player Registration ($137.50)</li>
+                                    <li>Skills Development Camp ($104.50)</li>
+                                    <li>Family Package ($308)</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-success">Coach Plans (3):</h6>
+                                <ul class="small">
+                                    <li>Head Coach Registration ($165)</li>
+                                    <li>Assistant Coach Registration ($110)</li>
+                                    <li>Youth Coach Certification ($132)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button id="populateBtn" class="btn btn-primary btn-lg">
+                                <i class="fas fa-play me-2"></i>
+                                Populate Database
+                            </button>
+                        </div>
+
+                        <div id="results" class="mt-4" style="display: none;">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Population Results</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="resultsContent"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="loading" class="text-center mt-4" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Populating database...</p>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="fas fa-shield-alt me-1"></i>
+                            This tool uses the same API endpoints as the admin panel for safe database operations.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <a href="/admin?tab=pricing" class="btn btn-outline-primary">
+                        <i class="fas fa-cog me-2"></i>
+                        Go to Product Management
+                    </a>
+                    <a href="/pricing" class="btn btn-outline-success ms-2">
+                        <i class="fas fa-eye me-2"></i>
+                        View Pricing Page
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('populateBtn').addEventListener('click', async function() {
+            const btn = this;
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const resultsContent = document.getElementById('resultsContent');
+
+            // Show loading state
+            btn.disabled = true;
+            loading.style.display = 'block';
+            results.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/populate-products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultsContent.innerHTML = `
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-check-circle me-2"></i>Success!</h6>
+                            <p class="mb-2">${data.message}</p>
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <div class="h4 text-success">${data.summary.successful}</div>
+                                    <small>Successful</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="h4 text-danger">${data.summary.failed}</div>
+                                    <small>Failed</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="h4 text-info">${data.summary.total}</div>
+                                    <small>Total</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="h4 text-primary">${data.summary.successRate}</div>
+                                    <small>Success Rate</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <h6>Product Details:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Category</th>
+                                            <th>Status</th>
+                                            <th>ID</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.products.map(product => `
+                                            <tr>
+                                                <td>${product.title}</td>
+                                                <td><span class="badge ${product.category === 'player' ? 'bg-primary' : 'bg-success'}">${product.category}</span></td>
+                                                <td><span class="badge ${product.status === 'success' ? 'bg-success' : 'bg-danger'}">${product.status}</span></td>
+                                                <td><small class="text-muted">${product.id || 'N/A'}</small></td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultsContent.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Error</h6>
+                            <p class="mb-0">${data.error}</p>
+                            ${data.details ? `<small class="text-muted">Details: ${data.details}</small>` : ''}
+                        </div>
+                    `;
+                }
+
+                results.style.display = 'block';
+
+            } catch (error) {
+                resultsContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Network Error</h6>
+                        <p class="mb-0">Failed to connect to the API: ${error.message}</p>
+                    </div>
+                `;
+                results.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
