@@ -2,7 +2,7 @@
 
 ## Environment Variables Setup
 
-To fix the 500 error on coupon validation, you need to configure Firebase environment variables in your Vercel project.
+**CRITICAL**: This system requires both Stripe and Firebase environment variables to be configured in Vercel for proper payment processing and data storage.
 
 ### Required Environment Variables
 
@@ -17,9 +17,9 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=dewaynedraftkings.appspot.com
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
 
-# Stripe Configuration
-STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+# Stripe Configuration (LIVE KEYS for production)
+STRIPE_SECRET_KEY=sk_live_your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_your_stripe_publishable_key
 
 # Base URL (set to your Vercel domain)
 NEXT_PUBLIC_BASE_URL=https://your-app.vercel.app
@@ -47,9 +47,10 @@ You can find these values in your Firebase project:
 ### Stripe Configuration Values
 
 1. Go to [Stripe Dashboard](https://dashboard.stripe.com/)
-2. Go to **Developers** → **API keys**
-3. Copy the **Publishable key** and **Secret key**
-4. Use **test keys** for development/staging, **live keys** for production
+2. **Switch to Live mode** (toggle in top left)
+3. Go to **Developers** → **API keys**
+4. Copy the **Live Publishable key** (pk_live_...) and **Live Secret key** (sk_live_...)
+5. **IMPORTANT**: Always use live keys for production Vercel deployment
 
 ### Troubleshooting
 
