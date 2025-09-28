@@ -109,7 +109,7 @@ function RecentActivity() {
   );
 }
 
-function CallToAction() {
+function CallToAction({ onTabChange }: { onTabChange: (tab: string) => void }) {
   return (
     <div className="card shadow mb-4">
       <div className="card-header py-3">
@@ -117,19 +117,31 @@ function CallToAction() {
       </div>
       <div className="card-body">
         <div className="d-grid gap-2">
-          <button className="btn btn-primary btn-sm">
+          <button 
+            className="btn btn-primary btn-sm"
+            onClick={() => onTabChange('user-profiles')}
+          >
             <i className="fas fa-user-plus mr-2"></i>
             Add New Player
           </button>
-          <button className="btn btn-success btn-sm">
+          <button 
+            className="btn btn-success btn-sm"
+            onClick={() => onTabChange('teams')}
+          >
             <i className="fas fa-users mr-2"></i>
             Create Team
           </button>
-          <button className="btn btn-info btn-sm">
+          <button 
+            className="btn btn-info btn-sm"
+            onClick={() => onTabChange('games')}
+          >
             <i className="fas fa-calendar mr-2"></i>
             Schedule Game
           </button>
-          <button className="btn btn-warning btn-sm">
+          <button 
+            className="btn btn-warning btn-sm"
+            onClick={() => onTabChange('qr-codes')}
+          >
             <i className="fas fa-qrcode mr-2"></i>
             Generate QR Code
           </button>
@@ -172,7 +184,7 @@ function AdminPageContent() {
 
               {/* Call to Action */}
               <div className="col-lg-4 mb-4">
-                <CallToAction />
+                <CallToAction onTabChange={setActiveTab} />
               </div>
             </div>
           </div>
@@ -480,7 +492,7 @@ function AdminPageContent() {
                 <RecentActivity />
               </div>
               <div className="col-lg-4 mb-4">
-                <CallToAction />
+                <CallToAction onTabChange={setActiveTab} />
               </div>
             </div>
           </div>

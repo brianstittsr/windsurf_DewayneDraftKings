@@ -153,6 +153,126 @@ export default function ProductManagement() {
     setNewTag('');
   };
 
+  const seedSampleData = async () => {
+    if (!confirm('This will add 5 sample pricing plans. Continue?')) return;
+    
+    const samplePlans = [
+      {
+        title: 'Player Registration',
+        subtitle: 'Individual Player',
+        description: 'Complete player registration for the season',
+        price: 150,
+        serviceFee: 15,
+        features: ['Full season participation', 'Team jersey included', 'Professional coaching', 'Statistics tracking', 'End of season awards'],
+        itemType: 'season',
+        category: 'player',
+        popular: true,
+        buttonText: 'Register Now',
+        buttonClass: 'btn-primary',
+        displayOrder: 1,
+        isActive: true,
+        isVisible: true,
+        maxCapacity: 100,
+        tags: ['season', 'player', 'individual'],
+        notes: 'Most popular option for individual players'
+      },
+      {
+        title: 'Jamboree Entry',
+        subtitle: 'Single Event',
+        description: 'Entry for weekend jamboree tournament',
+        price: 75,
+        serviceFee: 7.50,
+        features: ['Weekend tournament entry', 'Multiple games guaranteed', 'Refreshments included', 'Awards ceremony', 'Photo opportunities'],
+        itemType: 'jamboree',
+        category: 'player',
+        popular: false,
+        buttonText: 'Enter Tournament',
+        buttonClass: 'btn-success',
+        displayOrder: 2,
+        isActive: true,
+        isVisible: true,
+        maxCapacity: 50,
+        tags: ['tournament', 'jamboree', 'weekend'],
+        notes: 'Perfect for trying out the league'
+      },
+      {
+        title: 'Season + Jamboree Bundle',
+        subtitle: 'Best Value',
+        description: 'Full season plus all jamboree events',
+        price: 200,
+        serviceFee: 20,
+        features: ['Full season participation', 'All jamboree tournaments included', 'Team jersey and gear', 'Priority team placement', 'Exclusive training sessions', 'End of season banquet'],
+        itemType: 'bundle',
+        category: 'player',
+        popular: false,
+        buttonText: 'Get Bundle',
+        buttonClass: 'btn-warning',
+        displayOrder: 3,
+        isActive: true,
+        isVisible: true,
+        maxCapacity: 75,
+        tags: ['bundle', 'season', 'jamboree', 'value'],
+        notes: 'Best value for committed players'
+      },
+      {
+        title: 'Assistant Coach',
+        subtitle: 'Coaching Staff',
+        description: 'Assistant coach registration and certification',
+        price: 100,
+        serviceFee: 10,
+        features: ['Coaching certification', 'Training materials', 'Background check included', 'Coach polo shirt', 'Season-long commitment'],
+        itemType: 'assistant_coach',
+        category: 'coach',
+        popular: false,
+        buttonText: 'Apply as Coach',
+        buttonClass: 'btn-info',
+        displayOrder: 4,
+        isActive: true,
+        isVisible: true,
+        maxCapacity: 20,
+        tags: ['coach', 'assistant', 'staff'],
+        notes: 'For volunteer assistant coaches'
+      },
+      {
+        title: 'Head Coach',
+        subtitle: 'Team Leadership',
+        description: 'Head coach registration with full responsibilities',
+        price: 150,
+        serviceFee: 15,
+        features: ['Advanced coaching certification', 'Complete training package', 'Background check included', 'Coach gear package', 'Team management tools', 'League leadership opportunities'],
+        itemType: 'head_coach',
+        category: 'coach',
+        popular: true,
+        buttonText: 'Lead a Team',
+        buttonClass: 'btn-primary',
+        displayOrder: 5,
+        isActive: true,
+        isVisible: true,
+        maxCapacity: 10,
+        tags: ['coach', 'head', 'leadership'],
+        notes: 'For experienced head coaches'
+      }
+    ];
+
+    try {
+      let created = 0;
+      for (const plan of samplePlans) {
+        const response = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(plan)
+        });
+        if (response.ok) created++;
+      }
+      
+      await fetchProducts();
+      alert(`Successfully created ${created} sample pricing plans!`);
+    } catch (error) {
+      console.error('Error seeding sample data:', error);
+      alert('Error creating sample data. Please try again.');
+    }
+  };
+
   const addFeature = () => {
     if (newFeature.trim()) {
       setFormData(prev => ({
@@ -205,13 +325,24 @@ export default function ProductManagement() {
           <i className="fas fa-box me-2"></i>
           Product Management
         </h2>
-        <button
-          className="btn btn-primary"
-          onClick={() => setShowForm(true)}
-        >
-          <i className="fas fa-plus me-2"></i>
-          Add New Product
-        </button>
+        <div className="btn-group">
+          {products.length === 0 && (
+            <button
+              className="btn btn-success me-2"
+              onClick={seedSampleData}
+            >
+              <i className="fas fa-seedling me-2"></i>
+              Add Sample Data
+            </button>
+          )}
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowForm(true)}
+          >
+            <i className="fas fa-plus me-2"></i>
+            Add New Product
+          </button>
+        </div>
       </div>
 
       {/* Product Form Modal */}
