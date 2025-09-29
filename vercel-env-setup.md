@@ -1,24 +1,47 @@
-# Vercel Environment Variables Setup
+# 🚀 URGENT: Fix Vercel Pricing Plans Issue
 
-## Required Firebase Environment Variables
+## ❌ Current Problem
+Your pricing plans load perfectly on localhost but show "How to add pricing plans" message on Vercel because **Firebase environment variables are missing**.
 
-Add these to your Vercel project settings:
+## ✅ Quick Fix (5 minutes)
+
+### Step 1: Get Your Firebase Config
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Select your project: **dewaynedraftkings**
+3. Click Settings (⚙️) → Project Settings
+4. Scroll to "Your apps" → Click your web app
+5. Copy the config values from `firebaseConfig`
+
+### Step 2: Add to Vercel
+Go to [Vercel Dashboard](https://vercel.com/dashboard) → Your Project → Settings → Environment Variables
+
+Add these **EXACT** variables:
 
 ```bash
-# Firebase Configuration (Required)
-NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+# Firebase Configuration (REQUIRED - Copy from Firebase Console)
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSy...your_actual_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=dewaynedraftkings.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=dewaynedraftkings
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=dewaynedraftkings.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
+NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef
 
-# Stripe Configuration (Required for payments)
+# Stripe Configuration (REQUIRED for payments)
 STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
 
-# JWT Secret (Required for admin auth)
-JWT_SECRET=your_jwt_secret_key
+# Admin Authentication (REQUIRED)
+JWT_SECRET=your_secure_random_string_here
+```
+
+### Step 3: Redeploy
+After adding variables, **redeploy** your Vercel app (it will auto-deploy when you push to GitHub).
+
+## 🔧 Alternative: Use Setup Script
+
+Run this in your project directory:
+```bash
+node scripts/setup-vercel-env.js
 ```
 
 ## How to Add Environment Variables to Vercel:

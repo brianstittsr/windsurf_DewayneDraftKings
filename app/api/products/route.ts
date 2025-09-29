@@ -5,12 +5,27 @@ export const dynamic = 'force-dynamic';
 // GET /api/products - Get all products
 export async function GET() {
   try {
+    console.log('Products API: Starting fetch...');
+    
     // Dynamic import to prevent build-time execution
-    const { db } = await import('../../../lib/firebase').catch(() => ({ db: null }));
+    const { db } = await import('../../../lib/firebase').catch((importError) => {
+      console.error('Firebase import failed:', importError);
+      return { db: null };
+    });
     
     if (!db) {
-      return NextResponse.json({ error: 'Database not available' }, { status: 500 });
+      console.error('Products API: Database not available');
+      return NextResponse.json({ 
+        error: 'Database not available',
+        debug: {
+          environment: process.env.NODE_ENV,
+          isVercel: !!process.env.VERCEL,
+          hasFirebaseConfig: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+        }
+      }, { status: 500 });
     }
+
+    console.log('Products API: Database connected, fetching products...');
 
     const { collection, getDocs, query, orderBy } = await import('firebase/firestore');
     const productsRef = collection(db, 'products');
@@ -22,10 +37,19 @@ export async function GET() {
       ...doc.data()
     }));
 
+    console.log(`Products API: Found ${products.length} products`);
     return NextResponse.json({ products });
   } catch (error) {
     console.error('Error fetching products:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to fetch products',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      debug: {
+        environment: process.env.NODE_ENV,
+        isVercel: !!process.env.VERCEL,
+        hasFirebaseConfig: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+      }
+    }, { status: 500 });
   }
 }
 
