@@ -473,6 +473,90 @@ function AdminPageContent() {
           </div>
         );
 
+      case 'sms':
+        return (
+          <div className="fade-in">
+            <div className="d-sm-flex align-items-center justify-content-between mb-4">
+              <h1 className="h3 mb-0 text-gray-800">SMS Management</h1>
+              <button className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i className="fas fa-plus fa-sm text-white-50"></i> Send SMS
+              </button>
+            </div>
+            <div className="card shadow mb-4">
+              <div className="card-header py-3">
+                <h6 className="m-0 font-weight-bold text-primary">SMS Campaign Management</h6>
+              </div>
+              <div className="card-body">
+                <div className="text-center py-4">
+                  <i className="fas fa-sms fa-3x text-muted mb-3"></i>
+                  <h4 className="text-muted">SMS Management System</h4>
+                  <p className="text-muted">Send bulk SMS messages to players, coaches, and parents.</p>
+                  <button className="btn btn-primary">
+                    <i className="fas fa-plus me-2"></i>
+                    Create SMS Campaign
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'notifications':
+        return (
+          <div className="fade-in">
+            <div className="d-sm-flex align-items-center justify-content-between mb-4">
+              <h1 className="h3 mb-0 text-gray-800">Notification Management</h1>
+              <button className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i className="fas fa-plus fa-sm text-white-50"></i> Create Notification
+              </button>
+            </div>
+            <div className="card shadow mb-4">
+              <div className="card-header py-3">
+                <h6 className="m-0 font-weight-bold text-primary">Push Notification Center</h6>
+              </div>
+              <div className="card-body">
+                <div className="text-center py-4">
+                  <i className="fas fa-bell fa-3x text-muted mb-3"></i>
+                  <h4 className="text-muted">Notification System</h4>
+                  <p className="text-muted">Send push notifications to mobile app users.</p>
+                  <button className="btn btn-primary">
+                    <i className="fas fa-plus me-2"></i>
+                    Send Notification
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'emails':
+        return (
+          <div className="fade-in">
+            <div className="d-sm-flex align-items-center justify-content-between mb-4">
+              <h1 className="h3 mb-0 text-gray-800">Email Management</h1>
+              <button className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i className="fas fa-plus fa-sm text-white-50"></i> Create Template
+              </button>
+            </div>
+            <div className="card shadow mb-4">
+              <div className="card-header py-3">
+                <h6 className="m-0 font-weight-bold text-primary">Email Template Management</h6>
+              </div>
+              <div className="card-body">
+                <div className="text-center py-4">
+                  <i className="fas fa-envelope fa-3x text-muted mb-3"></i>
+                  <h4 className="text-muted">Email Template System</h4>
+                  <p className="text-muted">Create and manage email templates for automated communications.</p>
+                  <button className="btn btn-primary">
+                    <i className="fas fa-plus me-2"></i>
+                    Create Email Template
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       case 'gohighlevel':
         return (
           <div className="fade-in">

@@ -120,11 +120,11 @@ export default function ProductManagement() {
         await fetchProducts();
         alert('Product deleted successfully!');
       } else {
-        throw new Error('Failed to delete product');
+        alert('Error deleting product');
       }
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Error deleting product. Please try again.');
+      alert('Error deleting product');
     }
   };
 
@@ -152,6 +152,74 @@ export default function ProductManagement() {
     setShowForm(false);
     setNewFeature('');
     setNewTag('');
+  };
+
+  const toggleProductStatus = async (productId: string, field: 'isActive' | 'isVisible', currentValue: boolean) => {
+    try {
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+
+      const updatedProduct = {
+        ...product,
+        [field]: !currentValue
+      };
+
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedProduct)
+      });
+
+      if (response.ok) {
+        await fetchProducts();
+        const action = field === 'isActive' ? 
+          (!currentValue ? 'activated' : 'deactivated') : 
+          (!currentValue ? 'made visible' : 'hidden');
+        alert(`Product ${action} successfully!`);
+      } else {
+        alert(`Error updating product status`);
+      }
+    } catch (error) {
+      console.error('Error updating product status:', error);
+      alert('Error updating product status');
+    }
+  };
+
+  const bulkToggleStatus = async (field: 'isActive' | 'isVisible', value: boolean) => {
+    if (!confirm(`Are you sure you want to ${value ? 'enable' : 'disable'} ${field === 'isActive' ? 'activation' : 'visibility'} for all products?`)) return;
+
+    try {
+      const updatePromises = products.map(async (product) => {
+        if (product[field] !== value) {
+          const updatedProduct = {
+            ...product,
+            [field]: value
+          };
+
+          return fetch(`/api/products/${product.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedProduct)
+          });
+        }
+        return Promise.resolve();
+      });
+
+      await Promise.all(updatePromises);
+      await fetchProducts();
+      
+      const action = field === 'isActive' ? 
+        (value ? 'activated' : 'deactivated') : 
+        (value ? 'made visible' : 'hidden');
+      alert(`All products ${action} successfully!`);
+    } catch (error) {
+      console.error('Error bulk updating products:', error);
+      alert('Error updating products');
+    }
   };
 
   const seedSampleData = async () => {
@@ -564,7 +632,7 @@ export default function ProductManagement() {
                   </ul>
                 </div>
                 <div className="card-footer bg-transparent">
-                  <div className="d-flex gap-2">
+                  <div className="d-flex gap-1 mb-2">
                     <button
                       className="btn btn-outline-primary btn-sm flex-fill"
                       onClick={() => handleEdit(product)}
@@ -576,6 +644,24 @@ export default function ProductManagement() {
                       onClick={() => handleDelete(product.id!)}
                     >
                       <i className="fas fa-trash"></i>
+                    </button>
+                  </div>
+                  <div className="d-flex gap-1">
+                    <button
+                      className={`btn btn-sm flex-fill ${product.isActive ? 'btn-success' : 'btn-secondary'}`}
+                      onClick={() => toggleProductStatus(product.id!, 'isActive', product.isActive)}
+                      title={product.isActive ? 'Deactivate' : 'Activate'}
+                    >
+                      <i className={`fas ${product.isActive ? 'fa-toggle-on' : 'fa-toggle-off'} me-1`}></i>
+                      {product.isActive ? 'Active' : 'Inactive'}
+                    </button>
+                    <button
+                      className={`btn btn-sm flex-fill ${product.isVisible ? 'btn-info' : 'btn-dark'}`}
+                      onClick={() => toggleProductStatus(product.id!, 'isVisible', product.isVisible)}
+                      title={product.isVisible ? 'Hide' : 'Show'}
+                    >
+                      <i className={`fas ${product.isVisible ? 'fa-eye' : 'fa-eye-slash'} me-1`}></i>
+                      {product.isVisible ? 'Visible' : 'Hidden'}
                     </button>
                   </div>
                 </div>
@@ -590,6 +676,37 @@ export default function ProductManagement() {
             <h6 className="m-0 font-weight-bold text-primary">Products Overview</h6>
           </div>
           <div className="card-body">
+            <div className="row mb-3">
+              <div className="col-md-8">
+                <div className="alert alert-info mb-0">
+                  <small>
+                    <strong>Quick Actions:</strong> 
+                    <i className="fas fa-toggle-on text-success mx-1"></i> Toggle Active/Inactive |
+                    <i className="fas fa-eye text-info mx-1"></i> Toggle Visible/Hidden |
+                    <i className="fas fa-edit text-primary mx-1"></i> Edit |
+                    <i className="fas fa-trash text-danger mx-1"></i> Delete
+                  </small>
+                </div>
+              </div>
+              <div className="col-md-4 text-end">
+                <div className="btn-group btn-group-sm">
+                  <button 
+                    className="btn btn-outline-success btn-sm"
+                    onClick={() => bulkToggleStatus('isActive', true)}
+                    title="Activate All Products"
+                  >
+                    <i className="fas fa-toggle-on me-1"></i>Activate All
+                  </button>
+                  <button 
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => bulkToggleStatus('isActive', false)}
+                    title="Deactivate All Products"
+                  >
+                    <i className="fas fa-toggle-off me-1"></i>Deactivate All
+                  </button>
+                </div>
+              </div>
+            </div>
             <div className="table-responsive">
               <table className="table table-bordered table-hover">
                 <thead className="table-light">
@@ -644,21 +761,39 @@ export default function ProductManagement() {
                         )}
                       </td>
                       <td>
-                        <div className="btn-group">
-                          <button
-                            className="btn btn-outline-primary btn-sm"
-                            onClick={() => handleEdit(product)}
-                            title="Edit"
-                          >
-                            <i className="fas fa-edit"></i>
-                          </button>
-                          <button
-                            className="btn btn-outline-danger btn-sm"
-                            onClick={() => handleDelete(product.id!)}
-                            title="Delete"
-                          >
-                            <i className="fas fa-trash"></i>
-                          </button>
+                        <div className="d-flex flex-column gap-1">
+                          <div className="btn-group btn-group-sm">
+                            <button
+                              className="btn btn-outline-primary btn-sm"
+                              onClick={() => handleEdit(product)}
+                              title="Edit"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              className="btn btn-outline-danger btn-sm"
+                              onClick={() => handleDelete(product.id!)}
+                              title="Delete"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </div>
+                          <div className="btn-group btn-group-sm">
+                            <button
+                              className={`btn btn-sm ${product.isActive ? 'btn-success' : 'btn-secondary'}`}
+                              onClick={() => toggleProductStatus(product.id!, 'isActive', product.isActive)}
+                              title={product.isActive ? 'Deactivate Product' : 'Activate Product'}
+                            >
+                              <i className={`fas ${product.isActive ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
+                            </button>
+                            <button
+                              className={`btn btn-sm ${product.isVisible ? 'btn-info' : 'btn-dark'}`}
+                              onClick={() => toggleProductStatus(product.id!, 'isVisible', product.isVisible)}
+                              title={product.isVisible ? 'Hide Product' : 'Show Product'}
+                            >
+                              <i className={`fas ${product.isVisible ? 'fa-eye' : 'fa-eye-slash'}`}></i>
+                            </button>
+                          </div>
                         </div>
                       </td>
                     </tr>

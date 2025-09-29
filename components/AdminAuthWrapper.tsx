@@ -116,25 +116,34 @@ function AdminAuthProvider({ user, onLogout, children }: AdminAuthProviderProps)
       {/* Inject logout functionality into admin layout */}
       <script dangerouslySetInnerHTML={{
         __html: `
+          function handleAdminLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+              fetch('/api/auth/admin/logout', {
+                method: 'POST',
+                credentials: 'include'
+              }).then(() => {
+                window.location.reload();
+              }).catch((error) => {
+                console.error('Logout error:', error);
+                window.location.reload();
+              });
+            }
+          }
+          
           document.addEventListener('DOMContentLoaded', function() {
+            const topbar = document.querySelector('.navbar-nav.ml-auto');
             if (topbar && !document.querySelector('.logout-item')) {
               const logoutItem = document.createElement('li');
               logoutItem.className = 'nav-item logout-item';
               logoutItem.innerHTML = \`
                 <button class="btn logout-btn" onclick="handleAdminLogout()">
                   <i class="fas fa-sign-out-alt me-1"></i>
-                  Logout (\${${JSON.stringify(user?.username)}} - \${${JSON.stringify(user?.role)}})
+                  Logout (${user?.username} - ${user?.role})
                 </button>
               \`;
               topbar.appendChild(logoutItem);
             }
           });
-          
-            if (confirm('Are you sure you want to logout?')) {
-              ${onLogout.toString()}();
-              window.location.reload();
-            }
-          };
         `
       }} />
     </div>

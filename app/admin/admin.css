@@ -1,5 +1,6 @@
 /* ===== ADMIN-SPECIFIC STYLES ===== */
 /* This file contains styles that only apply to the admin area */
+/* Updated: 2025-09-28 - Fixed white background issue */
 
 /* Scope all admin styles to .admin-layout class */
 .admin-layout {
@@ -22,6 +23,134 @@
 /* Admin sidebar styles */
 .admin-layout .sidebar {
   background: linear-gradient(180deg, var(--admin-primary) 10%, #224abe 100%);
+}
+
+/* Sidebar collapse functionality */
+.admin-layout .collapse {
+  display: none;
+}
+
+.admin-layout .collapse.show {
+  display: block;
+}
+
+.admin-layout .nav-link.collapsed::after {
+  transform: rotate(0);
+}
+
+.admin-layout .nav-link:not(.collapsed)::after {
+  transform: rotate(90deg);
+}
+
+/* Sidebar navigation improvements */
+.admin-layout .sidebar .nav-link {
+  position: relative;
+  padding: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s;
+}
+
+.admin-layout .sidebar .nav-link:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.admin-layout .sidebar .nav-link.active {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Button-based navigation styling */
+.admin-layout .sidebar .nav-link.w-100 {
+  text-align: left;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.admin-layout .sidebar .nav-link.w-100:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.admin-layout .sidebar .nav-link.w-100:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.admin-layout .sidebar .nav-link.w-100.active {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.admin-layout .collapse-inner {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+  backdrop-filter: blur(10px);
+}
+
+/* Force override any Bootstrap white backgrounds */
+.admin-layout .sidebar .collapse-inner {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.admin-layout .sidebar .bg-white {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Additional overrides for any nested white backgrounds */
+.admin-layout .sidebar .collapse .py-2 {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.admin-layout .sidebar .rounded {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.admin-layout .collapse-item {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  transition: all 0.3s;
+  border-radius: 0.25rem;
+  margin: 0.125rem 0.5rem;
+}
+
+.admin-layout .collapse-item:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  text-decoration: none;
+  transform: translateX(4px);
+}
+
+.admin-layout .collapse-item.active {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-weight: 600;
+}
+
+.admin-layout .collapse-header {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  padding: 0 1rem;
+}
+
+.admin-layout .dropdown-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin: 0.5rem 1rem;
 }
 
 /* Admin button overrides */
