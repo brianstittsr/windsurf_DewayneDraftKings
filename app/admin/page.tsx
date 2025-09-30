@@ -17,6 +17,8 @@ import ProfileManagement from '@/components/ProfileManagement';
 import ProductManagement from '@/components/ProductManagement';
 import GoHighLevelIntegration from '@/components/GoHighLevelIntegration';
 import FacebookLinksManagement from '@/components/FacebookLinksManagement';
+import SeasonManagement from '@/components/SeasonManagement';
+import SeasonConfigManagement from '@/components/SeasonConfigManagement';
 
 // Simple dashboard components
 function StatsOverview() {
@@ -426,51 +428,7 @@ function AdminPageContent() {
       case 'seasons':
         return (
           <div className="fade-in">
-            <div className="d-sm-flex align-items-center justify-content-between mb-4">
-              <h1 className="h3 mb-0 text-gray-800">Season Management</h1>
-              <button className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <i className="fas fa-plus fa-sm text-white-50"></i> Create Season
-              </button>
-            </div>
-            <div className="row">
-              <div className="col-12">
-                <div className="card shadow mb-4">
-                  <div className="card-header py-3">
-                    <h6 className="m-0 font-weight-bold text-primary">Seasons</h6>
-                  </div>
-                  <div className="card-body">
-                    <div className="table-responsive">
-                      <table className="table table-bordered" width="100%" cellSpacing="0">
-                        <thead>
-                          <tr>
-                            <th>Season</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Teams</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td>Fall 2024</td>
-                            <td>2024-09-01</td>
-                            <td>2024-12-15</td>
-                            <td>12</td>
-                            <td><span className="badge badge-success">Active</span></td>
-                            <td>
-                              <button className="btn btn-sm btn-primary mr-2">Edit</button>
-                              <button className="btn btn-sm btn-info mr-2">View</button>
-                              <button className="btn btn-sm btn-danger">Archive</button>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <SeasonManagement />
           </div>
         );
 
@@ -569,6 +527,13 @@ function AdminPageContent() {
         return (
           <div className="fade-in">
             <FacebookLinksManagement />
+          </div>
+        );
+
+      case 'season-config':
+        return (
+          <div className="fade-in">
+            <SeasonConfigManagement />
           </div>
         );
 

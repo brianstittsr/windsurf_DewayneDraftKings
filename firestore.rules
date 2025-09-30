@@ -359,5 +359,10 @@ service cloud.firestore {
     match /facebook_links/{linkId} {
       allow read, write: if true;
     }
+
+    // Season Configuration collection - Allow all operations for development
+    match /season_config/{configId} {
+      allow read, write: if true;
+    }
   }
 }

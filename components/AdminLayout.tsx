@@ -214,6 +214,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <i className="fas fa-calendar-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                   Seasons
                 </Link>
+                <Link className={`collapse-item ${isActive('season-config') ? 'active' : ''}`} href="/admin?tab=season-config">
+                  <i className="fas fa-cog fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Season Configuration
+                </Link>
                 <Link className={`collapse-item ${isActive('teams') ? 'active' : ''}`} href="/admin?tab=teams">
                   <i className="fas fa-users fa-sm fa-fw mr-2 text-gray-400"></i>
                   Teams
