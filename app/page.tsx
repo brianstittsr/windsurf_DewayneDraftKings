@@ -168,11 +168,30 @@ export default function Home() {
         <div className="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
           <div className="d-flex justify-content-center">
             <div className="text-center">
+              <div className="badge bg-warning text-dark mb-3 px-4 py-2">
+                <i className="fas fa-football-ball me-2"></i>
+                2025 FALL SEASON NOW OPEN
+              </div>
               <h1 className="mx-auto my-0 text-uppercase">All Pro Sports</h1>
-              <h2 className="text-white-50 mx-auto mt-2 mb-5">Elite athletic leagues with automated SMS updates, player profiles, and real-time notifications.</h2>
-              <Link href="/pricing">
-                <button className="btn btn-primary">Join League Now</button>
-              </Link>
+              <h2 className="text-white-50 mx-auto mt-2 mb-4">Flag Football League - Registration Open!</h2>
+              <p className="text-white mb-4">
+                <strong>Season Dates:</strong> September 28 - November 16, 2025<br/>
+                <strong>Registration Closes:</strong> November 9, 2025 at 6:00 PM
+              </p>
+              <div className="d-flex gap-3 justify-content-center">
+                <Link href="/pricing">
+                  <button className="btn btn-primary btn-lg">
+                    <i className="fas fa-user-plus me-2"></i>
+                    Register Now - $59
+                  </button>
+                </Link>
+                <Link href="/2025-season">
+                  <button className="btn btn-outline-light btn-lg">
+                    <i className="fas fa-info-circle me-2"></i>
+                    Season Details
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

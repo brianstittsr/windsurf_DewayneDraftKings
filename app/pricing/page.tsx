@@ -93,8 +93,16 @@ export default function PricingPage() {
         <div className="container">
           <div className="row justify-content-center text-center">
             <div className="col-lg-8">
+              <div className="badge bg-warning text-dark mb-3 px-4 py-2">
+                <i className="fas fa-football-ball me-2"></i>
+                2025 FALL SEASON - REGISTRATION OPEN
+              </div>
               <h1 className="display-4 fw-bold mb-4">Join All Pro Sports</h1>
-              <p className="lead mb-4">
+              <p className="lead mb-3">
+                <strong>Season Dates:</strong> September 28 - November 16, 2025<br/>
+                <strong>Registration Closes:</strong> November 9, 2025 at 6:00 PM
+              </p>
+              <p className="mb-4">
                 Choose your registration type and join our elite athletic community. 
                 All plans include SMS updates, professional statistics tracking, and team support.
               </p>
