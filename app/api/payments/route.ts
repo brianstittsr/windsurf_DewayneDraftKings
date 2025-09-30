@@ -220,3 +220,45 @@ export async function POST(request: NextRequest) {
     }, { status: 500 });
   }
 }
+
+// DELETE /api/payments - Delete payment record
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const paymentId = searchParams.get('id');
+    
+    if (!paymentId) {
+      return NextResponse.json({
+        success: false,
+        error: 'Payment ID is required'
+      }, { status: 400 });
+    }
+    
+    const { db } = await import('../../../lib/firebase').catch(() => ({ db: null }));
+    
+    if (!db) {
+      return NextResponse.json({
+        success: false,
+        error: 'Database unavailable'
+      }, { status: 503 });
+    }
+
+    const { doc, deleteDoc } = await import('firebase/firestore');
+    
+    const paymentRef = doc(db, 'payments', paymentId);
+    await deleteDoc(paymentRef);
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Payment record deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting payment:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to delete payment record',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  }
+}

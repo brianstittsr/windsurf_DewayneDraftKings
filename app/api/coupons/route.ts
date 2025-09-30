@@ -21,14 +21,36 @@ export async function GET(request: NextRequest) {
     const q = query(couponsRef, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     
-    const coupons = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || null,
-      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || null,
-      startDate: doc.data().startDate?.toDate?.()?.toISOString()?.split('T')[0] || doc.data().startDate,
-      expirationDate: doc.data().expirationDate?.toDate?.()?.toISOString()?.split('T')[0] || doc.data().expirationDate
-    }));
+    const coupons = snapshot.docs.map(doc => {
+      const data = doc.data();
+      
+      // Helper function to convert dates safely
+      const convertDate = (dateField: any) => {
+        if (!dateField) return null;
+        if (typeof dateField === 'string') return dateField;
+        if (dateField.toDate) return dateField.toDate().toISOString();
+        if (dateField instanceof Date) return dateField.toISOString();
+        return null;
+      };
+      
+      return {
+        id: doc.id,
+        code: data.code,
+        name: data.name,
+        description: data.description,
+        discountType: data.discountType,
+        discountValue: data.discountValue,
+        isActive: data.isActive,
+        maxUses: data.maxUses,
+        usedCount: data.usedCount || 0,
+        applicableItems: data.applicableItems || [],
+        minimumOrderAmount: data.minimumOrderAmount || 0,
+        createdAt: convertDate(data.createdAt),
+        updatedAt: convertDate(data.updatedAt),
+        startDate: convertDate(data.startDate),
+        expirationDate: convertDate(data.expirationDate)
+      };
+    });
 
     return NextResponse.json({
       success: true,
