@@ -61,7 +61,22 @@ export default function ProductManagement() {
     try {
       const response = await fetch('/api/products');
       const data = await response.json();
-      setProducts(data.products || []);
+      
+      // Sort products: visible and active first, then by display order
+      const sortedProducts = (data.products || []).sort((a: Product, b: Product) => {
+        // First priority: isVisible (visible items first)
+        if (a.isVisible !== b.isVisible) {
+          return a.isVisible ? -1 : 1;
+        }
+        // Second priority: isActive (active items first)
+        if (a.isActive !== b.isActive) {
+          return a.isActive ? -1 : 1;
+        }
+        // Third priority: displayOrder (lower numbers first)
+        return (a.displayOrder || 999) - (b.displayOrder || 999);
+      });
+      
+      setProducts(sortedProducts);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -593,9 +608,9 @@ export default function ProductManagement() {
       ) : viewMode === 'cards' ? (
         /* Card View */
         <div className="row">
-          {products.map((product) => (
+          {products.map((product, index) => (
             <div key={product.id} className="col-lg-4 col-md-6 mb-4">
-              <div className={`card h-100 ${product.popular ? 'border-warning' : ''}`}>
+              <div className={`card h-100 ${product.popular ? 'border-warning' : ''} ${!product.isVisible ? 'opacity-75' : ''}`}>
                 {product.popular && (
                   <div className="card-header bg-warning text-dark text-center">
                     <small><i className="fas fa-star me-1"></i>Most Popular</small>
