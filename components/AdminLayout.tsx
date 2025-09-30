@@ -286,6 +286,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <i className="fas fa-plug fa-sm fa-fw mr-2 text-gray-400"></i>
                   GoHighLevel
                 </Link>
+                <Link className={`collapse-item ${isActive('facebook-links') ? 'active' : ''}`} href="/admin?tab=facebook-links">
+                  <i className="fab fa-facebook fa-sm fa-fw mr-2 text-primary"></i>
+                  Facebook Links
+                </Link>
               </div>
             </div>
           </li>

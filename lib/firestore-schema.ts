@@ -1039,7 +1039,8 @@ export const COLLECTIONS = {
   STAFF_KPIS: 'staff_kpis',
   ENHANCED_EVENTS: 'enhanced_events',
   ANALYTICS: 'analytics',
-  CONSENT_RECORDS: 'consent_records'
+  CONSENT_RECORDS: 'consent_records',
+  FACEBOOK_LINKS: 'facebook_links'
 } as const;
 
 // Subcollections

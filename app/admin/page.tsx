@@ -16,6 +16,7 @@ import MealPlanManagement from '@/components/MealPlanManagement';
 import ProfileManagement from '@/components/ProfileManagement';
 import ProductManagement from '@/components/ProductManagement';
 import GoHighLevelIntegration from '@/components/GoHighLevelIntegration';
+import FacebookLinksManagement from '@/components/FacebookLinksManagement';
 
 // Simple dashboard components
 function StatsOverview() {
@@ -561,6 +562,13 @@ function AdminPageContent() {
         return (
           <div className="fade-in">
             <GoHighLevelIntegration />
+          </div>
+        );
+
+      case 'facebook-links':
+        return (
+          <div className="fade-in">
+            <FacebookLinksManagement />
           </div>
         );
 

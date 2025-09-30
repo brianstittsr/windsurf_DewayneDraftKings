@@ -354,5 +354,10 @@ service cloud.firestore {
     match /consent_records/{recordId} {
       allow read, write: if true;
     }
+
+    // Facebook Links collection - Allow all operations for development
+    match /facebook_links/{linkId} {
+      allow read, write: if true;
+    }
   }
 }
