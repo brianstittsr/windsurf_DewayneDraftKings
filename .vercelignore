@@ -1,0 +1,55 @@
+# Vercel ignore file
+# Files and directories to ignore during Vercel deployment
+
+# Local environment
+.env.local
+.env*.local
+
+# Development files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build artifacts
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Scripts (don't deploy test scripts)
+scripts/test-*.js
+scripts/debug-*.js
+test-*.js
+*-debug.js
+quick-check-*.js
+verify-*.js
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

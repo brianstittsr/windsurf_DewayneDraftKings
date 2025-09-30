@@ -8,7 +8,9 @@ const nextConfig = {
     // Disable ESLint during builds
     ignoreDuringBuilds: true,
   },
-  swcMinify: false,
+  swcMinify: true,
+  // Optimize production builds
+  productionBrowserSourceMaps: false,
   // Force disable type checking
   onDemandEntries: {
     // period (in ms) where the server will keep pages in the buffer
@@ -16,6 +18,8 @@ const nextConfig = {
     // number of pages that should be kept simultaneously without being disposed
     pagesBufferLength: 2,
   },
+  // Optimize output
+  output: 'standalone',
   env: {
     NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
