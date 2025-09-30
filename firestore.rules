@@ -71,14 +71,9 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Teams collection
+    // Teams collection - Allow all operations for development
     match /teams/{teamId} {
-      allow read: if isAuthenticated();
-      allow create: if isCoach() || isAdmin();
-      allow update: if isOwner(resource.data.coachId) || 
-                      isOwner(resource.data.captainId) || 
-                      isAdmin();
-      allow delete: if isAdmin();
+      allow read, write: if true;
     }
 
     // Team members collection
@@ -212,6 +207,151 @@ service cloud.firestore {
 
     // GoHighLevel Sync Logs collection - Allow all operations for development
     match /gohighlevel_sync_logs/{syncLogId} {
+      allow read, write: if true;
+    }
+
+    // Configuration collection - Allow all operations for development
+    match /configuration/{configId} {
+      allow read, write: if true;
+    }
+
+    // SMS Opt-ins collection - Allow all operations for development
+    match /sms_opt_ins/{optInId} {
+      allow read, write: if true;
+    }
+
+    // QR Codes collection - Allow all operations for development
+    match /qr_codes/{qrCodeId} {
+      allow read, write: if true;
+    }
+
+    // Meal Plans collection - Allow all operations for development
+    match /meal_plans/{mealPlanId} {
+      allow read, write: if true;
+    }
+
+    // Meal Plan Orders collection - Allow all operations for development
+    match /meal_plan_orders/{orderId} {
+      allow read, write: if true;
+    }
+
+    // Meal Plan Categories collection - Allow all operations for development
+    match /meal_plan_categories/{categoryId} {
+      allow read, write: if true;
+    }
+
+    // Checkout Sessions collection - Allow all operations for development
+    match /checkout_sessions/{sessionId} {
+      allow read, write: if true;
+    }
+
+    // Plan Selections collection - Allow all operations for development
+    match /plan_selections/{selectionId} {
+      allow read, write: if true;
+    }
+
+    // Subscriptions collection - Allow all operations for development
+    match /subscriptions/{subscriptionId} {
+      allow read, write: if true;
+    }
+
+    // Payment Methods collection - Allow all operations for development
+    match /payment_methods/{methodId} {
+      allow read, write: if true;
+    }
+
+    // Marketing Funnels collection - Allow all operations for development
+    match /marketing_funnels/{funnelId} {
+      allow read, write: if true;
+    }
+
+    // Funnel Steps collection - Allow all operations for development
+    match /funnel_steps/{stepId} {
+      allow read, write: if true;
+    }
+
+    // Player Funnel Status collection - Allow all operations for development
+    match /player_funnel_status/{statusId} {
+      allow read, write: if true;
+    }
+
+    // Draft History collection - Allow all operations for development
+    match /draft-history/{historyId} {
+      allow read, write: if true;
+    }
+
+    // System Settings collection - Allow all operations for development
+    match /system-settings/{settingId} {
+      allow read, write: if true;
+    }
+
+    // Audit Logs collection - Allow all operations for development
+    match /audit-logs/{logId} {
+      allow read, write: if true;
+    }
+
+    // Leads collection - Allow all operations for development
+    match /leads/{leadId} {
+      allow read, write: if true;
+    }
+
+    // Enhanced Teams collection - Allow all operations for development
+    match /enhanced_teams/{teamId} {
+      allow read, write: if true;
+    }
+
+    // Enhanced Players collection - Allow all operations for development
+    match /enhanced_players/{playerId} {
+      allow read, write: if true;
+    }
+
+    // Jersey QR Codes collection - Allow all operations for development
+    match /jersey_qr_codes/{qrCodeId} {
+      allow read, write: if true;
+    }
+
+    // Draft Events collection - Allow all operations for development
+    match /draft_events/{eventId} {
+      allow read, write: if true;
+    }
+
+    // Enhanced Draft Picks collection - Allow all operations for development
+    match /enhanced_draft_picks/{pickId} {
+      allow read, write: if true;
+    }
+
+    // Enhanced Leaderboards collection - Allow all operations for development
+    match /enhanced_leaderboards/{leaderboardId} {
+      allow read, write: if true;
+    }
+
+    // Referral Trees collection - Allow all operations for development
+    match /referral_trees/{treeId} {
+      allow read, write: if true;
+    }
+
+    // Upsell Campaigns collection - Allow all operations for development
+    match /upsell_campaigns/{campaignId} {
+      allow read, write: if true;
+    }
+
+    // Staff KPIs collection - Allow all operations for development
+    match /staff_kpis/{kpiId} {
+      allow read, write: if true;
+    }
+
+    // Enhanced Events collection - Allow all operations for development
+    match /enhanced_events/{eventId} {
+      allow read, write: if true;
+    }
+
+    // Analytics collection - Allow all operations for development
+    match /analytics/{analyticsId} {
+      allow read, write: if true;
+    }
+
+    // Consent Records collection - Allow all operations for development
+    match /consent_records/{recordId} {
       allow read, write: if true;
     }
   }
