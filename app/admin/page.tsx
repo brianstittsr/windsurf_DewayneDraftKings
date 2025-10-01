@@ -19,6 +19,7 @@ import GoHighLevelIntegration from '@/components/GoHighLevelIntegration';
 import FacebookLinksManagement from '@/components/FacebookLinksManagement';
 import SeasonManagement from '@/components/SeasonManagement';
 import SeasonConfigManagement from '@/components/SeasonConfigManagement';
+import PlayerTransferManagement from '@/components/PlayerTransferManagement';
 
 // Simple dashboard components
 function StatsOverview() {
@@ -534,6 +535,13 @@ function AdminPageContent() {
         return (
           <div className="fade-in">
             <SeasonConfigManagement />
+          </div>
+        );
+
+      case 'player-transfers':
+        return (
+          <div className="fade-in">
+            <PlayerTransferManagement />
           </div>
         );
 

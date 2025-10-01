@@ -364,5 +364,10 @@ service cloud.firestore {
     match /season_config/{configId} {
       allow read, write: if true;
     }
+
+    // Player Transfers collection - Allow all operations for development
+    match /player_transfers/{transferId} {
+      allow read, write: if true;
+    }
   }
 }

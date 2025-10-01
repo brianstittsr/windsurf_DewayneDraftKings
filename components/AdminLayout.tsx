@@ -222,6 +222,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <i className="fas fa-users fa-sm fa-fw mr-2 text-gray-400"></i>
                   Teams
                 </Link>
+                <Link className={`collapse-item ${isActive('player-transfers') ? 'active' : ''}`} href="/admin?tab=player-transfers">
+                  <i className="fas fa-exchange-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Player Transfers
+                </Link>
                 <div className="dropdown-divider"></div>
                 <h6 className="collapse-header">Scheduling:</h6>
                 <Link className={`collapse-item ${isActive('games') ? 'active' : ''}`} href="/admin?tab=games">
