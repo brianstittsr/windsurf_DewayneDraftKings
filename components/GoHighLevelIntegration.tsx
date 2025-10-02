@@ -203,21 +203,27 @@ export default function GoHighLevelIntegration() {
       const data = await response.json();
 
       if (data.success) {
-        // Step 2: Storing workflows
-        setImportProgress({ current: 2, total: 3, status: `Storing ${data.count} workflows in database...` });
-        await new Promise(resolve => setTimeout(resolve, 500)); // Brief pause for UI feedback
-        
-        // Step 3: Complete
-        setImportProgress({ current: 3, total: 3, status: 'Import complete!' });
-        setImportedWorkflows(data.workflows);
-        
-        setTimeout(() => {
-          alert(`Successfully imported ${data.count} workflows from GoHighLevel!\n\n${data.message || ''}`);
+        // Check if we actually got workflows or just an empty response
+        if (data.count === 0) {
           setImportProgress({ current: 0, total: 0, status: '' });
-        }, 500);
+          alert(`⚠️ No workflows imported\n\n${data.message || 'No workflows found in your GoHighLevel account.'}\n\nPlease check:\n1. GoHighLevel API credentials are configured\n2. You have workflows in your GHL account\n3. API key has proper permissions`);
+        } else {
+          // Step 2: Storing workflows
+          setImportProgress({ current: 2, total: 3, status: `Storing ${data.count} workflows in database...` });
+          await new Promise(resolve => setTimeout(resolve, 500)); // Brief pause for UI feedback
+          
+          // Step 3: Complete
+          setImportProgress({ current: 3, total: 3, status: 'Import complete!' });
+          setImportedWorkflows(data.workflows);
+          
+          setTimeout(() => {
+            alert(`✅ Successfully imported ${data.count} workflows from GoHighLevel!`);
+            setImportProgress({ current: 0, total: 0, status: '' });
+          }, 500);
+        }
       } else {
         setImportProgress({ current: 0, total: 0, status: '' });
-        alert(`Error: ${data.error || 'Failed to import workflows'}`);
+        alert(`❌ Error: ${data.error || 'Failed to import workflows'}`);
       }
     } catch (error) {
       console.error('Error importing workflows:', error);
