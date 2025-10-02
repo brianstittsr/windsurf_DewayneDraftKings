@@ -262,9 +262,32 @@ export default function PaymentManagement() {
       klarna: 'fab fa-klarna',
       affirm: 'fas fa-money-check-alt',
       bank_transfer: 'fas fa-university',
-      cash: 'fas fa-money-bill'
+      cash: 'fas fa-money-bill',
+      cashapp: 'fas fa-dollar-sign',
+      google_pay: 'fab fa-google-pay',
+      apple_pay: 'fab fa-apple-pay',
+      amazon_pay: 'fab fa-amazon-pay',
+      free_registration: 'fas fa-gift',
+      check: 'fas fa-money-check'
     };
     return icons[type as keyof typeof icons] || 'fas fa-credit-card';
+  };
+
+  const getPaymentMethodName = (type: string) => {
+    const names: { [key: string]: string } = {
+      card: 'Credit/Debit Card',
+      klarna: 'Klarna',
+      affirm: 'Affirm',
+      bank_transfer: 'Bank Transfer',
+      cash: 'Cash',
+      cashapp: 'Cash App',
+      google_pay: 'Google Pay',
+      apple_pay: 'Apple Pay',
+      amazon_pay: 'Amazon Pay',
+      free_registration: 'Free Registration',
+      check: 'Check'
+    };
+    return names[type] || type;
   };
 
   return (
@@ -448,7 +471,7 @@ export default function PaymentManagement() {
                       </td>
                       <td>
                         <i className={`${getPaymentMethodIcon(typeof payment.paymentMethod === 'string' ? payment.paymentMethod : payment.paymentMethod?.type || 'card')} me-2`}></i>
-                        {typeof payment.paymentMethod === 'string' ? payment.paymentMethod : payment.paymentMethod?.type || 'card'}
+                        {getPaymentMethodName(typeof payment.paymentMethod === 'string' ? payment.paymentMethod : payment.paymentMethod?.type || 'card')}
                       </td>
                       <td>
                         {(payment as any).couponCode ? (
@@ -717,12 +740,16 @@ export default function PaymentManagement() {
                     value={createFormData.paymentMethod}
                     onChange={(e) => setCreateFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
                   >
-                    <option value="card">Credit/Debit Card</option>
-                    <option value="klarna">Klarna</option>
-                    <option value="affirm">Affirm</option>
-                    <option value="cash">Cash</option>
-                    <option value="check">Check</option>
-                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="card">💳 Credit/Debit Card</option>
+                    <option value="klarna">🛍️ Klarna</option>
+                    <option value="affirm">✅ Affirm</option>
+                    <option value="cashapp">💵 Cash App</option>
+                    <option value="google_pay">🔵 Google Pay</option>
+                    <option value="apple_pay">🍎 Apple Pay</option>
+                    <option value="amazon_pay">📦 Amazon Pay</option>
+                    <option value="cash">💰 Cash</option>
+                    <option value="check">📝 Check</option>
+                    <option value="bank_transfer">🏦 Bank Transfer</option>
                   </select>
                 </div>
               </div>
