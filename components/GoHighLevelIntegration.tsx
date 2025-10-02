@@ -55,7 +55,9 @@ export default function GoHighLevelIntegration() {
   // Import workflows state
   const [importedWorkflows, setImportedWorkflows] = useState<any[]>([]);
   const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0, status: '' });
   const [converting, setConverting] = useState<string | null>(null);
+  const [convertProgress, setConvertProgress] = useState({ current: 0, total: 0, status: '' });
   const [convertedWorkflows, setConvertedWorkflows] = useState<Map<string, string>>(new Map());
   useEffect(() => {
     fetchIntegrations();
@@ -192,27 +194,51 @@ export default function GoHighLevelIntegration() {
 
   const handleImportWorkflows = async () => {
     setImporting(true);
+    setImportProgress({ current: 0, total: 3, status: 'Connecting to GoHighLevel...' });
+    
     try {
+      // Step 1: Fetch workflows from GHL
+      setImportProgress({ current: 1, total: 3, status: 'Fetching workflows from GoHighLevel...' });
       const response = await fetch('/api/ghl/import-workflows');
       const data = await response.json();
 
       if (data.success) {
+        // Step 2: Storing workflows
+        setImportProgress({ current: 2, total: 3, status: `Storing ${data.count} workflows in database...` });
+        await new Promise(resolve => setTimeout(resolve, 500)); // Brief pause for UI feedback
+        
+        // Step 3: Complete
+        setImportProgress({ current: 3, total: 3, status: 'Import complete!' });
         setImportedWorkflows(data.workflows);
-        alert(`Successfully imported ${data.count} workflows from GoHighLevel!`);
+        
+        setTimeout(() => {
+          alert(`Successfully imported ${data.count} workflows from GoHighLevel!\n\n${data.message || ''}`);
+          setImportProgress({ current: 0, total: 0, status: '' });
+        }, 500);
       } else {
-        alert(`Error: ${data.error}`);
+        setImportProgress({ current: 0, total: 0, status: '' });
+        alert(`Error: ${data.error || 'Failed to import workflows'}`);
       }
     } catch (error) {
       console.error('Error importing workflows:', error);
+      setImportProgress({ current: 0, total: 0, status: '' });
       alert('Failed to import workflows');
     } finally {
-      setImporting(false);
+      setTimeout(() => setImporting(false), 1000);
     }
   };
 
   const handleConvertWorkflow = async (workflow: any) => {
     setConverting(workflow.id);
+    setConvertProgress({ current: 0, total: 3, status: 'Preparing workflow data...' });
+    
     try {
+      // Step 1: Analyzing workflow
+      setConvertProgress({ current: 1, total: 3, status: 'Analyzing workflow structure...' });
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Step 2: Converting with AI
+      setConvertProgress({ current: 2, total: 3, status: 'Converting to plain language with AI...' });
       const response = await fetch('/api/ghl/convert-workflow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -222,13 +248,20 @@ export default function GoHighLevelIntegration() {
       const data = await response.json();
 
       if (data.success) {
+        // Step 3: Saving prompt
+        setConvertProgress({ current: 3, total: 3, status: 'Saving plain language prompt...' });
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         setConvertedWorkflows(new Map(convertedWorkflows.set(workflow.id, data.plainLanguagePrompt)));
-        alert('Workflow converted to plain language!');
+        setConvertProgress({ current: 0, total: 0, status: '' });
+        alert('Workflow converted to plain language successfully!');
       } else {
+        setConvertProgress({ current: 0, total: 0, status: '' });
         alert(`Error: ${data.error}`);
       }
     } catch (error) {
       console.error('Error converting workflow:', error);
+      setConvertProgress({ current: 0, total: 0, status: '' });
       alert('Failed to convert workflow');
     } finally {
       setConverting(null);
@@ -643,6 +676,28 @@ export default function GoHighLevelIntegration() {
                   </>
                 )}
               </button>
+              
+              {/* Import Progress Bar */}
+              {importing && importProgress.total > 0 && (
+                <div className="mt-3">
+                  <div className="d-flex justify-content-between mb-2">
+                    <small className="text-muted">{importProgress.status}</small>
+                    <small className="text-muted">{importProgress.current} / {importProgress.total}</small>
+                  </div>
+                  <div className="progress" style={{ height: '25px' }}>
+                    <div
+                      className="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                      role="progressbar"
+                      style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+                      aria-valuenow={importProgress.current}
+                      aria-valuemin={0}
+                      aria-valuemax={importProgress.total}
+                    >
+                      {Math.round((importProgress.current / importProgress.total) * 100)}%
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {importedWorkflows.length > 0 && (
@@ -698,6 +753,28 @@ export default function GoHighLevelIntegration() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Convert Progress Bar */}
+                {converting && convertProgress.total > 0 && (
+                  <div className="alert alert-info mt-3">
+                    <div className="d-flex justify-content-between mb-2">
+                      <small className="fw-bold">{convertProgress.status}</small>
+                      <small>{convertProgress.current} / {convertProgress.total}</small>
+                    </div>
+                    <div className="progress" style={{ height: '20px' }}>
+                      <div
+                        className="progress-bar progress-bar-striped progress-bar-animated bg-info"
+                        role="progressbar"
+                        style={{ width: `${(convertProgress.current / convertProgress.total) * 100}%` }}
+                        aria-valuenow={convertProgress.current}
+                        aria-valuemin={0}
+                        aria-valuemax={convertProgress.total}
+                      >
+                        {Math.round((convertProgress.current / convertProgress.total) * 100)}%
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Converted Workflows */}
                 {Array.from(convertedWorkflows.entries()).map(([workflowId, prompt]) => {

@@ -29,39 +29,83 @@ export async function GET() {
     console.log('✓ GHL credentials available');
     console.log('Fetching workflows from GoHighLevel API...');
 
-    // Fetch workflows from GoHighLevel API
-    const response = await fetch(`https://rest.gohighlevel.com/v1/workflows?locationId=${locationId}`, {
-      method: 'GET',
+    // Use Axios to fetch workflows from GoHighLevel API
+    const axios = (await import('axios')).default;
+    
+    const ghlClient = axios.create({
+      baseURL: 'https://rest.gohighlevel.com/v1',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'Version': '2021-07-28'
-      }
+      },
+      timeout: 30000
     });
 
-    console.log('GHL API response status:', response.status);
+    console.log('Fetching workflows from GoHighLevel API...');
+    
+    try {
+      const response = await ghlClient.get(`/workflows?locationId=${locationId}`);
+      const workflows = response.data.workflows || [];
+      
+      console.log('✓ Workflows fetched from GHL:', workflows.length);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('✗ GHL API Error:', response.status, errorText);
+      // Store workflows in Firebase with original GHL format
+      const firebaseModule = await import('../../../../lib/firebase').catch(() => ({ db: null }));
+      const { db } = firebaseModule;
+      
+      if (db) {
+        const { collection, addDoc, Timestamp, query, where, getDocs } = await import('firebase/firestore');
+        
+        for (const workflow of workflows) {
+          try {
+            // Check if workflow already exists
+            const workflowsRef = collection(db, 'ghl_imported_workflows');
+            const q = query(workflowsRef, where('ghlWorkflowId', '==', workflow.id));
+            const existingDocs = await getDocs(q);
+            
+            if (existingDocs.empty) {
+              // Store new workflow with original GHL format
+              await addDoc(workflowsRef, {
+                ghlWorkflowId: workflow.id,
+                name: workflow.name,
+                description: workflow.description || '',
+                status: workflow.status || 'draft',
+                originalFormat: workflow, // Store complete original GHL format
+                trigger: workflow.trigger || {},
+                actions: workflow.actions || [],
+                importedAt: Timestamp.now(),
+                plainLanguagePrompt: null, // Will be generated on demand
+                locationId: locationId
+              });
+              console.log(`✓ Stored workflow: ${workflow.name}`);
+            } else {
+              console.log(`⚠ Workflow already exists: ${workflow.name}`);
+            }
+          } catch (storeError) {
+            console.error(`Error storing workflow ${workflow.name}:`, storeError);
+          }
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        workflows: workflows,
+        count: workflows.length,
+        message: `Successfully imported ${workflows.length} workflows from GoHighLevel`
+      });
+      
+    } catch (axiosError: any) {
+      console.error('✗ GHL API Error:', axiosError.response?.status, axiosError.response?.data);
       
       // Return empty array with error message instead of failing
       return NextResponse.json({
         success: true,
         workflows: [],
         count: 0,
-        message: `GoHighLevel API returned error ${response.status}. Please check your API credentials.`
+        message: `GoHighLevel API error: ${axiosError.response?.status || 'Unknown'}. Please check your API credentials.`
       });
     }
-
-    const data = await response.json();
-    console.log('✓ Workflows fetched:', data.workflows?.length || 0);
-
-    return NextResponse.json({
-      success: true,
-      workflows: data.workflows || [],
-      count: data.workflows?.length || 0
-    });
 
   } catch (error: any) {
     console.error('✗ Error fetching GHL workflows:', error);

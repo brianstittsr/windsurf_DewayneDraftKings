@@ -1,6 +1,8 @@
 // GoHighLevel API Service
 // Documentation: https://highlevel.stoplight.io/docs/integrations/
 
+import axios, { AxiosInstance, AxiosError } from 'axios';
+
 interface GHLWorkflowAction {
   type: 'email' | 'sms' | 'wait' | 'condition' | 'tag' | 'webhook';
   data: any;
@@ -17,40 +19,69 @@ interface GHLWorkflow {
 }
 
 export class GoHighLevelService {
-  private apiKey: string;
-  private baseUrl: string;
+  private client: AxiosInstance;
   private locationId: string;
 
   constructor() {
-    this.apiKey = process.env.GOHIGHLEVEL_API_KEY || '';
+    const apiKey = process.env.GOHIGHLEVEL_API_KEY || '';
     this.locationId = process.env.GOHIGHLEVEL_LOCATION_ID || '';
-    this.baseUrl = 'https://rest.gohighlevel.com/v1';
+    
+    // Create Axios instance with default config
+    this.client = axios.create({
+      baseURL: 'https://rest.gohighlevel.com/v1',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'Version': '2021-07-28'
+      },
+      timeout: 30000 // 30 second timeout
+    });
+
+    // Add request interceptor for logging
+    this.client.interceptors.request.use(
+      (config) => {
+        console.log(`GHL API Request: ${config.method?.toUpperCase()} ${config.url}`);
+        return config;
+      },
+      (error) => {
+        console.error('GHL Request Error:', error);
+        return Promise.reject(error);
+      }
+    );
+
+    // Add response interceptor for error handling
+    this.client.interceptors.response.use(
+      (response) => {
+        console.log(`GHL API Response: ${response.status} ${response.config.url}`);
+        return response;
+      },
+      (error: AxiosError) => {
+        if (error.response) {
+          console.error(`GHL API Error: ${error.response.status}`, error.response.data);
+          throw new Error(`GoHighLevel API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+        } else if (error.request) {
+          console.error('GHL No Response:', error.request);
+          throw new Error('GoHighLevel API: No response received');
+        } else {
+          console.error('GHL Request Setup Error:', error.message);
+          throw new Error(`GoHighLevel API: ${error.message}`);
+        }
+      }
+    );
   }
 
   private async makeRequest(endpoint: string, method: string = 'GET', data?: any) {
-    const headers = {
-      'Authorization': `Bearer ${this.apiKey}`,
-      'Content-Type': 'application/json',
-      'Version': '2021-07-28'
-    };
-
-    const options: RequestInit = {
-      method,
-      headers,
-    };
-
-    if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-      options.body = JSON.stringify(data);
+    try {
+      const response = await this.client.request({
+        url: endpoint,
+        method: method as any,
+        data
+      });
+      return response.data;
+    } catch (error) {
+      console.error('GHL makeRequest error:', error);
+      throw error;
     }
-
-    const response = await fetch(`${this.baseUrl}${endpoint}`, options);
-    
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`GoHighLevel API Error: ${response.status} - ${error}`);
-    }
-
-    return response.json();
   }
 
   // Create a workflow
