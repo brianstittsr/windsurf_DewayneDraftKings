@@ -2077,3 +2077,229 @@ export interface GoHighLevelSyncLog extends BaseDocument {
   triggeredBy: string; // User ID or 'system' for automated syncs
   triggerType: 'manual' | 'scheduled' | 'webhook' | 'event';
 }
+
+// Commissioner Compensation Interface
+export interface CommissionerCompensation extends BaseDocument {
+  commissionerId: string;
+  commissionerName: string;
+  commissionerEmail: string;
+  
+  // Compensation Structure
+  ratePerPlayer: number; // e.g., $1 per player
+  totalPlayers: number;
+  totalEarned: number;
+  
+  // Period
+  periodStart: Timestamp;
+  periodEnd: Timestamp;
+  periodLabel: string; // e.g., "January 2024", "Q1 2024"
+  
+  // Payment Status
+  status: 'pending' | 'processing' | 'paid' | 'failed';
+  paidAt?: Timestamp;
+  paymentMethod?: 'stripe_connect' | 'manual' | 'check' | 'bank_transfer';
+  stripeTransferId?: string;
+  
+  // Player Breakdown
+  playerIds: string[];
+  playerDetails: {
+    playerId: string;
+    playerName: string;
+    registrationDate: Timestamp;
+    amount: number;
+  }[];
+  
+  // Notes
+  notes?: string;
+  processedBy?: string;
+}
+
+// Practice Schedule Interface
+export interface PracticeSchedule extends BaseDocument {
+  // Team Information
+  teamId: string;
+  teamName: string;
+  coachId: string;
+  coachName: string;
+  
+  // Schedule Details
+  practiceDate: Timestamp;
+  startTime: string; // "18:00"
+  endTime: string; // "20:00"
+  duration: number; // in minutes
+  
+  // Location
+  location: string;
+  field?: string;
+  address?: string;
+  
+  // Practice Details
+  practiceType: 'regular' | 'scrimmage' | 'conditioning' | 'film_review' | 'team_building';
+  focus: string[]; // e.g., ["offense", "defense", "special_teams"]
+  notes?: string;
+  
+  // Attendance
+  expectedPlayers: number;
+  attendedPlayers: string[]; // player IDs
+  absentPlayers: string[]; // player IDs
+  attendanceRate?: number;
+  
+  // Status
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  cancelledReason?: string;
+  
+  // Notifications
+  notificationsSent: boolean;
+  notificationSentAt?: Timestamp;
+  remindersSent: number;
+}
+
+// Failed Payment Tracking Interface
+export interface FailedPayment extends BaseDocument {
+  // Payment Information
+  stripePaymentIntentId?: string;
+  amount: number;
+  currency: string;
+  
+  // Customer Information
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  
+  // Failure Details
+  failureReason: string;
+  failureCode?: string;
+  failedAt: Timestamp;
+  attemptCount: number;
+  
+  // Recovery Status
+  status: 'pending' | 'contacted' | 'retry_scheduled' | 'recovered' | 'written_off';
+  contactedAt?: Timestamp;
+  contactedBy?: string;
+  contactMethod?: 'email' | 'phone' | 'sms' | 'in_person';
+  
+  // Recovery Attempts
+  recoveryAttempts: {
+    attemptDate: Timestamp;
+    method: string;
+    result: string;
+    notes?: string;
+  }[];
+  
+  // Resolution
+  recoveredAt?: Timestamp;
+  recoveredAmount?: number;
+  recoveryMethod?: string;
+  
+  // Related Records
+  playerId?: string;
+  registrationId?: string;
+  
+  // Notes
+  notes?: string;
+  priority: 'low' | 'medium' | 'high';
+}
+
+// League Event Management Interface
+export interface LeagueEvent extends BaseDocument {
+  // Event Information
+  name: string;
+  description: string;
+  eventType: 'game' | 'jamboree' | 'showcase' | 'tournament' | 'fundraiser' | 'social' | 'practice';
+  
+  // Date & Time
+  eventDate: Timestamp;
+  startTime: string;
+  endTime: string;
+  duration: number; // in minutes
+  
+  // Location
+  venue: string;
+  address: string;
+  field?: string;
+  
+  // Participants
+  teamsInvolved: string[]; // team IDs
+  expectedAttendees: number;
+  registeredAttendees: string[]; // player/coach IDs
+  actualAttendees?: string[];
+  
+  // Registration
+  requiresRegistration: boolean;
+  registrationDeadline?: Timestamp;
+  registrationFee?: number;
+  maxCapacity?: number;
+  
+  // Status
+  status: 'draft' | 'published' | 'registration_open' | 'registration_closed' | 'in_progress' | 'completed' | 'cancelled';
+  
+  // Promotion
+  promotionStartDate?: Timestamp;
+  promotionChannels: ('email' | 'sms' | 'social' | 'website')[];
+  promotionsSent: number;
+  
+  // Partnerships
+  partners?: string[];
+  sponsors?: string[];
+  
+  // Media
+  imageUrl?: string;
+  videoUrl?: string;
+  
+  // Results (for games/tournaments)
+  results?: {
+    winner?: string;
+    score?: string;
+    highlights?: string[];
+  };
+  
+  // Notifications
+  remindersSent: number;
+  lastReminderAt?: Timestamp;
+  
+  // Metadata
+  createdBy: string;
+  assignedStaff?: string[];
+  notes?: string;
+}
+
+// Player Communication Log Interface
+export interface CommunicationLog extends BaseDocument {
+  // Recipient Information
+  recipientType: 'player' | 'coach' | 'team' | 'all_players' | 'paid_players' | 'custom_list';
+  recipientIds: string[];
+  recipientCount: number;
+  
+  // Message Details
+  subject?: string;
+  message: string;
+  messageType: 'email' | 'sms' | 'push' | 'in_app';
+  
+  // Campaign Information
+  campaignName?: string;
+  purpose: 'update' | 'reminder' | 'announcement' | 'marketing' | 'emergency' | 'payment_reminder';
+  
+  // Delivery Status
+  status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed';
+  scheduledFor?: Timestamp;
+  sentAt?: Timestamp;
+  
+  // Delivery Statistics
+  totalSent: number;
+  delivered: number;
+  failed: number;
+  opened?: number;
+  clicked?: number;
+  
+  // Sender Information
+  sentBy: string;
+  senderName: string;
+  
+  // Related Records
+  eventId?: string;
+  practiceId?: string;
+  
+  // Notes
+  notes?: string;
+}
