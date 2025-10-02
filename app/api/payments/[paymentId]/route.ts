@@ -100,8 +100,32 @@ export async function PUT(
       }, { status: 503 });
     }
 
-    const { doc, updateDoc, Timestamp } = await import('firebase/firestore');
+    const { doc, getDoc, setDoc, updateDoc, Timestamp } = await import('firebase/firestore');
     
+    const paymentRef = doc(db, 'payments', paymentId);
+    const paymentSnap = await getDoc(paymentRef);
+    
+    // If payment doesn't exist in Firebase (e.g., Stripe payment), create it
+    if (!paymentSnap.exists()) {
+      console.log(`Payment ${paymentId} doesn't exist in Firebase, creating it...`);
+      
+      // Create a new document with the update data
+      const newPaymentData = {
+        id: paymentId,
+        ...data,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
+      };
+      
+      await setDoc(paymentRef, newPaymentData);
+      
+      return NextResponse.json({
+        success: true,
+        message: 'Payment created and updated successfully'
+      });
+    }
+    
+    // Payment exists, update it
     const updateData = {
       ...data,
       updatedAt: Timestamp.now()
@@ -110,7 +134,6 @@ export async function PUT(
     // Remove id from update data
     delete updateData.id;
     
-    const paymentRef = doc(db, 'payments', paymentId);
     await updateDoc(paymentRef, updateData);
     
     return NextResponse.json({
@@ -122,7 +145,8 @@ export async function PUT(
     console.error('Error updating payment:', error);
     return NextResponse.json({
       success: false,
-      error: 'Failed to update payment'
+      error: 'Failed to update payment',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }

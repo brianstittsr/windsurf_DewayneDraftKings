@@ -194,11 +194,13 @@ export default function PaymentManagement() {
         alert(`Payment ${newHiddenState ? 'hidden' : 'shown'} successfully!`);
         await fetchPayments();
       } else {
-        alert(`Error updating payment: ${data.error || 'Unknown error'}`);
+        const errorMsg = data.details ? `${data.error}: ${data.details}` : data.error || 'Unknown error';
+        alert(`Error updating payment: ${errorMsg}`);
+        console.error('Update error details:', data);
       }
     } catch (error) {
       console.error('Error toggling payment visibility:', error);
-      alert('Error updating payment. Please try again.');
+      alert(`Error updating payment: ${error instanceof Error ? error.message : 'Please try again.'}`);
     }
   };
 
