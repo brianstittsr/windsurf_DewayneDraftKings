@@ -17,6 +17,8 @@ export async function POST(request: NextRequest) {
       customerName,
       paymentMethod = 'card',
       appliedCoupon,
+      couponDiscount,
+      originalAmount,
       metadata = {},
       paymentMethods = ['card'],
       successUrl,
@@ -73,6 +75,8 @@ export async function POST(request: NextRequest) {
           customerName,
           customerEmail,
           appliedCoupon: appliedCoupon || '',
+          couponDiscount: couponDiscount ? String(couponDiscount) : '',
+          originalAmount: originalAmount ? String(originalAmount) : '',
           paymentMethod
         },
         success_url: successUrl || `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/registration-success?session_id={CHECKOUT_SESSION_ID}`,

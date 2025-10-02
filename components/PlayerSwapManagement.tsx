@@ -54,10 +54,13 @@ export default function PlayerSwapManagement() {
   const [loading, setLoading] = useState(true);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerData | null>(null);
   const [showSwapModal, setShowSwapModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [targetTeamId, setTargetTeamId] = useState('');
   const [swapReason, setSwapReason] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTeam, setFilterTeam] = useState('all');
+  const [editFormData, setEditFormData] = useState<Partial<PlayerData>>({});
 
   useEffect(() => {
     fetchPlayers();
@@ -132,6 +135,96 @@ export default function PlayerSwapManagement() {
     setShowSwapModal(true);
   };
 
+  const openEditModal = (player: PlayerData) => {
+    setSelectedPlayer(player);
+    setEditFormData(player);
+    setShowEditModal(true);
+  };
+
+  const openCreateModal = () => {
+    setEditFormData({});
+    setShowCreateModal(true);
+  };
+
+  const handleCreatePlayer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch('/api/players', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editFormData)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Player created successfully!');
+        setShowCreateModal(false);
+        setEditFormData({});
+        fetchPlayers();
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error creating player:', error);
+      alert('Failed to create player');
+    }
+  };
+
+  const handleUpdatePlayer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedPlayer) return;
+
+    try {
+      const response = await fetch('/api/players', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...editFormData, id: selectedPlayer.id })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Player updated successfully!');
+        setShowEditModal(false);
+        setSelectedPlayer(null);
+        setEditFormData({});
+        fetchPlayers();
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error updating player:', error);
+      alert('Failed to update player');
+    }
+  };
+
+  const handleDeletePlayer = async (playerId: string) => {
+    if (!confirm('Are you sure you want to delete this player? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/players?id=${playerId}`, {
+        method: 'DELETE'
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Player deleted successfully');
+        fetchPlayers();
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting player:', error);
+      alert('Failed to delete player');
+    }
+  };
+
   const filteredPlayers = players.filter(player => {
     const matchesSearch = 
       player.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -147,10 +240,19 @@ export default function PlayerSwapManagement() {
     <div className="player-swap-management">
       <div className="card">
         <div className="card-header bg-primary text-white">
-          <h5 className="mb-0">
-            <i className="fas fa-exchange-alt me-2"></i>
-            Player Swap Management
-          </h5>
+          <div className="d-flex justify-content-between align-items-center">
+            <h5 className="mb-0">
+              <i className="fas fa-exchange-alt me-2"></i>
+              Player Management & Swaps
+            </h5>
+            <button
+              className="btn btn-light btn-sm"
+              onClick={openCreateModal}
+            >
+              <i className="fas fa-plus me-2"></i>
+              Add Player
+            </button>
+          </div>
         </div>
         <div className="card-body">
           <div className="alert alert-info">
@@ -235,13 +337,29 @@ export default function PlayerSwapManagement() {
                         </span>
                       </td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-primary"
-                          onClick={() => openSwapModal(player)}
-                        >
-                          <i className="fas fa-exchange-alt me-1"></i>
-                          Swap Team
-                        </button>
+                        <div className="btn-group btn-group-sm">
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => openSwapModal(player)}
+                            title="Swap Team"
+                          >
+                            <i className="fas fa-exchange-alt"></i>
+                          </button>
+                          <button
+                            className="btn btn-info"
+                            onClick={() => openEditModal(player)}
+                            title="Edit Player"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
+                            className="btn btn-danger"
+                            onClick={() => handleDeletePlayer(player.id)}
+                            title="Delete Player"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -374,6 +492,145 @@ export default function PlayerSwapManagement() {
                   Confirm Swap
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create/Edit Player Modal */}
+      {(showCreateModal || showEditModal) && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  {showCreateModal ? 'Add New Player' : 'Edit Player'}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setShowEditModal(false);
+                    setEditFormData({});
+                  }}
+                ></button>
+              </div>
+              <form onSubmit={showCreateModal ? handleCreatePlayer : handleUpdatePlayer}>
+                <div className="modal-body">
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">First Name *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.firstName || ''}
+                        onChange={(e) => setEditFormData({...editFormData, firstName: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Last Name *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.lastName || ''}
+                        onChange={(e) => setEditFormData({...editFormData, lastName: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Email *</label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        value={editFormData.email || ''}
+                        onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Phone</label>
+                      <input
+                        type="tel"
+                        className="form-control"
+                        value={editFormData.phone || ''}
+                        onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Date of Birth</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={editFormData.dateOfBirth || ''}
+                        onChange={(e) => setEditFormData({...editFormData, dateOfBirth: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Position</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.position || ''}
+                        onChange={(e) => setEditFormData({...editFormData, position: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-12 mb-3">
+                      <label className="form-label">Address</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.address || ''}
+                        onChange={(e) => setEditFormData({...editFormData, address: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-4 mb-3">
+                      <label className="form-label">City</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.city || ''}
+                        onChange={(e) => setEditFormData({...editFormData, city: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-4 mb-3">
+                      <label className="form-label">State</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.state || ''}
+                        onChange={(e) => setEditFormData({...editFormData, state: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-4 mb-3">
+                      <label className="form-label">ZIP Code</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.zipCode || ''}
+                        onChange={(e) => setEditFormData({...editFormData, zipCode: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      setShowEditModal(false);
+                      setEditFormData({});
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    {showCreateModal ? 'Create Player' : 'Update Player'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

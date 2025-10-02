@@ -44,6 +44,53 @@ export async function POST(request: NextRequest) {
       const playerId = session.metadata?.playerId;
       const customerEmail = session.customer_details?.email;
       const appliedCoupon = session.metadata?.appliedCoupon;
+      const couponDiscount = session.metadata?.couponDiscount;
+      const originalAmount = session.metadata?.originalAmount;
+
+      // Save payment record to Firebase with coupon information
+      try {
+        const firebaseModule = await import('../../../../lib/firebase').catch(() => ({ db: null }));
+        const { db } = firebaseModule;
+        
+        if (db) {
+          const { collection, addDoc, Timestamp } = await import('firebase/firestore');
+          
+          const paymentData = {
+            stripeSessionId: session.id,
+            stripePaymentIntentId: session.payment_intent,
+            amount: session.amount_total / 100, // Convert from cents
+            originalAmount: originalAmount ? parseFloat(originalAmount) : session.amount_total / 100,
+            currency: session.currency || 'usd',
+            status: 'succeeded',
+            paymentMethod: session.payment_method_types?.[0] || 'card',
+            
+            // Customer Info
+            customerName: session.customer_details?.name || '',
+            customerEmail: customerEmail || '',
+            customerPhone: session.customer_details?.phone || '',
+            
+            // Coupon Information
+            couponCode: appliedCoupon || null,
+            couponDiscount: couponDiscount ? parseFloat(couponDiscount) : null,
+            couponApplied: !!appliedCoupon,
+            
+            // Player/Registration Info
+            playerId: playerId || null,
+            description: session.metadata?.description || 'Registration Payment',
+            
+            // Metadata
+            metadata: session.metadata || {},
+            createdAt: Timestamp.now(),
+            paidAt: Timestamp.now()
+          };
+          
+          const paymentsRef = collection(db, 'payments');
+          const paymentDoc = await addDoc(paymentsRef, paymentData);
+          console.log('Payment record saved with ID:', paymentDoc.id, 'Coupon:', appliedCoupon);
+        }
+      } catch (paymentSaveError) {
+        console.error('Error saving payment record:', paymentSaveError);
+      }
 
       // Increment coupon usage if a coupon was used
       if (appliedCoupon) {

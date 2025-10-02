@@ -33,16 +33,30 @@ export async function GET() {
     
     const keys = snapshot.docs.map(doc => {
       const data = doc.data();
-      return {
-        id: doc.id,
-        name: data.name,
-        service: data.service,
-        keyValue: decryptKey(data.keyValue), // Decrypt for display
-        isActive: data.isActive,
-        description: data.description,
-        createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
-        lastUsed: data.lastUsed?.toDate?.()?.toISOString() || null
-      };
+      try {
+        return {
+          id: doc.id,
+          name: data.name || '',
+          service: data.service || 'other',
+          keyValue: data.keyValue ? decryptKey(data.keyValue) : '', // Decrypt for display
+          isActive: data.isActive !== undefined ? data.isActive : false,
+          description: data.description || '',
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          lastUsed: data.lastUsed?.toDate?.()?.toISOString() || null
+        };
+      } catch (decryptError) {
+        console.error('Error decrypting key:', decryptError);
+        return {
+          id: doc.id,
+          name: data.name || '',
+          service: data.service || 'other',
+          keyValue: '***DECRYPTION_ERROR***',
+          isActive: false,
+          description: data.description || '',
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          lastUsed: null
+        };
+      }
     });
 
     return NextResponse.json({
@@ -51,11 +65,11 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error fetching API keys:', error);
+    // Return empty array instead of error to prevent UI crash
     return NextResponse.json({ 
-      success: false, 
-      keys: [],
-      error: 'Failed to fetch API keys' 
-    }, { status: 500 });
+      success: true, 
+      keys: []
+    });
   }
 }
 
