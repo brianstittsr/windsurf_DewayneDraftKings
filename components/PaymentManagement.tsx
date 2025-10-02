@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Payment } from '@/lib/firestore-schema';
 
 interface PaymentWithId extends Payment {
@@ -227,21 +227,29 @@ export default function PaymentManagement() {
     }
   };
 
+  // Filter and sort payments
   const filteredPayments = payments.filter(payment => {
-    // Filter out hidden payments unless showHidden is true
-    if ((payment as any).hidden && !showHidden) {
-      return false;
-    }
-    
     const searchLower = searchTerm.toLowerCase();
     const customerName = payment.customerName?.toLowerCase() || '';
     const customerEmail = payment.customerEmail?.toLowerCase() || '';
     const description = payment.description?.toLowerCase() || '';
     
-    return customerName.includes(searchLower) || 
-           customerEmail.includes(searchLower) || 
-           description.includes(searchLower);
+    const matchesSearch = !searchTerm || 
+                         customerName.includes(searchLower) || 
+                         customerEmail.includes(searchLower) || 
+                         description.includes(searchLower);
+    
+    return matchesSearch;
   });
+
+  // Separate visible and hidden payments
+  const visiblePayments = filteredPayments.filter(p => !(p as any).hidden);
+  const hiddenPayments = filteredPayments.filter(p => (p as any).hidden);
+  
+  // Combine: visible first, then hidden at bottom (if showHidden is true)
+  const displayedPayments = showHidden 
+    ? [...visiblePayments, ...hiddenPayments]
+    : visiblePayments;
 
   const getStatusBadge = (status: string) => {
     const statusClasses = {
@@ -407,7 +415,7 @@ export default function PaymentManagement() {
               onChange={(e) => setShowHidden(e.target.checked)}
             />
             <label className="form-check-label" htmlFor="showHiddenCheckbox">
-              Show hidden test entries ({payments.filter(p => (p as any).hidden).length} hidden)
+              Show hidden test entries ({hiddenPayments.length} hidden)
             </label>
           </div>
         </div>
@@ -418,7 +426,7 @@ export default function PaymentManagement() {
         <div className="card-header">
           <h5 className="mb-0">
             <i className="fas fa-credit-card me-2"></i>
-            Payment History ({filteredPayments.length})
+            Payment History ({displayedPayments.length}{showHidden ? ` - ${visiblePayments.length} visible, ${hiddenPayments.length} hidden` : ''})
           </h5>
         </div>
         <div className="card-body p-0">
@@ -428,7 +436,7 @@ export default function PaymentManagement() {
                 <span className="visually-hidden">Loading...</span>
               </div>
             </div>
-          ) : filteredPayments.length === 0 ? (
+          ) : displayedPayments.length === 0 ? (
             <div className="text-center p-4 text-muted">
               <i className="fas fa-receipt fa-3x mb-3"></i>
               <p>No payments found</p>
@@ -450,8 +458,22 @@ export default function PaymentManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPayments.map((payment) => (
-                    <tr key={payment.id}>
+                  {displayedPayments.map((payment, index) => {
+                    const isHidden = (payment as any).hidden;
+                    const isFirstHidden = isHidden && index > 0 && !(displayedPayments[index - 1] as any).hidden;
+                    
+                    return (
+                      <React.Fragment key={payment.id}>
+                        {/* Separator before hidden section */}
+                        {isFirstHidden && showHidden && (
+                          <tr className="table-secondary">
+                            <td colSpan={9} className="text-center fw-bold py-2">
+                              <i className="fas fa-eye-slash me-2"></i>
+                              Hidden Test Entries
+                            </td>
+                          </tr>
+                        )}
+                    <tr className={isHidden ? 'table-light' : ''}>
                       <td>
                         <div>
                           <div className="fw-semibold">{payment.customerName}</div>
@@ -548,7 +570,9 @@ export default function PaymentManagement() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
