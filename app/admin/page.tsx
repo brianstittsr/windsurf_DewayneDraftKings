@@ -16,6 +16,7 @@ import MealPlanManagement from '@/components/MealPlanManagement';
 import ProfileManagement from '@/components/ProfileManagement';
 import ProductManagement from '@/components/ProductManagement';
 import GoHighLevelIntegration from '@/components/GoHighLevelIntegration';
+import WorkflowBuilder from '@/components/WorkflowBuilder';
 import FacebookLinksManagement from '@/components/FacebookLinksManagement';
 import SeasonManagement from '@/components/SeasonManagement';
 import SeasonConfigManagement from '@/components/SeasonConfigManagement';
@@ -521,6 +522,13 @@ function AdminPageContent() {
         return (
           <div className="fade-in">
             <GoHighLevelIntegration />
+          </div>
+        );
+
+      case 'workflows':
+        return (
+          <div className="fade-in">
+            <WorkflowBuilder />
           </div>
         );
 
