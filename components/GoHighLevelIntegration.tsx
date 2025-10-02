@@ -41,6 +41,7 @@ const initialFormData: IntegrationFormData = {
 };
 
 export default function GoHighLevelIntegration() {
+  const [activeTab, setActiveTab] = useState<'integrations' | 'import'>('integrations');
   const [integrations, setIntegrations] = useState<GHLIntegrationType[]>([]);
   const [syncLogs, setSyncLogs] = useState<GoHighLevelSyncLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +51,12 @@ export default function GoHighLevelIntegration() {
   const [formData, setFormData] = useState<IntegrationFormData>(initialFormData);
   const [testingConnection, setTestingConnection] = useState(false);
   const [syncing, setSyncing] = useState<string | null>(null);
+  
+  // Import workflows state
+  const [importedWorkflows, setImportedWorkflows] = useState<any[]>([]);
+  const [importing, setImporting] = useState(false);
+  const [converting, setConverting] = useState<string | null>(null);
+  const [convertedWorkflows, setConvertedWorkflows] = useState<Map<string, string>>(new Map());
   useEffect(() => {
     fetchIntegrations();
     fetchSyncLogs();
@@ -183,6 +190,56 @@ export default function GoHighLevelIntegration() {
     setShowModal(true);
   };
 
+  const handleImportWorkflows = async () => {
+    setImporting(true);
+    try {
+      const response = await fetch('/api/ghl/import-workflows');
+      const data = await response.json();
+
+      if (data.success) {
+        setImportedWorkflows(data.workflows);
+        alert(`Successfully imported ${data.count} workflows from GoHighLevel!`);
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error importing workflows:', error);
+      alert('Failed to import workflows');
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleConvertWorkflow = async (workflow: any) => {
+    setConverting(workflow.id);
+    try {
+      const response = await fetch('/api/ghl/convert-workflow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workflow })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setConvertedWorkflows(new Map(convertedWorkflows.set(workflow.id, data.plainLanguagePrompt)));
+        alert('Workflow converted to plain language!');
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error converting workflow:', error);
+      alert('Failed to convert workflow');
+    } finally {
+      setConverting(null);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert('Copied to clipboard!');
+  };
+
   return (
     <div className="gohighlevel-integration">
       {/* Header */}
@@ -191,12 +248,39 @@ export default function GoHighLevelIntegration() {
           <h3 className="mb-1">GoHighLevel Integration</h3>
           <p className="text-muted mb-0">Manage GoHighLevel API integrations and data synchronization</p>
         </div>
-        <button className="btn btn-primary" onClick={handleCreate}>
-          <i className="fas fa-plus me-2"></i>
-          Add Integration
-        </button>
+        {activeTab === 'integrations' && (
+          <button className="btn btn-primary" onClick={handleCreate}>
+            <i className="fas fa-plus me-2"></i>
+            Add Integration
+          </button>
+        )}
       </div>
 
+      {/* Tabs */}
+      <ul className="nav nav-tabs mb-4">
+        <li className="nav-item">
+          <button
+            className={`nav-link ${activeTab === 'integrations' ? 'active' : ''}`}
+            onClick={() => setActiveTab('integrations')}
+          >
+            <i className="fas fa-plug me-2"></i>
+            Integrations
+          </button>
+        </li>
+        <li className="nav-item">
+          <button
+            className={`nav-link ${activeTab === 'import' ? 'active' : ''}`}
+            onClick={() => setActiveTab('import')}
+          >
+            <i className="fas fa-download me-2"></i>
+            Import Workflows
+          </button>
+        </li>
+      </ul>
+
+      {/* Integrations Tab */}
+      {activeTab === 'integrations' && (
+        <>
       {/* Integrations List */}
       <div className="row">
         <div className="col-lg-8">
@@ -511,6 +595,160 @@ export default function GoHighLevelIntegration() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+        </>
+      )}
+
+      {/* Import Workflows Tab */}
+      {activeTab === 'import' && (
+        <div className="card">
+          <div className="card-header bg-info text-white">
+            <h5 className="mb-0">
+              <i className="fas fa-download me-2"></i>
+              Import Existing Workflows from GoHighLevel
+            </h5>
+          </div>
+          <div className="card-body">
+            <div className="alert alert-info">
+              <h6 className="alert-heading">
+                <i className="fas fa-info-circle me-2"></i>
+                How This Works
+              </h6>
+              <ol className="mb-0">
+                <li>Click "Import Workflows" to fetch all workflows from your GoHighLevel account</li>
+                <li>Review the list of imported workflows</li>
+                <li>Click "Convert to Plain Language" on any workflow</li>
+                <li>AI will generate a plain language prompt describing the workflow</li>
+                <li>Copy the prompt and use it in the AI Workflow Builder to recreate or modify the workflow</li>
+              </ol>
+            </div>
+
+            <div className="mb-4">
+              <button
+                className="btn btn-primary btn-lg"
+                onClick={handleImportWorkflows}
+                disabled={importing}
+              >
+                {importing ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2"></span>
+                    Importing Workflows...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-download me-2"></i>
+                    Import Workflows from GoHighLevel
+                  </>
+                )}
+              </button>
+            </div>
+
+            {importedWorkflows.length > 0 && (
+              <div>
+                <h6 className="fw-bold mb-3">
+                  Imported Workflows ({importedWorkflows.length})
+                </h6>
+                <div className="table-responsive">
+                  <table className="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Workflow Name</th>
+                        <th>ID</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {importedWorkflows.map((workflow) => (
+                        <tr key={workflow.id}>
+                          <td className="fw-bold">{workflow.name}</td>
+                          <td>
+                            <code className="small">{workflow.id}</code>
+                          </td>
+                          <td>
+                            <span className={`badge ${
+                              workflow.status === 'active' ? 'bg-success' : 'bg-secondary'
+                            }`}>
+                              {workflow.status || 'unknown'}
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-sm btn-primary"
+                              onClick={() => handleConvertWorkflow(workflow)}
+                              disabled={converting === workflow.id}
+                            >
+                              {converting === workflow.id ? (
+                                <>
+                                  <span className="spinner-border spinner-border-sm me-1"></span>
+                                  Converting...
+                                </>
+                              ) : (
+                                <>
+                                  <i className="fas fa-magic me-1"></i>
+                                  Convert to Plain Language
+                                </>
+                              )}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Converted Workflows */}
+                {Array.from(convertedWorkflows.entries()).map(([workflowId, prompt]) => {
+                  const workflow = importedWorkflows.find(w => w.id === workflowId);
+                  return (
+                    <div key={workflowId} className="card mt-3 border-success">
+                      <div className="card-header bg-success text-white">
+                        <h6 className="mb-0">
+                          <i className="fas fa-check-circle me-2"></i>
+                          Plain Language Prompt: {workflow?.name}
+                        </h6>
+                      </div>
+                      <div className="card-body">
+                        <div className="mb-3">
+                          <label className="form-label fw-bold">Generated Prompt:</label>
+                          <textarea
+                            className="form-control"
+                            rows={8}
+                            value={prompt}
+                            readOnly
+                          />
+                        </div>
+                        <div className="d-flex gap-2">
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => copyToClipboard(prompt)}
+                          >
+                            <i className="fas fa-copy me-2"></i>
+                            Copy to Clipboard
+                          </button>
+                          <a
+                            href="/admin?tab=workflows"
+                            className="btn btn-success"
+                          >
+                            <i className="fas fa-robot me-2"></i>
+                            Use in AI Workflow Builder
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {importedWorkflows.length === 0 && !importing && (
+              <div className="text-center text-muted py-5">
+                <i className="fas fa-inbox fa-3x mb-3"></i>
+                <p>No workflows imported yet. Click the button above to import workflows from GoHighLevel.</p>
+              </div>
+            )}
           </div>
         </div>
       )}
