@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { GoHighLevelIntegration, GoHighLevelSyncLog } from '../lib/firestore-schema';
+import type { GoHighLevelIntegration as GHLIntegrationType, GoHighLevelSyncLog } from '../lib/firestore-schema';
 
 interface IntegrationFormData {
   name: string;
@@ -36,22 +36,20 @@ const initialFormData: IntegrationFormData = {
   syncCampaigns: false,
   defaultPipelineId: '',
   defaultStageId: '',
-  enableWebhooks: false,
   webhookUrl: '',
   webhookSecret: ''
 };
 
 export default function GoHighLevelIntegration() {
-  const [integrations, setIntegrations] = useState<GoHighLevelIntegration[]>([]);
+  const [integrations, setIntegrations] = useState<GHLIntegrationType[]>([]);
   const [syncLogs, setSyncLogs] = useState<GoHighLevelSyncLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
-  const [selectedIntegration, setSelectedIntegration] = useState<GoHighLevelIntegration | null>(null);
+  const [selectedIntegration, setSelectedIntegration] = useState<GHLIntegrationType | null>(null);
   const [formData, setFormData] = useState<IntegrationFormData>(initialFormData);
   const [testingConnection, setTestingConnection] = useState(false);
   const [syncing, setSyncing] = useState<string | null>(null);
-
   useEffect(() => {
     fetchIntegrations();
     fetchSyncLogs();
@@ -254,7 +252,7 @@ export default function GoHighLevelIntegration() {
                             {integration.lastSyncAt ? (
                               <div>
                                 <div className="small">
-                                  {new Date(integration.lastSyncAt.toDate()).toLocaleString()}
+                                  {new Date(integration.lastSyncAt).toLocaleString()}
                                 </div>
                                 <span className={`badge badge-sm ${
                                   integration.lastSyncStatus === 'success' ? 'bg-success' :

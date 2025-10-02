@@ -381,7 +381,7 @@ function PaymentCheckoutForm({
     );
   }
 
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'klarna' | 'affirm'>('card');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'klarna' | 'affirm' | 'google_pay' | 'apple_pay' | 'cashapp' | 'amazon_pay'>('card');
   const [loading, setLoading] = useState(false);
   const [bnplAccountStatus, setBnplAccountStatus] = useState<{
     klarna: boolean | null;
@@ -589,7 +589,7 @@ function PaymentCheckoutForm({
   };
 
   const renderPaymentMethodCard = (
-    method: 'card' | 'klarna' | 'affirm',
+    method: 'card' | 'klarna' | 'affirm' | 'google_pay' | 'apple_pay' | 'cashapp' | 'amazon_pay',
     icon: string,
     title: string,
     description: string,
@@ -767,6 +767,42 @@ function PaymentCheckoutForm({
               'Credit/Debit Card',
               'Pay with Visa, Mastercard, or American Express',
               'primary'
+            )}
+          </div>
+          <div className="col-md-4">
+            {renderPaymentMethodCard(
+              'google_pay',
+              'fab fa-google-pay',
+              'Google Pay',
+              'Fast and secure payment with Google',
+              'success'
+            )}
+          </div>
+          <div className="col-md-4">
+            {renderPaymentMethodCard(
+              'apple_pay',
+              'fab fa-apple-pay',
+              'Apple Pay',
+              'Quick checkout with Apple Pay',
+              'dark'
+            )}
+          </div>
+          <div className="col-md-4">
+            {renderPaymentMethodCard(
+              'cashapp',
+              'fas fa-dollar-sign',
+              'Cash App',
+              'Pay instantly with Cash App',
+              'success'
+            )}
+          </div>
+          <div className="col-md-4">
+            {renderPaymentMethodCard(
+              'amazon_pay',
+              'fab fa-amazon-pay',
+              'Amazon Pay',
+              'Use your Amazon account to pay',
+              'warning'
             )}
           </div>
           <div className="col-md-4">

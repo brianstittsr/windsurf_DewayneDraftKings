@@ -22,10 +22,17 @@ export async function GET(request: NextRequest) {
     );
 
     const snapshot = await getDocs(integrationsQuery);
-    const integrations = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const integrations = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
+        lastSyncAt: data.lastSyncAt?.toDate?.()?.toISOString() || data.lastSyncAt,
+        rateLimitReset: data.rateLimitReset?.toDate?.()?.toISOString() || data.rateLimitReset
+      };
+    });
 
     return NextResponse.json({
       success: true,
