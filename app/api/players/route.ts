@@ -1,13 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// GET /api/players - Get all players
+// GET /api/players - Get all players with full registration data
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     
-    // Mock data for now - replace with actual database queries
-    const players = [];
+    const { db } = await import('../../../lib/firebase').catch(() => ({ db: null }));
+    
+    if (!db) {
+      return NextResponse.json({ 
+        success: true, 
+        players: [] 
+      });
+    }
+
+    const { collection, getDocs, query, orderBy } = await import('firebase/firestore');
+    
+    const playersRef = collection(db, 'players');
+    const q = query(playersRef, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    
+    const players = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        // Personal Information (from registration)
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        dateOfBirth: data.dateOfBirth || '',
+        address: data.address || '',
+        city: data.city || '',
+        state: data.state || '',
+        zipCode: data.zipCode || '',
+        
+        // Player Specific
+        position: data.position || '',
+        jerseySize: data.jerseySize || '',
+        jerseyNumber: data.jerseyNumber || '',
+        
+        // Emergency Contact (from registration)
+        emergencyContactName: data.emergencyContact?.name || '',
+        emergencyContactRelationship: data.emergencyContact?.relationship || '',
+        emergencyContactPhone: data.emergencyContact?.phone || '',
+        
+        // Medical Info (from registration)
+        allergies: data.medicalInfo?.allergies || '',
+        medications: data.medicalInfo?.medications || '',
+        medicalConditions: data.medicalInfo?.conditions || '',
+        
+        // Current Assignment
+        currentTeamId: data.currentTeamId || null,
+        currentTeamName: data.currentTeamName || null,
+        currentCoachId: data.currentCoachId || null,
+        currentCoachName: data.currentCoachName || null,
+        
+        // Registration Info
+        registrationDate: data.createdAt?.toDate?.()?.toISOString() || null,
+        paymentStatus: data.paymentStatus || 'pending',
+        planType: data.selectedPlan?.title || 'N/A',
+        
+        // Additional fields
+        status: data.status || 'active',
+        role: data.role || 'player'
+      };
+    });
 
     return NextResponse.json({
       success: true,

@@ -22,6 +22,7 @@ import FacebookLinksManagement from '@/components/FacebookLinksManagement';
 import SeasonManagement from '@/components/SeasonManagement';
 import SeasonConfigManagement from '@/components/SeasonConfigManagement';
 import PlayerTransferManagement from '@/components/PlayerTransferManagement';
+import PlayerSwapManagement from '@/components/PlayerSwapManagement';
 
 // Simple dashboard components
 function StatsOverview() {
@@ -558,6 +559,13 @@ function AdminPageContent() {
         return (
           <div className="fade-in">
             <PlayerTransferManagement />
+          </div>
+        );
+
+      case 'player-swaps':
+        return (
+          <div className="fade-in">
+            <PlayerSwapManagement />
           </div>
         );
 
