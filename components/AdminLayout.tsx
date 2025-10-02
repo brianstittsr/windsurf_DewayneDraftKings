@@ -298,6 +298,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <i className="fas fa-robot fa-sm fa-fw mr-2 text-info"></i>
                   AI Workflow Builder
                 </Link>
+                <Link className={`collapse-item ${isActive('api-keys') ? 'active' : ''}`} href="/admin?tab=api-keys">
+                  <i className="fas fa-key fa-sm fa-fw mr-2 text-warning"></i>
+                  API Keys
+                </Link>
                 <Link className={`collapse-item ${isActive('facebook-links') ? 'active' : ''}`} href="/admin?tab=facebook-links">
                   <i className="fab fa-facebook fa-sm fa-fw mr-2 text-primary"></i>
                   Facebook Links

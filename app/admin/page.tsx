@@ -17,6 +17,7 @@ import ProfileManagement from '@/components/ProfileManagement';
 import ProductManagement from '@/components/ProductManagement';
 import GoHighLevelIntegration from '@/components/GoHighLevelIntegration';
 import WorkflowBuilder from '@/components/WorkflowBuilder';
+import APIKeysManagement from '@/components/APIKeysManagement';
 import FacebookLinksManagement from '@/components/FacebookLinksManagement';
 import SeasonManagement from '@/components/SeasonManagement';
 import SeasonConfigManagement from '@/components/SeasonConfigManagement';
@@ -529,6 +530,13 @@ function AdminPageContent() {
         return (
           <div className="fade-in">
             <WorkflowBuilder />
+          </div>
+        );
+
+      case 'api-keys':
+        return (
+          <div className="fade-in">
+            <APIKeysManagement />
           </div>
         );
 
