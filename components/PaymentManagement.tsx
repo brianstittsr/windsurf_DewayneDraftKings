@@ -156,16 +156,22 @@ export default function PaymentManagement() {
     if (!selectedPayment) return;
 
     try {
-      const response = await fetch(`/api/payments?id=${selectedPayment.id}`, {
+      const response = await fetch(`/api/payments/${selectedPayment.id}`, {
         method: 'DELETE'
       });
 
-      if (response.ok) {
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        alert('Payment deleted successfully!');
         await fetchPayments();
         setShowModal(false);
+      } else {
+        alert(`Error deleting payment: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error deleting payment:', error);
+      alert('Error deleting payment. Please try again.');
     }
   };
 
