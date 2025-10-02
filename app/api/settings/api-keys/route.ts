@@ -76,11 +76,26 @@ export async function GET() {
 // POST /api/settings/api-keys - Create new API key
 export async function POST(request: NextRequest) {
   try {
+    console.log('API Keys POST endpoint called');
     const data = await request.json();
+    console.log('Received data:', { name: data.name, service: data.service, hasKey: !!data.keyValue });
     
-    const { db } = await import('../../../../lib/firebase').catch(() => ({ db: null }));
+    // Validate required fields
+    if (!data.name || !data.service || !data.keyValue) {
+      console.error('Missing required fields');
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Missing required fields: name, service, keyValue' 
+      }, { status: 400 });
+    }
+    
+    const { db } = await import('../../../../lib/firebase').catch((err) => {
+      console.error('Firebase import error:', err);
+      return { db: null };
+    });
     
     if (!db) {
+      console.error('Database unavailable');
       return NextResponse.json({ 
         success: false, 
         error: 'Database unavailable' 
@@ -89,29 +104,44 @@ export async function POST(request: NextRequest) {
 
     const { collection, addDoc, Timestamp } = await import('firebase/firestore');
     
-    const keyData = {
-      name: data.name,
-      service: data.service,
-      keyValue: encryptKey(data.keyValue), // Encrypt before storing
-      isActive: data.isActive !== undefined ? data.isActive : true,
-      description: data.description || '',
-      createdAt: Timestamp.now(),
-      lastUsed: null
-    };
-    
-    const keysRef = collection(db, 'api_keys');
-    const docRef = await addDoc(keysRef, keyData);
-    
-    return NextResponse.json({
-      success: true,
-      message: 'API key added successfully',
-      keyId: docRef.id
-    });
+    try {
+      const encryptedKey = encryptKey(data.keyValue);
+      console.log('Key encrypted successfully');
+      
+      const keyData = {
+        name: data.name,
+        service: data.service,
+        keyValue: encryptedKey,
+        isActive: data.isActive !== undefined ? data.isActive : true,
+        description: data.description || '',
+        createdAt: Timestamp.now(),
+        lastUsed: null
+      };
+      
+      console.log('Creating document in api_keys collection');
+      const keysRef = collection(db, 'api_keys');
+      const docRef = await addDoc(keysRef, keyData);
+      console.log('API key created with ID:', docRef.id);
+      
+      return NextResponse.json({
+        success: true,
+        message: 'API key added successfully',
+        keyId: docRef.id
+      });
+    } catch (firestoreError) {
+      console.error('Firestore error:', firestoreError);
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Failed to save to database',
+        details: firestoreError instanceof Error ? firestoreError.message : 'Unknown error'
+      }, { status: 500 });
+    }
   } catch (error) {
     console.error('Error creating API key:', error);
     return NextResponse.json({ 
       success: false, 
-      error: 'Failed to create API key' 
+      error: 'Failed to create API key',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
