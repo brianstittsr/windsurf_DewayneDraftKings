@@ -26,9 +26,9 @@ export class GoHighLevelService {
     const apiKey = process.env.GOHIGHLEVEL_API_KEY || '';
     this.locationId = process.env.GOHIGHLEVEL_LOCATION_ID || '';
     
-    // Create Axios instance with default config
+    // Create Axios instance with default config for API v2
     this.client = axios.create({
-      baseURL: 'https://rest.gohighlevel.com/v1',
+      baseURL: 'https://services.leadconnectorhq.com',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
@@ -182,9 +182,11 @@ export class GoHighLevelService {
     return this.makeRequest(`/pipelines?locationId=${this.locationId}`);
   }
 
-  // Get all workflows
+  // Get all workflows (API v2)
   async getWorkflows() {
-    return this.makeRequest(`/workflows?locationId=${this.locationId}`);
+    return this.makeRequest(`/workflows/`, 'GET', {
+      params: { locationId: this.locationId }
+    });
   }
 
   // Trigger a workflow for a contact

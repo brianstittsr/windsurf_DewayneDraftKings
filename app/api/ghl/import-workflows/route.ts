@@ -29,11 +29,11 @@ export async function GET() {
     console.log('✓ GHL credentials available');
     console.log('Fetching workflows from GoHighLevel API...');
 
-    // Use Axios to fetch workflows from GoHighLevel API
+    // Use Axios to fetch workflows from GoHighLevel API v2
     const axios = (await import('axios')).default;
     
     const ghlClient = axios.create({
-      baseURL: 'https://rest.gohighlevel.com/v1',
+      baseURL: 'https://services.leadconnectorhq.com',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
@@ -42,11 +42,18 @@ export async function GET() {
       timeout: 30000
     });
 
-    console.log('Fetching workflows from GoHighLevel API...');
+    console.log('Fetching workflows from GoHighLevel API v2...');
     
     try {
-      const response = await ghlClient.get(`/workflows?locationId=${locationId}`);
-      const workflows = response.data.workflows || [];
+      // GHL API v2 endpoint for workflows
+      const response = await ghlClient.get(`/workflows/`, {
+        params: {
+          locationId: locationId
+        }
+      });
+      
+      // API v2 returns workflows in response.data.workflows array
+      const workflows = response.data.workflows || response.data || [];
       
       console.log('✓ Workflows fetched from GHL:', workflows.length);
 
