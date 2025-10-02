@@ -5,43 +5,61 @@ export const dynamic = 'force-dynamic';
 // GET /api/ghl/workflows - Get all saved workflows
 export async function GET() {
   try {
-    const { db } = await import('../../../../lib/firebase').catch(() => ({ db: null }));
+    console.log('=== GHL Workflows GET endpoint called ===');
+    
+    const { db } = await import('../../../../lib/firebase').catch((err) => {
+      console.error('✗ Firebase import error:', err);
+      return { db: null };
+    });
     
     if (!db) {
+      console.warn('⚠ Database unavailable');
       return NextResponse.json({ 
         success: true, 
         workflows: [] 
       });
     }
+    console.log('✓ Firebase database available');
 
     const { collection, getDocs, orderBy, query } = await import('firebase/firestore');
     
-    const workflowsRef = collection(db, 'ghl_workflows');
-    const q = query(workflowsRef, orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    
-    const workflows = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
-        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
-        deployedAt: data.deployedAt?.toDate?.()?.toISOString() || null
-      };
-    });
+    try {
+      const workflowsRef = collection(db, 'ghl_workflows');
+      const q = query(workflowsRef, orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      
+      const workflows = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
+          deployedAt: data.deployedAt?.toDate?.()?.toISOString() || null
+        };
+      });
 
-    return NextResponse.json({
-      success: true,
-      workflows
-    });
-  } catch (error) {
-    console.error('Error fetching workflows:', error);
+      console.log('✓ Workflows fetched:', workflows.length);
+
+      return NextResponse.json({
+        success: true,
+        workflows
+      });
+    } catch (firestoreError: any) {
+      console.error('✗ Firestore error:', firestoreError);
+      // Return empty array instead of error to prevent UI crash
+      return NextResponse.json({ 
+        success: true, 
+        workflows: []
+      });
+    }
+  } catch (error: any) {
+    console.error('✗ Error fetching workflows:', error);
+    // Return empty array instead of error to prevent UI crash
     return NextResponse.json({ 
-      success: false, 
-      workflows: [],
-      error: 'Failed to fetch workflows' 
-    }, { status: 500 });
+      success: true, 
+      workflows: []
+    });
   }
 }
 
