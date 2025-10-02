@@ -137,6 +137,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <i className="fas fa-whistle fa-sm fa-fw mr-2 text-gray-400"></i>
                   Coaches
                 </Link>
+                <div className="dropdown-divider"></div>
+                <h6 className="collapse-header">Administration:</h6>
+                <Link className={`collapse-item ${isActive('commissioners') ? 'active' : ''}`} href="/admin?tab=commissioners">
+                  <i className="fas fa-user-tie fa-sm fa-fw mr-2 text-warning"></i>
+                  Commissioners
+                </Link>
               </div>
             </div>
           </li>

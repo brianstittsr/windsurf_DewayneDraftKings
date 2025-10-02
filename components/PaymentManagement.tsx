@@ -276,6 +276,18 @@ export default function PaymentManagement() {
     ? [...visiblePayments, ...hiddenPayments]
     : visiblePayments;
 
+  // Recalculate summary based on visible payments only (excluding hidden)
+  const successfulStatuses = ['succeeded', 'completed'];
+  const visibleSummary = {
+    total: visiblePayments.length,
+    totalAmount: visiblePayments.reduce((sum, p) => sum + (p.amount || 0), 0),
+    successful: visiblePayments.filter(p => successfulStatuses.includes(p.status as string)).length,
+    failed: visiblePayments.filter(p => p.status === 'failed').length,
+    successRate: visiblePayments.length > 0 
+      ? ((visiblePayments.filter(p => successfulStatuses.includes(p.status as string)).length / visiblePayments.length) * 100).toFixed(1)
+      : '0.0'
+  };
+
   const getStatusBadge = (status: string) => {
     const statusClasses = {
       succeeded: 'success',
@@ -334,34 +346,37 @@ export default function PaymentManagement() {
             <div className="dk-card text-center">
               <div className="card-body">
                 <i className="fas fa-receipt fa-2x text-primary mb-2"></i>
-                <h4 className="mb-1">{summary.total}</h4>
+                <h4 className="mb-1">{visibleSummary.total}</h4>
                 <p className="text-muted mb-0">Total Payments</p>
+                {hiddenPayments.length > 0 && (
+                  <small className="text-muted">({hiddenPayments.length} hidden)</small>
+                )}
               </div>
             </div>
           </div>
-          <div className="col-md-3">
+          <div className="col-md-3 mb-4">
             <div className="dk-card text-center">
               <div className="card-body">
                 <i className="fas fa-dollar-sign fa-2x text-success mb-2"></i>
-                <h4 className="mb-1">${summary.totalAmount.toLocaleString()}</h4>
+                <h4 className="mb-1">${visibleSummary.totalAmount.toLocaleString()}</h4>
                 <p className="text-muted mb-0">Total Revenue</p>
               </div>
             </div>
           </div>
-          <div className="col-md-3">
+          <div className="col-md-3 mb-4">
             <div className="dk-card text-center">
               <div className="card-body">
                 <i className="fas fa-check-circle fa-2x text-success mb-2"></i>
-                <h4 className="mb-1">{summary.successful}</h4>
+                <h4 className="mb-1">{visibleSummary.successful}</h4>
                 <p className="text-muted mb-0">Successful</p>
               </div>
             </div>
           </div>
-          <div className="col-md-3">
+          <div className="col-md-3 mb-4">
             <div className="dk-card text-center">
               <div className="card-body">
                 <i className="fas fa-chart-line fa-2x text-info mb-2"></i>
-                <h4 className="mb-1">{summary.successRate}%</h4>
+                <h4 className="mb-1">{visibleSummary.successRate}%</h4>
                 <p className="text-muted mb-0">Success Rate</p>
               </div>
             </div>

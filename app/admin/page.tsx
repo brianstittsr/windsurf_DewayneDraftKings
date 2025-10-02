@@ -23,6 +23,7 @@ import SeasonManagement from '@/components/SeasonManagement';
 import SeasonConfigManagement from '@/components/SeasonConfigManagement';
 import PlayerTransferManagement from '@/components/PlayerTransferManagement';
 import PlayerSwapManagement from '@/components/PlayerSwapManagement';
+import CommissionerManagement from '@/components/CommissionerManagement';
 
 // Simple dashboard components
 function StatsOverview() {
@@ -566,6 +567,13 @@ function AdminPageContent() {
         return (
           <div className="fade-in">
             <PlayerSwapManagement />
+          </div>
+        );
+
+      case 'commissioners':
+        return (
+          <div className="fade-in">
+            <CommissionerManagement />
           </div>
         );
 
