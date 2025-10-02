@@ -11,6 +11,26 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Special handling for REGISTER coupon - bypasses payment entirely
+    if (code.toUpperCase() === 'REGISTER') {
+      return NextResponse.json({
+        success: true,
+        coupon: {
+          id: 'REGISTER',
+          code: 'REGISTER',
+          name: 'Free Registration',
+          description: 'Complete free registration - no payment required',
+          discountType: 'set_price',
+          discountValue: 0
+        },
+        discount: orderAmount, // Full discount
+        finalAmount: 0, // No payment required
+        originalAmount: orderAmount,
+        message: 'Free registration approved - no payment required',
+        freeRegistration: true
+      });
+    }
+
     // Dynamic import to avoid build issues
     const { db } = await import('../../../../lib/firebase').catch(() => ({ db: null }));
     

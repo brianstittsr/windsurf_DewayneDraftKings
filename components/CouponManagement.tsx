@@ -122,6 +122,19 @@ export default function CouponManagement() {
 
   const handleEdit = (coupon: Coupon) => {
     setEditingCoupon(coupon);
+    
+    // Helper function to safely convert dates
+    const formatDate = (dateField: any) => {
+      if (!dateField) return new Date().toISOString().split('T')[0];
+      // If it's already a string (ISO format from API), just extract the date part
+      if (typeof dateField === 'string') return dateField.split('T')[0];
+      // If it's a Firestore Timestamp with toDate method
+      if (dateField.toDate) return new Date(dateField.toDate()).toISOString().split('T')[0];
+      // If it's a Date object
+      if (dateField instanceof Date) return dateField.toISOString().split('T')[0];
+      return new Date().toISOString().split('T')[0];
+    };
+    
     setFormData({
       code: coupon.code,
       name: coupon.name,
@@ -130,8 +143,8 @@ export default function CouponManagement() {
       discountValue: coupon.discountValue,
       maxUses: coupon.maxUses,
       maxUsesPerCustomer: coupon.maxUsesPerCustomer,
-      startDate: new Date(coupon.startDate.toDate()).toISOString().split('T')[0],
-      expirationDate: new Date(coupon.expirationDate.toDate()).toISOString().split('T')[0],
+      startDate: formatDate(coupon.startDate),
+      expirationDate: formatDate(coupon.expirationDate),
       applicableItems: coupon.applicableItems,
       minimumAmount: coupon.minimumAmount,
       isActive: coupon.isActive

@@ -500,6 +500,37 @@ function PaymentCheckoutForm({
     Object.assign(planData, restoredPlanData);
   };
 
+  // Handle free registration with REGISTER coupon
+  const handleFreeRegistration = async () => {
+    setLoading(true);
+    
+    try {
+      const response = await fetch('/api/registration/complete-free', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerData,
+          planData,
+          couponCode: appliedCoupon?.code
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Redirect to success page
+        window.location.href = `/registration-success?profile_id=${result.profileId}&email=${customerData.email}&plan=${encodeURIComponent(planData.title)}&amount=0.00&free_registration=true`;
+      } else {
+        throw new Error(result.error || 'Failed to complete registration');
+      }
+    } catch (error) {
+      console.error('Free registration error:', error);
+      onPaymentError(error instanceof Error ? error.message : 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePayment = async () => {
     setLoading(true);
     
@@ -760,7 +791,7 @@ function PaymentCheckoutForm({
       </div>
 
       {/* Credit Card Form */}
-      {selectedPaymentMethod === 'card' && (
+      {selectedPaymentMethod === 'card' && appliedCoupon?.code !== 'REGISTER' && (
         <div>
           {!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? (
             <div className="card border-danger mb-4">
@@ -877,8 +908,45 @@ function PaymentCheckoutForm({
         </div>
       )}
 
+      {/* Free Registration Button for REGISTER Coupon */}
+      {appliedCoupon?.code === 'REGISTER' && (
+        <div className="card border-success mb-4">
+          <div className="card-header bg-success text-white">
+            <h6 className="mb-0 fw-semibold">
+              <i className="fas fa-check-circle me-2"></i>
+              Free Registration Approved
+            </h6>
+          </div>
+          <div className="card-body">
+            <p className="mb-3">
+              <i className="fas fa-info-circle text-success me-2"></i>
+              Your registration has been approved for free enrollment. No payment required!
+            </p>
+            <div className="d-grid">
+              <button
+                className="btn btn-success btn-lg py-3"
+                onClick={handleFreeRegistration}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                    Completing Registration...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-user-check me-2"></i>
+                    Complete Free Registration
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* BNPL Payment Button */}
-      {selectedPaymentMethod !== 'card' && (
+      {selectedPaymentMethod !== 'card' && appliedCoupon?.code !== 'REGISTER' && (
         <div className="d-grid">
           <button
             className="btn btn-success btn-lg py-3"
