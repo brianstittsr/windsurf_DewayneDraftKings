@@ -336,7 +336,7 @@ export default function GoHighLevelIntegration() {
                         <div className="flex-grow-1">
                           <div className="fw-bold small">{log.syncType} sync</div>
                           <div className="text-muted small">
-                            {new Date(log.startedAt.toDate()).toLocaleString()}
+                            {new Date(log.startedAt).toLocaleString()}
                           </div>
                           {log.status === 'completed' && log.summary && (
                             <div className="small text-success">

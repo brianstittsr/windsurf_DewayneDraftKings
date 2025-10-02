@@ -35,10 +35,15 @@ export async function GET(request: NextRequest) {
     }
 
     const snapshot = await getDocs(logsQuery);
-    const logs = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const logs = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        startedAt: data.startedAt?.toDate?.()?.toISOString() || data.startedAt,
+        completedAt: data.completedAt?.toDate?.()?.toISOString() || data.completedAt
+      };
+    });
 
     return NextResponse.json({
       success: true,
