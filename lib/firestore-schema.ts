@@ -789,7 +789,8 @@ export interface Coupon extends BaseDocument {
   isActive: boolean;
   
   // Usage Tracking
-  usageHistory: {
+  lastUsedAt?: Timestamp; // Last time coupon was used
+  usageHistory?: {
     customerId: string;
     customerEmail: string;
     usedAt: Timestamp;
@@ -799,8 +800,8 @@ export interface Coupon extends BaseDocument {
   }[];
   
   // Admin Information
-  createdBy: string; // Admin user ID
-  lastModifiedBy: string;
+  createdBy?: string; // Admin user ID
+  lastModifiedBy?: string;
 }
 
 export interface SystemSettings extends BaseDocument {

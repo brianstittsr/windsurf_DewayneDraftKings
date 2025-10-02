@@ -43,6 +43,33 @@ export async function POST(request: NextRequest) {
       // Extract player/customer information from metadata
       const playerId = session.metadata?.playerId;
       const customerEmail = session.customer_details?.email;
+      const appliedCoupon = session.metadata?.appliedCoupon;
+
+      // Increment coupon usage if a coupon was used
+      if (appliedCoupon) {
+        try {
+          console.log('Incrementing coupon usage for:', appliedCoupon);
+          const incrementResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/coupons/increment-usage`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              couponCode: appliedCoupon
+            }),
+          });
+
+          if (incrementResponse.ok) {
+            const incrementResult = await incrementResponse.json();
+            console.log('Coupon usage incremented:', incrementResult);
+          } else {
+            console.warn('Failed to increment coupon usage:', await incrementResponse.text());
+          }
+        } catch (incrementError) {
+          console.error('Error incrementing coupon usage:', incrementError);
+          // Don't fail the webhook if increment fails
+        }
+      }
 
       if (playerId) {
         try {

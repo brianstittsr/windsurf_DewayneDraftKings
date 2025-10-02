@@ -211,6 +211,30 @@ export async function POST(request: NextRequest) {
       // Don't fail the registration if email fails
     }
 
+    // Increment coupon usage count
+    try {
+      console.log('Incrementing coupon usage count...');
+      const incrementResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/coupons/increment-usage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          couponCode: couponCode
+        }),
+      });
+
+      if (incrementResponse.ok) {
+        const incrementResult = await incrementResponse.json();
+        console.log('Coupon usage incremented:', incrementResult);
+      } else {
+        console.warn('Failed to increment coupon usage:', await incrementResponse.text());
+      }
+    } catch (incrementError) {
+      console.error('Error incrementing coupon usage:', incrementError);
+      // Don't fail the registration if increment fails
+    }
+
     console.log('Free registration completed successfully');
     
     return NextResponse.json({
