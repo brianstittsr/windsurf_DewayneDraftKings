@@ -98,6 +98,8 @@ export async function GET(request: NextRequest) {
             stripeSessionId: data.stripeSessionId || '',
             metadata: data.metadata || {},
             refunds: data.refunds || [],
+            hidden: data.hidden || false,
+            couponCode: data.couponCode || null,
             createdAt: data.createdAt?.toDate?.() || new Date(),
             updatedAt: data.updatedAt?.toDate?.() || new Date(),
             source: 'firebase'
@@ -199,6 +201,8 @@ export async function POST(request: NextRequest) {
     
     const paymentData = {
       ...data,
+      hidden: data.hidden || false, // Default to not hidden
+      couponCode: data.couponCode || null, // Store coupon code if provided
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
     };

@@ -25,6 +25,7 @@ export default function PaymentManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [showHidden, setShowHidden] = useState(false);
   const [refundAmount, setRefundAmount] = useState('');
   const [refundReason, setRefundReason] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -175,6 +176,32 @@ export default function PaymentManagement() {
     }
   };
 
+  const toggleHidePayment = async (payment: PaymentWithId) => {
+    try {
+      const newHiddenState = !(payment as any).hidden;
+      
+      const response = await fetch(`/api/payments/${payment.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hidden: newHiddenState
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        alert(`Payment ${newHiddenState ? 'hidden' : 'shown'} successfully!`);
+        await fetchPayments();
+      } else {
+        alert(`Error updating payment: ${data.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error toggling payment visibility:', error);
+      alert('Error updating payment. Please try again.');
+    }
+  };
+
   const createCheckoutSession = async (amount: number, description: string) => {
     try {
       const response = await fetch('/api/payments/create-checkout', {
@@ -199,6 +226,11 @@ export default function PaymentManagement() {
   };
 
   const filteredPayments = payments.filter(payment => {
+    // Filter out hidden payments unless showHidden is true
+    if ((payment as any).hidden && !showHidden) {
+      return false;
+    }
+    
     const searchLower = searchTerm.toLowerCase();
     const customerName = payment.customerName?.toLowerCase() || '';
     const customerEmail = payment.customerEmail?.toLowerCase() || '';
@@ -338,6 +370,24 @@ export default function PaymentManagement() {
         </div>
       </div>
 
+      {/* Show/Hide Toggle */}
+      <div className="row mb-3">
+        <div className="col-12">
+          <div className="form-check">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              id="showHiddenCheckbox"
+              checked={showHidden}
+              onChange={(e) => setShowHidden(e.target.checked)}
+            />
+            <label className="form-check-label" htmlFor="showHiddenCheckbox">
+              Show hidden test entries ({payments.filter(p => (p as any).hidden).length} hidden)
+            </label>
+          </div>
+        </div>
+      </div>
+
       {/* Payments Table */}
       <div className="dk-card">
         <div className="card-header">
@@ -367,6 +417,7 @@ export default function PaymentManagement() {
                     <th>Amount</th>
                     <th>Description</th>
                     <th>Method</th>
+                    <th>Coupon</th>
                     <th>Status</th>
                     <th>Source</th>
                     <th>Date</th>
@@ -398,6 +449,16 @@ export default function PaymentManagement() {
                       <td>
                         <i className={`${getPaymentMethodIcon(typeof payment.paymentMethod === 'string' ? payment.paymentMethod : payment.paymentMethod?.type || 'card')} me-2`}></i>
                         {typeof payment.paymentMethod === 'string' ? payment.paymentMethod : payment.paymentMethod?.type || 'card'}
+                      </td>
+                      <td>
+                        {(payment as any).couponCode ? (
+                          <span className="badge bg-info">
+                            <i className="fas fa-tag me-1"></i>
+                            {(payment as any).couponCode}
+                          </span>
+                        ) : (
+                          <span className="text-muted">-</span>
+                        )}
                       </td>
                       <td>{getStatusBadge(payment.status)}</td>
                       <td>
@@ -445,6 +506,13 @@ export default function PaymentManagement() {
                               <i className="fas fa-undo"></i>
                             </button>
                           )}
+                          <button
+                            className={`btn ${(payment as any).hidden ? 'btn-outline-success' : 'btn-outline-secondary'}`}
+                            onClick={() => toggleHidePayment(payment)}
+                            title={(payment as any).hidden ? 'Show Payment' : 'Hide Payment (Test Entry)'}
+                          >
+                            <i className={`fas ${(payment as any).hidden ? 'fa-eye' : 'fa-eye-slash'}`}></i>
+                          </button>
                           <button
                             className="btn btn-outline-danger"
                             onClick={() => handleDelete(payment)}

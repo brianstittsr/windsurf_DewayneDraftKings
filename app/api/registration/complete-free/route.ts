@@ -211,6 +211,45 @@ export async function POST(request: NextRequest) {
       // Don't fail the registration if email fails
     }
 
+    // Create payment record for free registration
+    try {
+      console.log('Creating payment record for free registration...');
+      const paymentResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/payments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: 0,
+          currency: 'USD',
+          status: 'succeeded',
+          paymentMethod: 'free_registration',
+          customerName: `${customerData.firstName} ${customerData.lastName}`,
+          customerEmail: customerData.email,
+          description: `Free Registration - ${planData?.title || 'Registration'}`,
+          paymentType: 'registration',
+          couponCode: 'REGISTER',
+          metadata: {
+            profileId: userId,
+            planTitle: planData?.title,
+            planType: planData?.itemType,
+            couponUsed: 'REGISTER',
+            registrationType: 'free'
+          }
+        }),
+      });
+
+      if (paymentResponse.ok) {
+        const paymentResult = await paymentResponse.json();
+        console.log('Payment record created:', paymentResult);
+      } else {
+        console.warn('Failed to create payment record:', await paymentResponse.text());
+      }
+    } catch (paymentError) {
+      console.error('Error creating payment record:', paymentError);
+      // Don't fail the registration if payment record creation fails
+    }
+
     // Increment coupon usage count
     try {
       console.log('Incrementing coupon usage count...');
