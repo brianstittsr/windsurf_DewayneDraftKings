@@ -180,6 +180,15 @@ export default function PaymentManagement() {
     try {
       const newHiddenState = !(payment as any).hidden;
       
+      // Optimistically update local state
+      setPayments(prevPayments => 
+        prevPayments.map(p => 
+          p.id === payment.id 
+            ? { ...p, hidden: newHiddenState } as any
+            : p
+        )
+      );
+      
       const response = await fetch(`/api/payments/${payment.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -191,15 +200,31 @@ export default function PaymentManagement() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        alert(`Payment ${newHiddenState ? 'hidden' : 'shown'} successfully!`);
+        // Refresh to ensure we have the latest data
         await fetchPayments();
       } else {
+        // Revert optimistic update on error
+        setPayments(prevPayments => 
+          prevPayments.map(p => 
+            p.id === payment.id 
+              ? { ...p, hidden: !newHiddenState } as any
+              : p
+          )
+        );
         const errorMsg = data.details ? `${data.error}: ${data.details}` : data.error || 'Unknown error';
         alert(`Error updating payment: ${errorMsg}`);
         console.error('Update error details:', data);
       }
     } catch (error) {
       console.error('Error toggling payment visibility:', error);
+      // Revert optimistic update on error
+      setPayments(prevPayments => 
+        prevPayments.map(p => 
+          p.id === payment.id 
+            ? { ...p, hidden: !(payment as any).hidden } as any
+            : p
+        )
+      );
       alert(`Error updating payment: ${error instanceof Error ? error.message : 'Please try again.'}`);
     }
   };
