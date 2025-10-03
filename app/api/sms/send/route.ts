@@ -44,7 +44,8 @@ export async function POST(request: NextRequest) {
 
       playersSnap.forEach(doc => {
         const data = doc.data();
-        if (data.phone) {
+        // Skip if user has opted out
+        if (data.phone && !data.smsOptOut) {
           recipientList.push({
             id: doc.id,
             phone: data.phone,
@@ -55,7 +56,8 @@ export async function POST(request: NextRequest) {
 
       coachesSnap.forEach(doc => {
         const data = doc.data();
-        if (data.phone) {
+        // Skip if user has opted out
+        if (data.phone && !data.smsOptOut) {
           recipientList.push({
             id: doc.id,
             phone: data.phone,
@@ -73,7 +75,8 @@ export async function POST(request: NextRequest) {
 
         if (!playerSnap.empty) {
           const data = playerSnap.docs[0].data();
-          if (data.phone) {
+          // Skip if user has opted out
+          if (data.phone && !data.smsOptOut) {
             recipientList.push({
               id: recipientId,
               phone: data.phone,
@@ -90,7 +93,8 @@ export async function POST(request: NextRequest) {
 
         if (!coachSnap.empty) {
           const data = coachSnap.docs[0].data();
-          if (data.phone) {
+          // Skip if user has opted out
+          if (data.phone && !data.smsOptOut) {
             recipientList.push({
               id: recipientId,
               phone: data.phone,
@@ -110,7 +114,8 @@ export async function POST(request: NextRequest) {
 
       if (!playerSnap.empty) {
         const data = playerSnap.docs[0].data();
-        if (data.phone) {
+        // Skip if user has opted out
+        if (data.phone && !data.smsOptOut) {
           recipientList.push({
             id: recipientId,
             phone: data.phone,
@@ -125,7 +130,8 @@ export async function POST(request: NextRequest) {
 
         if (!coachSnap.empty) {
           const data = coachSnap.docs[0].data();
-          if (data.phone) {
+          // Skip if user has opted out
+          if (data.phone && !data.smsOptOut) {
             recipientList.push({
               id: recipientId,
               phone: data.phone,
@@ -145,6 +151,10 @@ export async function POST(request: NextRequest) {
 
     console.log(`✓ Found ${recipientList.length} recipients`);
 
+    // Add opt-out text to message (required by TCPA regulations)
+    const optOutText = "\n\nReply STOP to opt-out of future messages.";
+    const fullMessage = message + optOutText;
+
     // Store SMS messages in Firebase
     const messagesRef = collection(db, 'sms_messages');
     const messagePromises = recipientList.map(recipient => 
@@ -153,7 +163,8 @@ export async function POST(request: NextRequest) {
         recipientName: recipient.name,
         recipientId: recipient.id,
         recipientType: recipientType,
-        message: message,
+        message: fullMessage,
+        originalMessage: message, // Store original without opt-out text
         status: scheduled ? 'scheduled' : 'pending',
         scheduledFor: scheduled && scheduledFor ? new Date(scheduledFor) : null,
         sentAt: null,
@@ -161,7 +172,8 @@ export async function POST(request: NextRequest) {
         createdBy: 'admin',
         provider: 'twilio', // or your SMS provider
         cost: 0.0075, // Approximate cost per SMS
-        errorMessage: null
+        errorMessage: null,
+        includesOptOut: true
       })
     );
 

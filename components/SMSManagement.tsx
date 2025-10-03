@@ -143,8 +143,10 @@ export default function SMSManagement() {
     setMessageText(template.message);
   };
 
+  const optOutText = "\n\nReply STOP to opt-out of future messages.";
   const characterCount = messageText.length;
-  const smsCount = Math.ceil(characterCount / 160);
+  const totalCharacterCount = characterCount + optOutText.length;
+  const smsCount = Math.ceil(totalCharacterCount / 160);
 
   return (
     <div className="sms-management">
@@ -292,12 +294,16 @@ export default function SMSManagement() {
                     />
                     <div className="d-flex justify-content-between mt-1">
                       <small className="text-muted">
-                        {characterCount} characters | {smsCount} SMS {smsCount > 1 ? 'messages' : 'message'}
+                        {totalCharacterCount} characters (includes opt-out) | {smsCount} SMS {smsCount > 1 ? 'messages' : 'message'}
                       </small>
-                      <small className={characterCount > 160 ? 'text-warning' : 'text-muted'}>
-                        {1600 - characterCount} remaining
+                      <small className={totalCharacterCount > 160 ? 'text-warning' : 'text-muted'}>
+                        {1600 - totalCharacterCount} remaining
                       </small>
                     </div>
+                    <small className="text-info">
+                      <i className="fas fa-info-circle me-1"></i>
+                      "Reply STOP to opt-out" will be automatically added to all messages
+                    </small>
                   </div>
 
                   {/* Schedule */}
