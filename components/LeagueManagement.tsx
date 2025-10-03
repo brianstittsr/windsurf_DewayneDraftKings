@@ -132,9 +132,9 @@ export default function LeagueManagement() {
       minTeams: league.minTeams || 4,
       maxPlayersPerTeam: league.maxPlayersPerTeam,
       gameLength: league.gameLength,
-      seasonStartDate: league.seasonStartDate ? new Date(league.seasonStartDate.toDate()).toISOString().split('T')[0] : '',
-      seasonEndDate: league.seasonEndDate ? new Date(league.seasonEndDate.toDate()).toISOString().split('T')[0] : '',
-      registrationDeadline: league.registrationDeadline ? new Date(league.registrationDeadline.toDate()).toISOString().split('T')[0] : '',
+      seasonStartDate: league.seasonStartDate ? (typeof league.seasonStartDate.toDate === 'function' ? new Date(league.seasonStartDate.toDate()).toISOString().split('T')[0] : new Date(league.seasonStartDate).toISOString().split('T')[0]) : '',
+      seasonEndDate: league.seasonEndDate ? (typeof league.seasonEndDate.toDate === 'function' ? new Date(league.seasonEndDate.toDate()).toISOString().split('T')[0] : new Date(league.seasonEndDate).toISOString().split('T')[0]) : '',
+      registrationDeadline: league.registrationDeadline ? (typeof league.registrationDeadline.toDate === 'function' ? new Date(league.registrationDeadline.toDate()).toISOString().split('T')[0] : new Date(league.registrationDeadline).toISOString().split('T')[0]) : '',
       registrationFee: league.registrationFee || 50,
       teamFee: league.teamFee || 200,
       playerFee: league.playerFee || 25,
@@ -318,8 +318,12 @@ export default function LeagueManagement() {
                       <td>
                         {league.seasonStartDate && league.seasonEndDate ? (
                           <span className="text-muted small">
-                            {new Date(league.seasonStartDate.toDate()).toLocaleDateString()} - 
-                            {new Date(league.seasonEndDate.toDate()).toLocaleDateString()}
+                            {typeof league.seasonStartDate.toDate === 'function' 
+                              ? new Date(league.seasonStartDate.toDate()).toLocaleDateString()
+                              : new Date(league.seasonStartDate).toLocaleDateString()} - 
+                            {typeof league.seasonEndDate.toDate === 'function'
+                              ? new Date(league.seasonEndDate.toDate()).toLocaleDateString()
+                              : new Date(league.seasonEndDate).toLocaleDateString()}
                           </span>
                         ) : (
                           <span className="text-muted">Not set</span>

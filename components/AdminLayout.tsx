@@ -228,6 +228,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <i className="fas fa-users fa-sm fa-fw mr-2 text-gray-400"></i>
                   Teams
                 </Link>
+                <Link className={`collapse-item ${isActive('tournaments') ? 'active' : ''}`} href="/admin?tab=tournaments">
+                  <i className="fas fa-trophy fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Tournaments
+                </Link>
                 <Link className={`collapse-item ${isActive('player-transfers') ? 'active' : ''}`} href="/admin?tab=player-transfers">
                   <i className="fas fa-exchange-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                   Player Transfers

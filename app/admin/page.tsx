@@ -17,7 +17,6 @@ import ProfileManagement from '@/components/ProfileManagement';
 import ProductManagement from '@/components/ProductManagement';
 import GoHighLevelIntegration from '@/components/GoHighLevelIntegration';
 import WorkflowBuilder from '@/components/WorkflowBuilder';
-import APIKeysManagement from '@/components/APIKeysManagement';
 import FacebookLinksManagement from '@/components/FacebookLinksManagement';
 import SeasonManagement from '@/components/SeasonManagement';
 import SeasonConfigManagement from '@/components/SeasonConfigManagement';
@@ -26,6 +25,7 @@ import PlayerSwapManagement from '@/components/PlayerSwapManagement';
 import CommissionerManagement from '@/components/CommissionerManagement';
 import SMSManagement from '@/components/SMSManagement';
 import NotificationManagement from '@/components/NotificationManagement';
+import TournamentManagement from '@/components/TournamentManagement';
 
 // Simple dashboard components
 function StatsOverview() {
@@ -442,6 +442,13 @@ function AdminPageContent() {
         return (
           <div className="fade-in">
             <CommissionerManagement />
+          </div>
+        );
+
+      case 'tournaments':
+        return (
+          <div className="fade-in">
+            <TournamentManagement />
           </div>
         );
 
