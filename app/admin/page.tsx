@@ -254,50 +254,7 @@ function AdminPageContent() {
       case 'payments':
         return (
           <div className="fade-in">
-            <div className="d-sm-flex align-items-center justify-content-between mb-4">
-              <h1 className="h3 mb-0 text-gray-800">Payment Management</h1>
             <PaymentManagement />
-          </div>
-        );
-
-                            <th>Name</th>
-                            <th>Created</th>
-                            <th>Scans</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td>Player Profile</td>
-                            <td>John Doe Profile</td>
-                            <td>2024-01-15</td>
-                            <td>23</td>
-                            <td>
-                              <button className="btn btn-sm btn-primary mr-2">View</button>
-                              <button className="btn btn-sm btn-danger">Delete</button>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-xl-4 col-lg-5">
-                <div className="card shadow mb-4">
-                  <div className="card-header py-3">
-                    <h6 className="m-0 font-weight-bold text-primary">Quick Actions</h6>
-                  </div>
-                  <div className="card-body">
-                    <div className="d-grid gap-2">
-                      <button className="btn btn-outline-primary">Generate Player QR</button>
-                      <button className="btn btn-outline-success">Generate Team QR</button>
-                      <button className="btn btn-outline-info">Generate Event QR</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         );
 
@@ -393,56 +350,14 @@ function AdminPageContent() {
       case 'sms':
         return (
           <div className="fade-in">
-            <div className="d-sm-flex align-items-center justify-content-between mb-4">
-              <h1 className="h3 mb-0 text-gray-800">SMS Management</h1>
-              <button className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <i className="fas fa-plus fa-sm text-white-50"></i> Send SMS
-              </button>
-            </div>
-            <div className="card shadow mb-4">
-              <div className="card-header py-3">
-                <h6 className="m-0 font-weight-bold text-primary">SMS Campaign Management</h6>
-              </div>
-              <div className="card-body">
-                <div className="text-center py-4">
-                  <i className="fas fa-sms fa-3x text-muted mb-3"></i>
-                  <h4 className="text-muted">SMS Management System</h4>
-                  <p className="text-muted">Send bulk SMS messages to players, coaches, and parents.</p>
-                  <button className="btn btn-primary">
-                    <i className="fas fa-plus me-2"></i>
-                    Create SMS Campaign
-                  </button>
-                </div>
-              </div>
-            </div>
+            <SMSManagement />
           </div>
         );
 
       case 'notifications':
         return (
           <div className="fade-in">
-            <div className="d-sm-flex align-items-center justify-content-between mb-4">
-              <h1 className="h3 mb-0 text-gray-800">Notification Management</h1>
-              <button className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <i className="fas fa-plus fa-sm text-white-50"></i> Create Notification
-              </button>
-            </div>
-            <div className="card shadow mb-4">
-              <div className="card-header py-3">
-                <h6 className="m-0 font-weight-bold text-primary">Push Notification Center</h6>
-              </div>
-              <div className="card-body">
-                <div className="text-center py-4">
-                  <i className="fas fa-bell fa-3x text-muted mb-3"></i>
-                  <h4 className="text-muted">Notification System</h4>
-                  <p className="text-muted">Send push notifications to mobile app users.</p>
-                  <button className="btn btn-primary">
-                    <i className="fas fa-plus me-2"></i>
-                    Send Notification
-                  </button>
-                </div>
-              </div>
-            </div>
+            <NotificationManagement />
           </div>
         );
 
