@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { to, subject, html, text } = await request.json();
+    const { to, subject, html, text, attachments } = await request.json();
 
     if (!to || !subject || (!html && !text)) {
       return NextResponse.json(
@@ -40,14 +40,27 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send email
-    const info = await transporter.sendMail({
+    // Prepare mail options
+    const mailOptions: any = {
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
       to,
       subject,
       html,
       text: text || undefined,
-    });
+    };
+
+    // Add attachments if provided
+    if (attachments && Array.isArray(attachments)) {
+      mailOptions.attachments = attachments.map((att: any) => ({
+        filename: att.filename,
+        content: att.content,
+        encoding: att.encoding || 'base64',
+        cid: att.cid || undefined
+      }));
+    }
+
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
 
     console.log('Email sent successfully:', info.messageId);
 
