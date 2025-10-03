@@ -97,10 +97,28 @@ export default function LeagueManagement() {
       const url = modalMode === 'create' ? '/api/leagues' : `/api/leagues/${selectedLeague?.id}`;
       const method = modalMode === 'create' ? 'POST' : 'PUT';
 
+      // Clean up form data - convert empty strings to null for dates
+      const cleanedData = {
+        ...formData,
+        seasonStartDate: formData.seasonStartDate || null,
+        seasonEndDate: formData.seasonEndDate || null,
+        registrationDeadline: formData.registrationDeadline || null,
+        // Convert numeric fields
+        maxTeams: Number(formData.maxTeams) || 0,
+        minTeams: Number(formData.minTeams) || 4,
+        maxPlayersPerTeam: Number(formData.maxPlayersPerTeam) || 0,
+        gameLength: Number(formData.gameLength) || 0,
+        registrationFee: Number(formData.registrationFee) || 0,
+        teamFee: Number(formData.teamFee) || 0,
+        playerFee: Number(formData.playerFee) || 0,
+        minAge: formData.minAge ? Number(formData.minAge) : null,
+        maxAge: formData.maxAge ? Number(formData.maxAge) : null
+      };
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(cleanedData)
       });
 
       if (response.ok) {
@@ -110,8 +128,8 @@ export default function LeagueManagement() {
         setSelectedLeague(null);
         alert(`League ${modalMode === 'create' ? 'created' : 'updated'} successfully!`);
       } else {
-        const error = await response.json();
-        alert(`Error: ${error.error || 'Unknown error'}`);
+        const errorData = await response.json();
+        alert(`Error: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error saving league:', error);
@@ -119,8 +137,27 @@ export default function LeagueManagement() {
     }
   };
 
+  // Helper function to safely convert dates
+  const safeFormatDate = (dateValue: any): string => {
+    if (!dateValue) return '';
+    try {
+      // Handle Firestore Timestamp
+      if (typeof dateValue.toDate === 'function') {
+        return dateValue.toDate().toISOString().split('T')[0];
+      }
+      // Handle Date object or string
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return '';
+      return date.toISOString().split('T')[0];
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '';
+    }
+  };
+
   const handleEdit = (league: League) => {
     setSelectedLeague(league);
+    setModalMode('edit');
     setFormData({
       name: league.name,
       shortName: league.shortName || '',
@@ -132,9 +169,9 @@ export default function LeagueManagement() {
       minTeams: league.minTeams || 4,
       maxPlayersPerTeam: league.maxPlayersPerTeam,
       gameLength: league.gameLength,
-      seasonStartDate: league.seasonStartDate ? (typeof league.seasonStartDate.toDate === 'function' ? new Date(league.seasonStartDate.toDate()).toISOString().split('T')[0] : new Date(league.seasonStartDate).toISOString().split('T')[0]) : '',
-      seasonEndDate: league.seasonEndDate ? (typeof league.seasonEndDate.toDate === 'function' ? new Date(league.seasonEndDate.toDate()).toISOString().split('T')[0] : new Date(league.seasonEndDate).toISOString().split('T')[0]) : '',
-      registrationDeadline: league.registrationDeadline ? (typeof league.registrationDeadline.toDate === 'function' ? new Date(league.registrationDeadline.toDate()).toISOString().split('T')[0] : new Date(league.registrationDeadline).toISOString().split('T')[0]) : '',
+      seasonStartDate: safeFormatDate(league.seasonStartDate),
+      seasonEndDate: safeFormatDate(league.seasonEndDate),
+      registrationDeadline: safeFormatDate(league.registrationDeadline),
       registrationFee: league.registrationFee || 50,
       teamFee: league.teamFee || 200,
       playerFee: league.playerFee || 25,
@@ -318,12 +355,24 @@ export default function LeagueManagement() {
                       <td>
                         {league.seasonStartDate && league.seasonEndDate ? (
                           <span className="text-muted small">
-                            {typeof league.seasonStartDate.toDate === 'function' 
-                              ? new Date(league.seasonStartDate.toDate()).toLocaleDateString()
-                              : new Date(league.seasonStartDate).toLocaleDateString()} - 
-                            {typeof league.seasonEndDate.toDate === 'function'
-                              ? new Date(league.seasonEndDate.toDate()).toLocaleDateString()
-                              : new Date(league.seasonEndDate).toLocaleDateString()}
+                            {(() => {
+                              try {
+                                const startDate = typeof league.seasonStartDate.toDate === 'function' 
+                                  ? league.seasonStartDate.toDate()
+                                  : new Date(league.seasonStartDate);
+                                const endDate = typeof league.seasonEndDate.toDate === 'function'
+                                  ? league.seasonEndDate.toDate()
+                                  : new Date(league.seasonEndDate);
+                                
+                                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                                  return 'Invalid dates';
+                                }
+                                
+                                return `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
+                              } catch (e) {
+                                return 'Error displaying dates';
+                              }
+                            })()}
                           </span>
                         ) : (
                           <span className="text-muted">Not set</span>

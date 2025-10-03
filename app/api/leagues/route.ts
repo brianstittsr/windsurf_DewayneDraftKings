@@ -89,9 +89,9 @@ export async function POST(request: NextRequest) {
       
       // Season Information
       currentSeasonId: null,
-      seasonStartDate: data.seasonStartDate ? Timestamp.fromDate(new Date(data.seasonStartDate)) : null,
-      seasonEndDate: data.seasonEndDate ? Timestamp.fromDate(new Date(data.seasonEndDate)) : null,
-      registrationDeadline: data.registrationDeadline ? Timestamp.fromDate(new Date(data.registrationDeadline)) : null,
+      seasonStartDate: data.seasonStartDate && data.seasonStartDate !== '' ? Timestamp.fromDate(new Date(data.seasonStartDate)) : null,
+      seasonEndDate: data.seasonEndDate && data.seasonEndDate !== '' ? Timestamp.fromDate(new Date(data.seasonEndDate)) : null,
+      registrationDeadline: data.registrationDeadline && data.registrationDeadline !== '' ? Timestamp.fromDate(new Date(data.registrationDeadline)) : null,
       
       // Pricing and Registration
       registrationFee: data.registrationFee || 0,

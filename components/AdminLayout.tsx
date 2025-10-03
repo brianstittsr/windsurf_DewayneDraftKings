@@ -276,6 +276,50 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
           </li>
 
+          {/* Nav Item - Coach Tools */}
+          <li className="nav-item">
+            <button 
+              className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['practice-plans', 'playbooks', 'drills', 'coach-resources']) ? 'active' : ''}`}
+              onClick={() => toggleSection('coach-tools')}
+              aria-expanded={isSectionExpanded('coach-tools')}
+            >
+              <i className="fas fa-fw fa-clipboard-list"></i>
+              <span>Coach Tools</span>
+              <i className={`fas fa-chevron-${isSectionExpanded('coach-tools') ? 'up' : 'down'} float-right mt-1`}></i>
+            </button>
+            <div className={`collapse ${isSectionExpanded('coach-tools') ? 'show' : ''}`}>
+              <div className="py-2 collapse-inner rounded">
+                <h6 className="collapse-header">Planning:</h6>
+                <Link className={`collapse-item ${isActive('practice-plans') ? 'active' : ''}`} href="/admin?tab=practice-plans">
+                  <i className="fas fa-calendar-check fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Practice Plans
+                </Link>
+                <Link className={`collapse-item ${isActive('playbooks') ? 'active' : ''}`} href="/admin?tab=playbooks">
+                  <i className="fas fa-book fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Playbooks
+                </Link>
+                <Link className={`collapse-item ${isActive('drills') ? 'active' : ''}`} href="/admin?tab=drills">
+                  <i className="fas fa-running fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Drills Library
+                </Link>
+                <div className="dropdown-divider"></div>
+                <h6 className="collapse-header">Resources:</h6>
+                <Link className={`collapse-item ${isActive('coach-resources') ? 'active' : ''}`} href="/admin?tab=coach-resources">
+                  <i className="fas fa-file-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Coach Resources
+                </Link>
+                <Link className={`collapse-item ${isActive('attendance') ? 'active' : ''}`} href="/admin?tab=attendance">
+                  <i className="fas fa-user-check fa-sm fa-fw mr-2 text-success"></i>
+                  Attendance Tracking
+                </Link>
+                <Link className={`collapse-item ${isActive('player-evaluations') ? 'active' : ''}`} href="/admin?tab=player-evaluations">
+                  <i className="fas fa-star fa-sm fa-fw mr-2 text-warning"></i>
+                  Player Evaluations
+                </Link>
+              </div>
+            </div>
+          </li>
+
           {/* Nav Item - Communication */}
           <li className="nav-item">
             <button 
@@ -311,10 +355,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <Link className={`collapse-item ${isActive('workflows') ? 'active' : ''}`} href="/admin?tab=workflows">
                   <i className="fas fa-robot fa-sm fa-fw mr-2 text-info"></i>
                   AI Workflow Builder
-                </Link>
-                <Link className={`collapse-item ${isActive('api-keys') ? 'active' : ''}`} href="/admin?tab=api-keys">
-                  <i className="fas fa-key fa-sm fa-fw mr-2 text-warning"></i>
-                  API Keys
                 </Link>
                 <Link className={`collapse-item ${isActive('facebook-links') ? 'active' : ''}`} href="/admin?tab=facebook-links">
                   <i className="fab fa-facebook fa-sm fa-fw mr-2 text-primary"></i>

@@ -396,6 +396,96 @@ function AdminPageContent() {
           </div>
         );
 
+      case 'practice-plans':
+        return (
+          <div className="fade-in">
+            <div className="card shadow">
+              <div className="card-header py-3">
+                <h6 className="m-0 font-weight-bold text-primary">Practice Plans</h6>
+              </div>
+              <div className="card-body">
+                <p>Create and manage practice plans for coaches.</p>
+                <p className="text-muted">Coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'playbooks':
+        return (
+          <div className="fade-in">
+            <div className="card shadow">
+              <div className="card-header py-3">
+                <h6 className="m-0 font-weight-bold text-primary">Playbooks</h6>
+              </div>
+              <div className="card-body">
+                <p>Digital playbook management for coaches.</p>
+                <p className="text-muted">Coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'drills':
+        return (
+          <div className="fade-in">
+            <div className="card shadow">
+              <div className="card-header py-3">
+                <h6 className="m-0 font-weight-bold text-primary">Drills Library</h6>
+              </div>
+              <div className="card-body">
+                <p>Browse and manage coaching drills and exercises.</p>
+                <p className="text-muted">Coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'coach-resources':
+        return (
+          <div className="fade-in">
+            <div className="card shadow">
+              <div className="card-header py-3">
+                <h6 className="m-0 font-weight-bold text-primary">Coach Resources</h6>
+              </div>
+              <div className="card-body">
+                <p>Training materials, guides, and resources for coaches.</p>
+                <p className="text-muted">Coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'attendance':
+        return (
+          <div className="fade-in">
+            <div className="card shadow">
+              <div className="card-header py-3">
+                <h6 className="m-0 font-weight-bold text-primary">Attendance Tracking</h6>
+              </div>
+              <div className="card-body">
+                <p>Track player attendance for practices and games.</p>
+                <p className="text-muted">Coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'player-evaluations':
+        return (
+          <div className="fade-in">
+            <div className="card shadow">
+              <div className="card-header py-3">
+                <h6 className="m-0 font-weight-bold text-primary">Player Evaluations</h6>
+              </div>
+              <div className="card-body">
+                <p>Evaluate and rate player performance.</p>
+                <p className="text-muted">Coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+
       case 'workflows':
         return (
           <div className="fade-in">
