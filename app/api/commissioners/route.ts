@@ -113,8 +113,10 @@ export async function POST(request: NextRequest) {
     };
     
     try {
-      console.log('Creating commissioner document...');
+      console.log('Creating commissioner document with data:', commissionerData);
       const commissRef = collection(db, 'commissioners');
+      console.log('Collection reference created');
+      
       const docRef = await addDoc(commissRef, commissionerData);
       console.log('✓ Commissioner created with ID:', docRef.id);
       
@@ -125,10 +127,18 @@ export async function POST(request: NextRequest) {
       });
     } catch (firestoreError: any) {
       console.error('✗ Firestore error:', firestoreError);
+      console.error('✗ Error code:', firestoreError?.code);
+      console.error('✗ Error message:', firestoreError?.message);
+      console.error('✗ Full error:', JSON.stringify(firestoreError, null, 2));
+      
       return NextResponse.json({ 
         success: false, 
         error: 'Failed to save to database',
-        details: firestoreError?.message || 'Unknown error'
+        details: firestoreError?.message || 'Unknown error',
+        code: firestoreError?.code || 'unknown',
+        hint: firestoreError?.code === 'permission-denied' 
+          ? 'Check Firestore security rules for commissioners collection'
+          : 'Check server logs for details'
       }, { status: 500 });
     }
   } catch (error: any) {
