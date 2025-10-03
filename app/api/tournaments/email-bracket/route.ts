@@ -23,6 +23,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Check if email is configured
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.error('✗ Email not configured - missing EMAIL_USER or EMAIL_PASS');
+      return NextResponse.json({
+        success: false,
+        error: 'Email service not configured',
+        details: 'Please configure EMAIL_USER and EMAIL_PASS environment variables. See docs/email-setup-guide.md for instructions.'
+      }, { status: 503 });
+    }
+
     // Convert base64 image to buffer for attachment
     const base64Data = bracketImage.replace(/^data:image\/\w+;base64,/, '');
     const imageBuffer = Buffer.from(base64Data, 'base64');
@@ -31,7 +41,7 @@ export async function POST(request: NextRequest) {
     const nodemailer = await import('nodemailer');
     
     const transporter = nodemailer.default.createTransport({
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+      host: process.env.EMAIL_HOST || 'smtp.privateemail.com',
       port: parseInt(process.env.EMAIL_PORT || '587'),
       secure: process.env.EMAIL_SECURE === 'true',
       auth: {

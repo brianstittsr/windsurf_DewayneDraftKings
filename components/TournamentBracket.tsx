@@ -213,11 +213,15 @@ export default function TournamentBracket({
         setEmailModalOpen(false);
         setEmailAddress('');
       } else {
-        alert(`❌ Error: ${data.error}`);
+        const errorMsg = data.details 
+          ? `${data.error}\n\n${data.details}` 
+          : data.error;
+        alert(`❌ Error: ${errorMsg}`);
+        console.error('Email error:', data);
       }
     } catch (error) {
       console.error('Error emailing bracket:', error);
-      alert('❌ Failed to email bracket');
+      alert('❌ Failed to email bracket. Check console for details.');
     } finally {
       setLoading(false);
     }
