@@ -41,7 +41,7 @@ const initialFormData: IntegrationFormData = {
 };
 
 export default function GoHighLevelIntegration() {
-  const [activeTab, setActiveTab] = useState<'integrations' | 'import'>('integrations');
+  const [activeTab, setActiveTab] = useState<'integrations' | 'import' | 'conversations'>('integrations');
   const [integrations, setIntegrations] = useState<GHLIntegrationType[]>([]);
   const [syncLogs, setSyncLogs] = useState<GoHighLevelSyncLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +59,12 @@ export default function GoHighLevelIntegration() {
   const [converting, setConverting] = useState<string | null>(null);
   const [convertProgress, setConvertProgress] = useState({ current: 0, total: 0, status: '' });
   const [convertedWorkflows, setConvertedWorkflows] = useState<Map<string, string>>(new Map());
+  
+  // Conversations state
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<any | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
   useEffect(() => {
     fetchIntegrations();
     fetchSyncLogs();

@@ -27,8 +27,38 @@ import SMSManagement from '@/components/SMSManagement';
 import NotificationManagement from '@/components/NotificationManagement';
 import TournamentManagement from '@/components/TournamentManagement';
 
-// Simple dashboard components
+// Dashboard with live stats
 function StatsOverview() {
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activePlayers: 0,
+    totalTeams: 0,
+    pendingPayments: 0,
+    totalRevenue: 0,
+    activeLeagues: 0,
+    totalCoaches: 0,
+    upcomingGames: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/admin/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data.stats || stats);
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="row">
       <div className="col-xl-3 col-md-6 mb-4">
@@ -39,7 +69,9 @@ function StatsOverview() {
                 <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
                   Total Users
                 </div>
-                <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                <div className="h5 mb-0 font-weight-bold text-gray-800">
+                  {loading ? '...' : stats.totalUsers.toLocaleString()}
+                </div>
               </div>
               <div className="col-auto">
                 <i className="fas fa-users fa-2x text-gray-300"></i>
@@ -56,7 +88,9 @@ function StatsOverview() {
                 <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
                   Active Players
                 </div>
-                <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                <div className="h5 mb-0 font-weight-bold text-gray-800">
+                  {loading ? '...' : stats.activePlayers.toLocaleString()}
+                </div>
               </div>
               <div className="col-auto">
                 <i className="fas fa-user-friends fa-2x text-gray-300"></i>
@@ -73,7 +107,9 @@ function StatsOverview() {
                 <div className="text-xs font-weight-bold text-info text-uppercase mb-1">
                   Total Teams
                 </div>
-                <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                <div className="h5 mb-0 font-weight-bold text-gray-800">
+                  {loading ? '...' : stats.totalTeams.toLocaleString()}
+                </div>
               </div>
               <div className="col-auto">
                 <i className="fas fa-futbol fa-2x text-gray-300"></i>
@@ -88,12 +124,92 @@ function StatsOverview() {
             <div className="row no-gutters align-items-center">
               <div className="col mr-2">
                 <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                  Total Revenue
+                </div>
+                <div className="h5 mb-0 font-weight-bold text-gray-800">
+                  {loading ? '...' : `$${stats.totalRevenue.toLocaleString()}`}
+                </div>
+              </div>
+              <div className="col-auto">
+                <i className="fas fa-dollar-sign fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Second Row */}
+      <div className="col-xl-3 col-md-6 mb-4">
+        <div className="card border-left-danger shadow h-100 py-2">
+          <div className="card-body">
+            <div className="row no-gutters align-items-center">
+              <div className="col mr-2">
+                <div className="text-xs font-weight-bold text-danger text-uppercase mb-1">
                   Pending Payments
                 </div>
-                <div className="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                <div className="h5 mb-0 font-weight-bold text-gray-800">
+                  {loading ? '...' : stats.pendingPayments.toLocaleString()}
+                </div>
               </div>
               <div className="col-auto">
                 <i className="fas fa-credit-card fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="col-xl-3 col-md-6 mb-4">
+        <div className="card border-left-secondary shadow h-100 py-2">
+          <div className="card-body">
+            <div className="row no-gutters align-items-center">
+              <div className="col mr-2">
+                <div className="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                  Active Leagues
+                </div>
+                <div className="h5 mb-0 font-weight-bold text-gray-800">
+                  {loading ? '...' : stats.activeLeagues.toLocaleString()}
+                </div>
+              </div>
+              <div className="col-auto">
+                <i className="fas fa-trophy fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="col-xl-3 col-md-6 mb-4">
+        <div className="card border-left-dark shadow h-100 py-2">
+          <div className="card-body">
+            <div className="row no-gutters align-items-center">
+              <div className="col mr-2">
+                <div className="text-xs font-weight-bold text-dark text-uppercase mb-1">
+                  Total Coaches
+                </div>
+                <div className="h5 mb-0 font-weight-bold text-gray-800">
+                  {loading ? '...' : stats.totalCoaches.toLocaleString()}
+                </div>
+              </div>
+              <div className="col-auto">
+                <i className="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="col-xl-3 col-md-6 mb-4">
+        <div className="card border-left-primary shadow h-100 py-2">
+          <div className="card-body">
+            <div className="row no-gutters align-items-center">
+              <div className="col mr-2">
+                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                  Upcoming Games
+                </div>
+                <div className="h5 mb-0 font-weight-bold text-gray-800">
+                  {loading ? '...' : stats.upcomingGames.toLocaleString()}
+                </div>
+              </div>
+              <div className="col-auto">
+                <i className="fas fa-calendar-alt fa-2x text-gray-300"></i>
               </div>
             </div>
           </div>

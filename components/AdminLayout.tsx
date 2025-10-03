@@ -469,30 +469,55 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <div className="topbar-divider d-none d-sm-block"></div>
 
                 {/* Nav Item - User Information */}
-                <li className="nav-item dropdown no-arrow">
-                  <a className="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <li className="nav-item dropdown">
+                  <button 
+                    className="nav-link dropdown-toggle btn btn-link text-decoration-none" 
+                    id="userDropdown" 
+                    data-bs-toggle="dropdown" 
+                    aria-expanded="false"
+                    style={{ border: 'none', background: 'transparent' }}
+                  >
                     <span className="mr-2 d-none d-lg-inline text-gray-600 small">Admin User</span>
                     <img className="img-profile rounded-circle" src="https://source.unsplash.com/60x60/?business" alt="Admin Profile" />
-                  </a>
-                  <div className="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                    <a className="dropdown-item" href="#">
-                      <i className="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                      Profile
-                    </a>
-                    <a className="dropdown-item" href="#">
-                      <i className="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                      Settings
-                    </a>
-                    <a className="dropdown-item" href="#">
-                      <i className="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                      Activity Log
-                    </a>
-                    <div className="dropdown-divider"></div>
-                    <a className="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-                      <i className="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                      Logout
-                    </a>
-                  </div>
+                  </button>
+                  <ul className="dropdown-menu dropdown-menu-end shadow animated--grow-in" aria-labelledby="userDropdown">
+                    <li>
+                      <a className="dropdown-item" href="/admin?tab=user-profiles">
+                        <i className="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Profile
+                      </a>
+                    </li>
+                    <li>
+                      <a className="dropdown-item" href="/admin?tab=settings">
+                        <i className="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Settings
+                      </a>
+                    </li>
+                    <li>
+                      <a className="dropdown-item" href="/admin?tab=activity">
+                        <i className="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Activity Log
+                      </a>
+                    </li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <button 
+                        className="dropdown-item text-danger" 
+                        onClick={() => {
+                          if (confirm('Are you sure you want to logout?')) {
+                            // Clear any session data
+                            localStorage.removeItem('adminSession');
+                            sessionStorage.clear();
+                            // Redirect to home
+                            window.location.href = '/';
+                          }
+                        }}
+                      >
+                        <i className="fas fa-sign-out-alt fa-sm fa-fw mr-2"></i>
+                        Logout
+                      </button>
+                    </li>
+                  </ul>
                 </li>
               </ul>
             </nav>

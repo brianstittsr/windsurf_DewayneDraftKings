@@ -152,11 +152,46 @@ export async function POST(request: NextRequest) {
                 const docSnap = await getDoc(docRef);
                 
                 if (docSnap.exists()) {
+                  const playerData = docSnap.data();
+                  
+                  // Generate QR code if not exists
+                  let qrCode = playerData.qrCode || '';
+                  let qrCodeUrl = playerData.qrCodeUrl || '';
+                  
+                  if (!qrCode) {
+                    try {
+                      const QRCode = await import('qrcode');
+                      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.allprosportsnc.com';
+                      qrCodeUrl = `${baseUrl}/player/${playerId}`;
+                      
+                      const qrData = JSON.stringify({
+                        playerId,
+                        name: `${playerData.firstName} ${playerData.lastName}`,
+                        team: playerData.teamId || 'Unassigned',
+                        jersey: playerData.jerseyNumber || 'TBD',
+                        verified: true,
+                        url: qrCodeUrl
+                      });
+                      
+                      qrCode = await QRCode.toDataURL(qrData, {
+                        width: 300,
+                        margin: 2,
+                        errorCorrectionLevel: 'H'
+                      });
+                      
+                      console.log('✓ QR code generated for player:', playerId);
+                    } catch (qrError) {
+                      console.error('Error generating QR code:', qrError);
+                    }
+                  }
+                  
                   await updateDoc(docRef, {
                     paymentStatus: 'completed',
                     registrationStatus: 'active',
                     paymentDate: new Date(),
                     stripeSessionId: session.id,
+                    qrCode,
+                    qrCodeUrl,
                     updatedAt: new Date()
                   });
                   
