@@ -93,24 +93,33 @@ export async function POST(request: NextRequest) {
       }
 
       // Increment coupon usage if a coupon was used
-      if (appliedCoupon) {
+      if (appliedCoupon && appliedCoupon.toUpperCase() !== 'REGISTER') {
         try {
           console.log('Incrementing coupon usage for:', appliedCoupon);
-          const incrementResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/coupons/increment-usage`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              couponCode: appliedCoupon
-            }),
-          });
-
-          if (incrementResponse.ok) {
-            const incrementResult = await incrementResponse.json();
-            console.log('Coupon usage incremented:', incrementResult);
-          } else {
-            console.warn('Failed to increment coupon usage:', await incrementResponse.text());
+          const firebaseModule = await import('../../../../lib/firebase').catch(() => ({ db: null }));
+          const { db } = firebaseModule;
+          
+          if (db) {
+            const { collection, query, where, getDocs, doc, updateDoc, increment, Timestamp } = await import('firebase/firestore');
+            
+            const couponsRef = collection(db, 'coupons');
+            const q = query(couponsRef, where('code', '==', appliedCoupon.toUpperCase()));
+            const snapshot = await getDocs(q);
+            
+            if (!snapshot.empty) {
+              const couponDoc = snapshot.docs[0];
+              const couponRef = doc(db, 'coupons', couponDoc.id);
+              
+              await updateDoc(couponRef, {
+                usedCount: increment(1),
+                lastUsedAt: Timestamp.now(),
+                updatedAt: Timestamp.now()
+              });
+              
+              console.log(`✓ Coupon ${appliedCoupon} usage incremented`);
+            } else {
+              console.warn(`⚠ Coupon not found: ${appliedCoupon}`);
+            }
           }
         } catch (incrementError) {
           console.error('Error incrementing coupon usage:', incrementError);

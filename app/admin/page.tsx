@@ -24,6 +24,8 @@ import SeasonConfigManagement from '@/components/SeasonConfigManagement';
 import PlayerTransferManagement from '@/components/PlayerTransferManagement';
 import PlayerSwapManagement from '@/components/PlayerSwapManagement';
 import CommissionerManagement from '@/components/CommissionerManagement';
+import SMSManagement from '@/components/SMSManagement';
+import NotificationManagement from '@/components/NotificationManagement';
 
 // Simple dashboard components
 function StatsOverview() {
@@ -254,59 +256,10 @@ function AdminPageContent() {
           <div className="fade-in">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
               <h1 className="h3 mb-0 text-gray-800">Payment Management</h1>
-            </div>
             <PaymentManagement />
           </div>
         );
 
-      case 'coupons':
-        return (
-          <div className="fade-in">
-            <div className="d-sm-flex align-items-center justify-content-between mb-4">
-              <h1 className="h3 mb-0 text-gray-800">Coupon Management</h1>
-            </div>
-            <CouponManagement />
-          </div>
-        );
-
-      case 'pricing':
-        return (
-          <div className="fade-in">
-            <ProductManagement />
-          </div>
-        );
-
-      case 'meal-plans':
-        return (
-          <div className="fade-in">
-            <div className="d-sm-flex align-items-center justify-content-between mb-4">
-              <h1 className="h3 mb-0 text-gray-800">Meal Plan Management</h1>
-            </div>
-            <MealPlanManagement />
-          </div>
-        );
-
-      case 'qr-codes':
-        return (
-          <div className="fade-in">
-            <div className="d-sm-flex align-items-center justify-content-between mb-4">
-              <h1 className="h3 mb-0 text-gray-800">QR Code Management</h1>
-              <button className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <i className="fas fa-plus fa-sm text-white-50"></i> Generate QR Code
-              </button>
-            </div>
-            <div className="row">
-              <div className="col-xl-8 col-lg-7">
-                <div className="card shadow mb-4">
-                  <div className="card-header py-3">
-                    <h6 className="m-0 font-weight-bold text-primary">QR Code Library</h6>
-                  </div>
-                  <div className="card-body">
-                    <div className="table-responsive">
-                      <table className="table table-bordered" width="100%" cellSpacing="0">
-                        <thead>
-                          <tr>
-                            <th>Type</th>
                             <th>Name</th>
                             <th>Created</th>
                             <th>Scans</th>
