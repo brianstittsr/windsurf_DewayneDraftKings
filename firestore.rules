@@ -369,5 +369,30 @@ service cloud.firestore {
     match /player_transfers/{transferId} {
       allow read, write: if true;
     }
+
+    // Commissioners collection - Allow all operations for development
+    match /commissioners/{commissionerId} {
+      allow read, write: if true;
+    }
+
+    // SMS Opt-outs collection - Allow all operations for development
+    match /sms_opt_outs/{optOutId} {
+      allow read, write: if true;
+    }
+
+    // Tournaments collection - Allow all operations for development
+    match /tournaments/{tournamentId} {
+      allow read, write: if true;
+    }
+
+    // Pricing Plans collection - Allow all operations for development
+    match /pricing_plans/{planId} {
+      allow read, write: if true;
+    }
+
+    // GoHighLevel Imported Workflows collection - Allow all operations for development
+    match /ghl_imported_workflows/{workflowId} {
+      allow read, write: if true;
+    }
   }
 }
