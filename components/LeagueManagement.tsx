@@ -353,30 +353,32 @@ export default function LeagueManagement() {
                         </span>
                       </td>
                       <td>
-                        {league.seasonStartDate && league.seasonEndDate ? (
-                          <span className="text-muted small">
-                            {(() => {
-                              try {
-                                const startDate = typeof league.seasonStartDate.toDate === 'function' 
-                                  ? league.seasonStartDate.toDate()
-                                  : new Date(league.seasonStartDate);
-                                const endDate = typeof league.seasonEndDate.toDate === 'function'
-                                  ? league.seasonEndDate.toDate()
-                                  : new Date(league.seasonEndDate);
-                                
-                                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                                  return 'Invalid dates';
-                                }
-                                
-                                return `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
-                              } catch (e) {
-                                return 'Error displaying dates';
-                              }
-                            })()}
-                          </span>
-                        ) : (
-                          <span className="text-muted">Not set</span>
-                        )}
+                        {(() => {
+                          try {
+                            if (!league.seasonStartDate || !league.seasonEndDate) {
+                              return <span className="text-muted">Not set</span>;
+                            }
+                            
+                            const startDate = league.seasonStartDate?.toDate 
+                              ? league.seasonStartDate.toDate()
+                              : new Date(league.seasonStartDate);
+                            const endDate = league.seasonEndDate?.toDate
+                              ? league.seasonEndDate.toDate()
+                              : new Date(league.seasonEndDate);
+                            
+                            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                              return <span className="text-muted">Invalid dates</span>;
+                            }
+                            
+                            return (
+                              <span className="text-muted small">
+                                {startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}
+                              </span>
+                            );
+                          } catch (e) {
+                            return <span className="text-muted">Not set</span>;
+                          }
+                        })()}
                       </td>
                       <td>
                         <span className={`badge ${league.isAcceptingRegistrations ? 'bg-success' : 'bg-secondary'}`}>
