@@ -139,9 +139,11 @@ export async function POST(request: NextRequest) {
           
           const { db } = firebaseModule;
           
+          let generatedQrCode = '';
+          
           if (db) {
             const { doc, updateDoc, getDoc } = await import('firebase/firestore');
-            
+
             // Try both players and coaches collections
             const collections = ['players', 'coaches'];
             let updated = false;
@@ -184,6 +186,8 @@ export async function POST(request: NextRequest) {
                       console.error('Error generating QR code:', qrError);
                     }
                   }
+                  
+                  generatedQrCode = qrCode; // Store for email use
                   
                   await updateDoc(docRef, {
                     paymentStatus: 'completed',
@@ -272,6 +276,176 @@ export async function POST(request: NextRequest) {
               }
             } catch (emailError) {
               console.error('Email send error:', emailError);
+            }
+          }
+
+          // Send registration email with QR code
+          if (customerEmail && playerId && generatedQrCode) {
+            try {
+              console.log('Sending registration email with QR code to:', customerEmail);
+
+              const { doc, getDoc } = await import('firebase/firestore');
+              let playerData = null;
+
+              // Get player data for personalized email
+              for (const collectionName of ['players', 'coaches']) {
+                try {
+                  const docRef = doc(db, collectionName, playerId);
+                  const docSnap = await getDoc(docRef);
+                  if (docSnap.exists()) {
+                    playerData = docSnap.data();
+                    break;
+                  }
+                } catch (error) {
+                  continue;
+                }
+              }
+
+              if (playerData) {
+                const registrationEmailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/email/send`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    to: customerEmail,
+                    subject: 'Welcome to All Pro Sports NC - Your Registration is Complete!',
+                    html: `
+                      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <div style="background-color: #007bff; color: white; padding: 20px; text-align: center;">
+                          <h1>🏈 Welcome to All Pro Sports NC!</h1>
+                        </div>
+
+                        <div style="padding: 20px; background-color: #f8f9fa;">
+                          <h2>Registration Complete!</h2>
+                          <p>Thank you for joining All Pro Sports NC! Your registration has been processed and you're now officially part of our league.</p>
+
+                          <!-- Player Card -->
+                          <div style="background-color: white; padding: 20px; border-radius: 10px; margin: 20px 0; border: 2px solid #007bff;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                              <div>
+                                <h3 style="margin: 0; color: #007bff;">${playerData.firstName} ${playerData.lastName}</h3>
+                                <p style="margin: 5px 0; color: #6c757d;">${playerData.position || 'Position TBD'} • ${playerData.teamId ? 'Team Assigned' : 'Free Agent'}</p>
+                                <p style="margin: 5px 0; font-size: 14px; color: #6c757d;">Player ID: ${playerId}</p>
+                              </div>
+                              <div style="text-align: center;">
+                                <div style="background-color: #007bff; color: white; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">
+                                  ${playerData.jerseyNumber || '?'}
+                                </div>
+                                <small style="color: #6c757d;">Jersey #</small>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- QR Code Section -->
+                          <div style="background-color: white; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;">
+                            <h3>📱 Your Player QR Code</h3>
+                            <p style="color: #6b7280; margin: 10px 0;">
+                              Use this QR code for quick check-in at games and events
+                            </p>
+
+                            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; display: inline-block; margin: 10px 0;">
+                              <img src="${qrCode}" alt="Player QR Code" style="width: 200px; height: 200px;" />
+                            </div>
+
+                            <div style="margin: 15px 0;">
+                              <a href="${qrCode}" download="${playerData.firstName}_${playerData.lastName}_QR.png" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                                📥 Download QR Code
+                              </a>
+                            </div>
+
+                            <div style="background-color: #e9ecef; padding: 10px; border-radius: 5px; margin: 15px 0;">
+                              <strong>📲 How to use your QR code:</strong>
+                              <ul style="text-align: left; margin: 10px 0; padding-left: 20px;">
+                                <li>Save this image to your phone</li>
+                                <li>Show it at check-in for games and practices</li>
+                                <li>Staff will scan it for instant verification</li>
+                                <li>Keep it handy for all league events</li>
+                              </ul>
+                            </div>
+                          </div>
+
+                          <!-- What's Included -->
+                          <div style="background-color: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                            <h3 style="color: #28a745;">✅ What's Included in Your Registration</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
+                              <div style="display: flex; align-items: center;">
+                                <span style="color: #28a745; margin-right: 10px;">✓</span>
+                                League participation
+                              </div>
+                              <div style="display: flex; align-items: center;">
+                                <span style="color: #28a745; margin-right: 10px;">✓</span>
+                                Player equipment
+                              </div>
+                              <div style="display: flex; align-items: center;">
+                                <span style="color: #28a745; margin-right: 10px;">✓</span>
+                                Game schedules
+                              </div>
+                              <div style="display: flex; align-items: center;">
+                                <span style="color: #28a745; margin-right: 10px;">✓</span>
+                                Practice sessions
+                              </div>
+                              <div style="display: flex; align-items: center;">
+                                <span style="color: #28a745; margin-right: 10px;">✓</span>
+                                Mobile app access
+                              </div>
+                              <div style="display: flex; align-items: center;">
+                                <span style="color: #28a745; margin-right: 10px;">✓</span>
+                                Parent portal
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Next Steps -->
+                          <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                            <h3 style="color: #856404;">🚀 Next Steps</h3>
+                            <ol style="margin: 15px 0;">
+                              <li style="margin-bottom: 10px;"><strong>Team Assignment:</strong> You'll be assigned to a team within 48 hours</li>
+                              <li style="margin-bottom: 10px;"><strong>Equipment Pickup:</strong> Visit the complex to pick up your jersey and gear</li>
+                              <li style="margin-bottom: 10px;"><strong>First Practice:</strong> Check your email for practice schedules</li>
+                              <li style="margin-bottom: 10px;"><strong>Join Our Community:</strong> Follow us on social media for updates</li>
+                            </ol>
+                          </div>
+
+                          <!-- Contact Info -->
+                          <div style="text-align: center; margin: 30px 0; padding: 20px; background-color: white; border-radius: 10px;">
+                            <h3>📞 Need Help?</h3>
+                            <p><strong>Email:</strong> <a href="mailto:info@allprosportsnc.com">info@allprosportsnc.com</a></p>
+                            <p><strong>Phone:</strong> (919) 555-0100</p>
+                            <p><strong>Address:</strong> All Pro Sports Complex, Raleigh NC</p>
+                            <div style="margin: 15px 0;">
+                              <a href="#" style="background-color: #007bff; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; margin: 0 5px;">📘 Facebook</a>
+                              <a href="#" style="background-color: #e4405f; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; margin: 0 5px;">📷 Instagram</a>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style="background-color: #343a40; color: white; padding: 20px; text-align: center;">
+                          <p>&copy; 2024 All Pro Sports NC. All rights reserved.</p>
+                          <p style="font-size: 12px; margin: 10px 0;">
+                            <a href="/privacy" style="color: #adb5bd;">Privacy Policy</a> |
+                            <a href="/tos" style="color: #adb5bd;">Terms of Service</a>
+                          </p>
+                        </div>
+                      </div>
+                    `,
+                    attachments: [{
+                      filename: `${playerData.firstName}_${playerData.lastName}_QR_Code.png`,
+                      content: qrCode.replace(/^data:image\/png;base64,/, ''),
+                      encoding: 'base64',
+                      cid: 'qrcode@allprosportsnc.com'
+                    }]
+                  }),
+                });
+
+                if (registrationEmailResponse.ok) {
+                  console.log('Registration email with QR code sent successfully');
+                } else {
+                  console.error('Failed to send registration email with QR code');
+                }
+              }
+            } catch (registrationEmailError) {
+              console.error('Registration email send error:', registrationEmailError);
             }
           }
 
