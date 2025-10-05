@@ -394,5 +394,18 @@ service cloud.firestore {
     match /ghl_imported_workflows/{workflowId} {
       allow read, write: if true;
     }
+
+    // Draft System Collections - Allow all operations for development
+    match /draft_sessions/{sessionId} {
+      allow read, write: if true;
+    }
+
+    match /draft_picks/{pickId} {
+      allow read, write: if true;
+    }
+
+    match /draft_queues/{queueId} {
+      allow read, write: if true;
+    }
   }
 }
