@@ -36,6 +36,7 @@ const initialFormData: IntegrationFormData = {
   syncCampaigns: false,
   defaultPipelineId: '',
   defaultStageId: '',
+  enableWebhooks: false,
   webhookUrl: '',
   webhookSecret: ''
 };
@@ -60,15 +61,16 @@ export default function GoHighLevelIntegration() {
   const [convertProgress, setConvertProgress] = useState({ current: 0, total: 0, status: '' });
   const [convertedWorkflows, setConvertedWorkflows] = useState<Map<string, string>>(new Map());
   
-  // Conversations state
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<any | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [loadingConversations, setLoadingConversations] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
   useEffect(() => {
     fetchIntegrations();
     fetchSyncLogs();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchIntegrations = async () => {
     try {
@@ -85,16 +87,66 @@ export default function GoHighLevelIntegration() {
     }
   };
 
-  const fetchSyncLogs = async () => {
+  const fetchConversations = async () => {
+    if (!integrations.length) return;
+    
     try {
-      const response = await fetch('/api/gohighlevel/sync-logs?limit=50');
+      setLoadingConversations(true);
+      const response = await fetch('/api/gohighlevel/conversations');
       if (response.ok) {
         const data = await response.json();
-        setSyncLogs(data.logs || []);
+        setConversations(data.conversations || []);
       }
     } catch (error) {
-      console.error('Error fetching sync logs:', error);
+      console.error('Error fetching conversations:', error);
+    } finally {
+      setLoadingConversations(false);
     }
+  };
+
+  const fetchMessages = async (conversationId: string) => {
+    try {
+      const response = await fetch(`/api/gohighlevel/conversations/${conversationId}/messages`);
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data.messages || []);
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!selectedConversation || !newMessage.trim()) return;
+
+    try {
+      setSendingMessage(true);
+      const response = await fetch(`/api/gohighlevel/conversations/${selectedConversation.id}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: newMessage,
+          type: 'text'
+        }),
+      });
+
+      if (response.ok) {
+        setNewMessage('');
+        // Refresh messages
+        await fetchMessages(selectedConversation.id);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleConversationSelect = async (conversation: any) => {
+    setSelectedConversation(conversation);
+    await fetchMessages(conversation.id);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,8 +175,6 @@ export default function GoHighLevelIntegration() {
       alert('Error saving integration');
     }
   };
-
-  const testConnection = async (integration: GoHighLevelIntegration) => {
     setTestingConnection(true);
     try {
       const response = await fetch(`/api/gohighlevel/test-connection/${integration.id}`, {
@@ -144,7 +194,7 @@ export default function GoHighLevelIntegration() {
     }
   };
 
-  const syncData = async (integration: GoHighLevelIntegration, syncType: string) => {
+  const syncData = async (integration: GHLIntegrationType, syncType: string) => {
     setSyncing(integration.id);
     try {
       const response = await fetch(`/api/gohighlevel/sync/${integration.id}`, {
@@ -174,7 +224,7 @@ export default function GoHighLevelIntegration() {
     setShowModal(true);
   };
 
-  const handleEdit = (integration: GoHighLevelIntegration) => {
+  const handleEdit = (integration: GHLIntegrationType) => {
     setSelectedIntegration(integration);
     setFormData({
       name: integration.name,
@@ -314,6 +364,18 @@ export default function GoHighLevelIntegration() {
         </li>
         <li className="nav-item">
           <button
+            className={`nav-link ${activeTab === 'conversations' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('conversations');
+              fetchConversations();
+            }}
+          >
+            <i className="fas fa-comments me-2"></i>
+            Conversations
+          </button>
+        </li>
+        <li className="nav-item">
+          <button
             className={`nav-link ${activeTab === 'import' ? 'active' : ''}`}
             onClick={() => setActiveTab('import')}
           >
@@ -381,7 +443,7 @@ export default function GoHighLevelIntegration() {
                             {integration.lastSyncAt ? (
                               <div>
                                 <div className="small">
-                                  {new Date(integration.lastSyncAt).toLocaleString()}
+                                  {new Date(integration.lastSyncAt?.toDate?.() || integration.lastSyncAt).toLocaleString()}
                                 </div>
                                 <span className={`badge badge-sm ${
                                   integration.lastSyncStatus === 'success' ? 'bg-success' :
@@ -465,7 +527,7 @@ export default function GoHighLevelIntegration() {
                         <div className="flex-grow-1">
                           <div className="fw-bold small">{log.syncType} sync</div>
                           <div className="text-muted small">
-                            {new Date(log.startedAt).toLocaleString()}
+                            {new Date(log.startedAt?.toDate?.() || log.startedAt).toLocaleString()}
                           </div>
                           {log.status === 'completed' && log.summary && (
                             <div className="small text-success">
@@ -644,6 +706,164 @@ export default function GoHighLevelIntegration() {
         </div>
       )}
         </>
+      )}
+
+      {/* Conversations Tab */}
+      {activeTab === 'conversations' && (
+        <div className="row">
+          <div className="col-lg-4">
+            <div className="card">
+              <div className="card-header bg-primary text-white">
+                <h5 className="mb-0">
+                  <i className="fas fa-comments me-2"></i>
+                  Conversations
+                </h5>
+              </div>
+              <div className="card-body" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                {loadingConversations ? (
+                  <div className="text-center py-4">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading conversations...</span>
+                    </div>
+                    <p className="mt-2">Loading conversations...</p>
+                  </div>
+                ) : conversations.length === 0 ? (
+                  <div className="text-center py-4">
+                    <i className="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <p className="text-muted">No conversations found</p>
+                    <p className="text-muted small">Conversations will appear here once available</p>
+                  </div>
+                ) : (
+                  <div className="conversation-list">
+                    {conversations.map((conversation: any) => (
+                      <div
+                        key={conversation.id}
+                        className={`conversation-item p-3 border-bottom cursor-pointer ${
+                          selectedConversation?.id === conversation.id ? 'bg-light' : ''
+                        }`}
+                        onClick={() => handleConversationSelect(conversation)}
+                      >
+                        <div className="d-flex justify-content-between align-items-start">
+                          <div className="flex-grow-1">
+                            <div className="fw-bold text-truncate">
+                              {conversation.contactName || conversation.contact?.name || 'Unknown Contact'}
+                            </div>
+                            <div className="text-muted small text-truncate">
+                              {conversation.lastMessage || 'No messages yet'}
+                            </div>
+                          </div>
+                          <div className="text-end">
+                            <div className="text-muted small">
+                              {conversation.lastMessageAt ? new Date(conversation.lastMessageAt).toLocaleDateString() : ''}
+                            </div>
+                            {conversation.unreadCount > 0 && (
+                              <span className="badge bg-danger rounded-pill mt-1">
+                                {conversation.unreadCount}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="col-lg-8">
+            {selectedConversation ? (
+              <div className="card">
+                <div className="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">
+                    <i className="fas fa-comment me-2"></i>
+                    {selectedConversation.contactName || selectedConversation.contact?.name || 'Chat'}
+                  </h5>
+                  <button
+                    className="btn btn-sm btn-outline-light"
+                    onClick={() => fetchMessages(selectedConversation.id)}
+                  >
+                    <i className="fas fa-sync me-1"></i>
+                    Refresh
+                  </button>
+                </div>
+                <div className="card-body" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  {messages.length === 0 ? (
+                    <div className="text-center py-4">
+                      <i className="fas fa-comments fa-2x text-muted mb-3"></i>
+                      <p className="text-muted">No messages in this conversation</p>
+                    </div>
+                  ) : (
+                    <div className="message-list">
+                      {messages.map((message: any) => (
+                        <div
+                          key={message.id}
+                          className={`message-item d-flex mb-3 ${
+                            message.direction === 'outbound' ? 'justify-content-end' : 'justify-content-start'
+                          }`}
+                        >
+                          <div
+                            className={`message-bubble p-3 rounded ${
+                              message.direction === 'outbound'
+                                ? 'bg-primary text-white'
+                                : 'bg-light border'
+                            }`}
+                            style={{ maxWidth: '70%' }}
+                          >
+                            <div className="message-content">
+                              {message.body || message.content}
+                            </div>
+                            <div className={`small mt-1 ${
+                              message.direction === 'outbound' ? 'text-white-50' : 'text-muted'
+                            }`}>
+                              {message.createdAt ? new Date(message.createdAt).toLocaleString() : ''}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="card-footer">
+                  <div className="input-group">
+                    <textarea
+                      className="form-control"
+                      placeholder="Type your message..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                      rows={2}
+                    />
+                    <button
+                      className="btn btn-primary"
+                      onClick={sendMessage}
+                      disabled={!newMessage.trim() || sendingMessage}
+                    >
+                      {sendingMessage ? (
+                        <span className="spinner-border spinner-border-sm" role="status"></span>
+                      ) : (
+                        <i className="fas fa-paper-plane"></i>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="card">
+                <div className="card-body text-center py-5">
+                  <i className="fas fa-comments fa-4x text-muted mb-3"></i>
+                  <h4>Select a Conversation</h4>
+                  <p className="text-muted">Choose a conversation from the list to start chatting</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Import Workflows Tab */}
