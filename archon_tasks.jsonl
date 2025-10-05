@@ -1,0 +1,68 @@
+# Archon Task Import Format
+# Fantasy Football Draft System Tasks
+# Generated: 2025-10-05
+# Format: JSON Lines for Archon import
+
+{"task": {"id": "DK-DRAFT-PROJ-001", "title": "Fantasy Football Draft System Project", "description": "Complete brownfield implementation of Sleeper-style player draft system for All Pro Sports NC", "type": "project", "status": "active", "priority": "critical", "assignee": "Development Team", "start_date": "2025-10-05", "due_date": "2025-10-08", "estimated_hours": 36, "tags": ["brownfield", "draft-system", "mobile-first", "real-time"]}}
+
+{"task": {"id": "DK-DRAFT-EPIC-001", "title": "Epic: Fantasy Football-Style Player Draft System", "description": "Implement complete draft system with real-time functionality, mobile design, and communication workflows", "type": "epic", "status": "active", "priority": "critical", "parent_id": "DK-DRAFT-PROJ-001", "assignee": "Development Team", "start_date": "2025-10-05", "due_date": "2025-10-08", "estimated_hours": 36}}
+
+{"task": {"id": "DK-DRAFT-STORY-001", "title": "Story 1.1: Draft Database Schema", "description": "Create Firestore collections for draft_sessions, draft_picks, draft_queues and extend existing player/team collections", "type": "story", "status": "ready", "priority": "critical", "parent_id": "DK-DRAFT-EPIC-001", "assignee": "Backend Developer", "start_date": "2025-10-05", "due_date": "2025-10-05", "estimated_hours": 6, "acceptance_criteria": ["New Firestore collections created", "Existing collections extended", "Security rules updated", "Indexes optimized"]}}
+
+{"task": {"id": "DK-DRAFT-SUB-001-1", "title": "Create Firestore Collections", "description": "Implement draft_sessions, draft_picks, and draft_queues collections with proper schemas", "type": "subtask", "status": "pending", "priority": "critical", "parent_id": "DK-DRAFT-STORY-001", "assignee": "Backend Developer", "estimated_hours": 2}}
+
+{"task": {"id": "DK-DRAFT-SUB-001-2", "title": "Extend Existing Collections", "description": "Add draft-related fields to players and teams collections", "type": "subtask", "status": "pending", "priority": "critical", "parent_id": "DK-DRAFT-STORY-001", "assignee": "Backend Developer", "estimated_hours": 2}}
+
+{"task": {"id": "DK-DRAFT-SUB-001-3", "title": "Update Security Rules", "description": "Modify Firebase security rules for draft data access control", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-STORY-001", "assignee": "Backend Developer", "estimated_hours": 1}}
+
+{"task": {"id": "DK-DRAFT-SUB-001-4", "title": "Create Database Indexes", "description": "Add optimized indexes for draft-related queries", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-STORY-001", "assignee": "Backend Developer", "estimated_hours": 1}}
+
+{"task": {"id": "DK-DRAFT-STORY-002", "title": "Story 1.2: Draft API Endpoints", "description": "Implement RESTful API endpoints for draft session management and real-time functionality", "type": "story", "status": "ready", "priority": "critical", "parent_id": "DK-DRAFT-EPIC-001", "assignee": "Backend Developer", "start_date": "2025-10-05", "due_date": "2025-10-06", "estimated_hours": 8, "dependencies": ["DK-DRAFT-STORY-001"], "acceptance_criteria": ["Session CRUD APIs implemented", "Real-time updates working", "Timer management functional", "Queue APIs operational"]}}
+
+{"task": {"id": "DK-DRAFT-SUB-002-1", "title": "Session Management APIs", "description": "Create POST/GET/PUT endpoints for draft session CRUD operations", "type": "subtask", "status": "pending", "priority": "critical", "parent_id": "DK-DRAFT-STORY-002", "assignee": "Backend Developer", "estimated_hours": 2}}
+
+{"task": {"id": "DK-DRAFT-SUB-002-2", "title": "Draft Execution APIs", "description": "Implement pick execution, session start, and status endpoints", "type": "subtask", "status": "pending", "priority": "critical", "parent_id": "DK-DRAFT-STORY-002", "assignee": "Backend Developer", "estimated_hours": 2}}
+
+{"task": {"id": "DK-DRAFT-SUB-002-3", "title": "Real-Time Infrastructure", "description": "Implement Server-Sent Events for live draft updates and timer management", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-STORY-002", "assignee": "Backend Developer", "estimated_hours": 3}}
+
+{"task": {"id": "DK-DRAFT-SUB-002-4", "title": "Queue Management APIs", "description": "Create endpoints for team draft queue updates and management", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-STORY-002", "assignee": "Backend Developer", "estimated_hours": 1}}
+
+{"task": {"id": "DK-DRAFT-STORY-003", "title": "Story 1.3: Mobile-First Draft Interface", "description": "Create responsive draft interface with touch interactions and real-time updates", "type": "story", "status": "ready", "priority": "high", "parent_id": "DK-DRAFT-EPIC-001", "assignee": "Frontend Developer", "start_date": "2025-10-06", "due_date": "2025-10-07", "estimated_hours": 10, "dependencies": ["DK-DRAFT-STORY-002"], "acceptance_criteria": ["Responsive design working", "Touch gestures functional", "Real-time updates displayed", "Mobile performance optimized"]}}
+
+{"task": {"id": "DK-DRAFT-SUB-003-1", "title": "Draft Context Provider", "description": "Implement React context for draft state management and real-time subscriptions", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-STORY-003", "assignee": "Frontend Developer", "estimated_hours": 2}}
+
+{"task": {"id": "DK-DRAFT-SUB-003-2", "title": "Player Card Components", "description": "Create touch-optimized player cards with availability indicators", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-STORY-003", "assignee": "Frontend Developer", "estimated_hours": 2}}
+
+{"task": {"id": "DK-DRAFT-SUB-003-3", "title": "Draft Board Layout", "description": "Build responsive draft board with timer, current picks, and team rosters", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-STORY-003", "assignee": "Frontend Developer", "estimated_hours": 3}}
+
+{"task": {"id": "DK-DRAFT-SUB-003-4", "title": "Real-Time Integration", "description": "Connect UI to real-time updates with connection recovery and offline support", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-STORY-003", "assignee": "Frontend Developer", "estimated_hours": 3}}
+
+{"task": {"id": "DK-DRAFT-STORY-004", "title": "Story 1.4: SMS Draft Notifications", "description": "Implement immediate SMS notifications when players are drafted with team details", "type": "story", "status": "ready", "priority": "high", "parent_id": "DK-DRAFT-EPIC-001", "assignee": "Backend Developer", "start_date": "2025-10-05", "due_date": "2025-10-06", "estimated_hours": 4, "dependencies": ["DK-DRAFT-STORY-002"], "acceptance_criteria": ["SMS sent immediately on draft", "Messages include team/coach info", "No disruption to existing SMS", "Delivery tracking implemented"]}}
+
+{"task": {"id": "DK-DRAFT-SUB-004-1", "title": "Notification Service", "description": "Create DraftSMSNotifications service integrating with existing Twilio setup", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-STORY-004", "assignee": "Backend Developer", "estimated_hours": 1}}
+
+{"task": {"id": "DK-DRAFT-SUB-004-2", "title": "API Integration", "description": "Modify draft pick endpoint to trigger SMS notifications asynchronously", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-STORY-004", "assignee": "Backend Developer", "estimated_hours": 1}}
+
+{"task": {"id": "DK-DRAFT-SUB-004-3", "title": "Message Templates", "description": "Design professional congratulatory SMS templates with team information", "type": "subtask", "status": "pending", "priority": "medium", "parent_id": "DK-DRAFT-STORY-004", "assignee": "Backend Developer", "estimated_hours": 1}}
+
+{"task": {"id": "DK-DRAFT-SUB-004-4", "title": "Error Handling", "description": "Implement retry logic and delivery tracking for SMS notifications", "type": "subtask", "status": "pending", "priority": "medium", "parent_id": "DK-DRAFT-STORY-004", "assignee": "Backend Developer", "estimated_hours": 1}}
+
+{"task": {"id": "DK-DRAFT-STORY-005", "title": "Story 1.5: Post-Draft Communication Workflows", "description": "Build automated communication system for team/coach interactions and Facebook integration", "type": "story", "status": "ready", "priority": "medium", "parent_id": "DK-DRAFT-EPIC-001", "assignee": "Full-Stack Developer", "start_date": "2025-10-07", "due_date": "2025-10-08", "estimated_hours": 8, "dependencies": ["DK-DRAFT-STORY-001", "DK-DRAFT-STORY-002", "DK-DRAFT-STORY-004"], "acceptance_criteria": ["Team messaging functional", "Facebook posts automated", "Welcome workflows triggered", "Coach communication hub operational"]}}
+
+{"task": {"id": "DK-DRAFT-SUB-005-1", "title": "Communication Infrastructure", "description": "Create team messaging API and database structure for communications", "type": "subtask", "status": "pending", "priority": "medium", "parent_id": "DK-DRAFT-STORY-005", "assignee": "Full-Stack Developer", "estimated_hours": 2}}
+
+{"task": {"id": "DK-DRAFT-SUB-005-2", "title": "Welcome Workflows", "description": "Implement automated post-draft welcome sequences and team introductions", "type": "subtask", "status": "pending", "priority": "medium", "parent_id": "DK-DRAFT-STORY-005", "assignee": "Full-Stack Developer", "estimated_hours": 2}}
+
+{"task": {"id": "DK-DRAFT-SUB-005-3", "title": "Facebook Integration", "description": "Set up Graph API integration for automatic draft announcement posts", "type": "subtask", "status": "pending", "priority": "medium", "parent_id": "DK-DRAFT-STORY-005", "assignee": "Full-Stack Developer", "estimated_hours": 2}}
+
+{"task": {"id": "DK-DRAFT-SUB-005-4", "title": "Coach Communication Hub", "description": "Build team communication dashboard with messaging and player management", "type": "subtask", "status": "pending", "priority": "medium", "parent_id": "DK-DRAFT-STORY-005", "assignee": "Full-Stack Developer", "estimated_hours": 2}}
+
+{"task": {"id": "DK-DRAFT-QA-001", "title": "QA: Draft System Testing", "description": "Comprehensive testing of draft system functionality across all components", "type": "story", "status": "planned", "priority": "high", "parent_id": "DK-DRAFT-EPIC-001", "assignee": "QA Engineer", "start_date": "2025-10-06", "due_date": "2025-10-08", "estimated_hours": 6, "acceptance_criteria": ["Unit tests passing", "Integration tests successful", "Mobile compatibility verified", "Performance benchmarks met"]}}
+
+{"task": {"id": "DK-DRAFT-SUB-QA-1", "title": "Unit Testing", "description": "Create and run unit tests for all draft system components", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-QA-001", "assignee": "QA Engineer", "estimated_hours": 2}}
+
+{"task": {"id": "DK-DRAFT-SUB-QA-2", "title": "Integration Testing", "description": "Test end-to-end draft flows and component interactions", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-QA-001", "assignee": "QA Engineer", "estimated_hours": 2}}
+
+{"task": {"id": "DK-DRAFT-SUB-QA-3", "title": "Mobile Testing", "description": "Validate mobile responsiveness and touch interactions", "type": "subtask", "status": "pending", "priority": "high", "parent_id": "DK-DRAFT-QA-001", "assignee": "QA Engineer", "estimated_hours": 1}}
+
+{"task": {"id": "DK-DRAFT-SUB-QA-4", "title": "Performance Testing", "description": "Benchmark system performance and optimize bottlenecks", "type": "subtask", "status": "pending", "priority": "medium", "parent_id": "DK-DRAFT-QA-001", "assignee": "QA Engineer", "estimated_hours": 1}}
