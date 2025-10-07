@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '../../../../../../lib/firebase';
-import { doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
-import { DraftSession, DraftPick } from '../../../../../../lib/draft-types';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, updateDoc, collection, query, where, orderBy, limit, getDocs, Timestamp } from 'firebase/firestore';
+import { DraftSession, DraftPick } from '@/lib/draft-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,7 +93,7 @@ export async function PUT(
     const sessionRef = doc(db, 'draft_sessions', sessionId);
 
     // Add updated timestamp
-    updates.updatedAt = new Date();
+    updates.updatedAt = Timestamp.now();
 
     await updateDoc(sessionRef, updates);
 
@@ -144,7 +144,7 @@ export async function startDraft(sessionId: string) {
       currentPick: 1,
       currentTeamId: sessionData.draftOrder[0],
       timerExpiresAt,
-      updatedAt: new Date()
+      updatedAt: Timestamp.now()
     });
 
     return { success: true };

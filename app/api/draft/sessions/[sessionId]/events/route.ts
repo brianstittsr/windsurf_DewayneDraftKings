@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
-import { db } from '../../../../../../../lib/firebase';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { db } from '../../../../../../lib/firebase';
+import { doc, getDoc, onSnapshot, collection } from 'firebase/firestore';
 
 export const dynamic = 'force-dynamic';
 

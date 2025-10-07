@@ -42,7 +42,19 @@ export interface DraftQueue {
 }
 
 // Extended Player interface for draft functionality
-export interface PlayerWithDraft extends Player {
+export interface PlayerWithDraft {
+  // Existing fields from Player interface
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  teamId?: string;
+  jerseyNumber?: string;
+  qrCode?: string;
+  qrCodeUrl?: string;
+  updatedAt?: FirebaseFirestore.Timestamp;
+
+  // Draft-related fields (optional to maintain compatibility)
   draftStatus?: 'available' | 'drafted' | 'protected';
   draftedBy?: string; // team ID
   draftedAt?: FirebaseFirestore.Timestamp;
@@ -52,10 +64,27 @@ export interface PlayerWithDraft extends Player {
 }
 
 // Extended Team interface for draft functionality
-export interface TeamWithDraft extends Team {
-  draftPosition: number; // Overall draft position (1-20, etc.)
-  draftPicksCompleted: number;
-  draftPicksRemaining: number;
+export interface TeamWithDraft {
+  // Existing fields from Team interface
+  name: string;
+  shortName?: string;
+  division?: string;
+  coachId?: string;
+  coachName?: string;
+  description?: string;
+  maxRosterSize?: number;
+  ageGroup?: string;
+  skillLevel?: string;
+  homeField?: string;
+  isActive?: boolean;
+  primaryColor?: string;
+  secondaryColor?: string;
+  updatedAt?: FirebaseFirestore.Timestamp;
+
+  // Draft-related fields (optional to maintain compatibility)
+  draftPosition?: number; // Overall draft position (1-20, etc.)
+  draftPicksCompleted?: number;
+  draftPicksRemaining?: number;
   draftQueue?: string[]; // Player IDs in draft priority order
 }
 
@@ -117,52 +146,3 @@ export interface DraftAnalytics {
   createdAt: FirebaseFirestore.Timestamp;
 }
 
-// Import existing types (assuming these exist)
-// import { Player, Team } from './existing-types';
-
-// Extended Player interface for draft functionality
-export interface PlayerWithDraft {
-  // Existing fields from Player interface
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  teamId?: string;
-  jerseyNumber?: string;
-  qrCode?: string;
-  qrCodeUrl?: string;
-  updatedAt?: FirebaseFirestore.Timestamp;
-
-  // Draft-related fields (optional to maintain compatibility)
-  draftStatus?: 'available' | 'drafted' | 'protected';
-  draftedBy?: string; // team ID
-  draftedAt?: FirebaseFirestore.Timestamp;
-  draftRound?: number;
-  draftPick?: number;
-  draftValue?: number; // Projected fantasy points or ranking
-}
-
-// Extended Team interface for draft functionality
-export interface TeamWithDraft {
-  // Existing fields from Team interface
-  name: string;
-  shortName?: string;
-  division?: string;
-  coachId?: string;
-  coachName?: string;
-  description?: string;
-  maxRosterSize?: number;
-  ageGroup?: string;
-  skillLevel?: string;
-  homeField?: string;
-  isActive?: boolean;
-  primaryColor?: string;
-  secondaryColor?: string;
-  updatedAt?: FirebaseFirestore.Timestamp;
-
-  // Draft-related fields (optional to maintain compatibility)
-  draftPosition?: number; // Overall draft position (1-20, etc.)
-  draftPicksCompleted?: number;
-  draftPicksRemaining?: number;
-  draftQueue?: string[]; // Player IDs in draft priority order
-}

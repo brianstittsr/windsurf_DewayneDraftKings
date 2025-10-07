@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '../../../../../../../lib/firebase';
+import { db } from '../../../../../../lib/firebase';
 import { doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
-import { DraftSession } from '../../../../../../../lib/draft-types';
+import { DraftSession } from '../../../../../../lib/draft-types';
 
 export const dynamic = 'force-dynamic';
 

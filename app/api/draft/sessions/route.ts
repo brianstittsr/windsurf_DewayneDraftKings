@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '../../../../../lib/firebase';
-import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where, orderBy, limit } from 'firebase/firestore';
-import { DraftSession, CreateDraftSessionRequest } from '../../../../../lib/draft-types';
+import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { DraftSession, CreateDraftSessionRequest } from '@/lib/draft-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,8 +92,8 @@ export async function POST(request: NextRequest) {
       draftOrder: draftOrder,
       currentTeamId: draftOrder[0], // First team in draft order
       timerExpiresAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
       createdBy: 'system' // TODO: Get from auth context
     };
 

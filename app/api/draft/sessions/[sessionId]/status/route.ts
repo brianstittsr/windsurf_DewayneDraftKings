@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '../../../../../../../lib/firebase';
+import { db } from '@/lib/firebase';
 import { doc, getDoc, collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
-import { DraftStatusResponse } from '../../../../../../../lib/draft-types';
+import { DraftStatusResponse } from '@/lib/draft-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,10 +42,18 @@ export async function GET(
       limit(5)
     );
     const picksSnap = await getDocs(recentPicksQuery);
-    const recentPicks = picksSnap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const recentPicks = picksSnap.docs.map(doc => {
+      const data = doc.data();
+      return {
+        round: data.round,
+        pick: data.pickNumber,
+        teamId: data.teamId,
+        playerId: data.playerId,
+        playerName: 'Unknown Player', // TODO: Fetch player name
+        teamName: 'Unknown Team', // TODO: Fetch team name
+        timestamp: data.pickedAt?.toDate ? data.pickedAt.toDate() : new Date(data.pickedAt)
+      };
+    });
 
     // Calculate time remaining
     let timeRemaining = 0;

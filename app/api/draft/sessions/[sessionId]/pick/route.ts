@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '../../../../../../../lib/firebase';
-import { doc, getDoc, updateDoc, addDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { DraftSession, DraftPick, DraftPickRequest } from '../../../../../../../lib/draft-types';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, updateDoc, addDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { DraftSession, DraftPick, DraftPickRequest } from '@/lib/draft-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -88,7 +88,7 @@ export async function POST(
       teamId: pickData.teamId,
       playerId: pickData.playerId,
       pickType: pickData.pickType || 'manual',
-      pickedAt: new Date(),
+      pickedAt: Timestamp.now(),
       pickDurationSeconds: calculatePickDuration(sessionData.timerExpiresAt)
     };
 
@@ -100,10 +100,10 @@ export async function POST(
     await updateDoc(playerRef, {
       draftStatus: 'drafted',
       draftedBy: pickData.teamId,
-      draftedAt: new Date(),
+      draftedAt: Timestamp.now(),
       draftRound: sessionData.currentRound,
       draftPick: sessionData.currentPick,
-      updatedAt: new Date()
+      updatedAt: Timestamp.now()
     });
 
     // Calculate next pick
@@ -121,7 +121,7 @@ export async function POST(
       currentPick: nextPick,
       currentTeamId: nextTeamId,
       timerExpiresAt: nextTimerExpiresAt,
-      updatedAt: new Date()
+      updatedAt: Timestamp.now()
     };
 
     // Check if round is complete

@@ -67,10 +67,17 @@ export default function GoHighLevelIntegration() {
   const [newMessage, setNewMessage] = useState('');
   const [loadingConversations, setLoadingConversations] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
-  useEffect(() => {
-    fetchIntegrations();
-    fetchSyncLogs();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const fetchSyncLogs = async () => {
+    try {
+      const response = await fetch('/api/gohighlevel/sync-logs');
+      if (response.ok) {
+        const data = await response.json();
+        setSyncLogs(data.logs || []);
+      }
+    } catch (error) {
+      console.error('Error fetching sync logs:', error);
+    }
+  };
 
   const fetchIntegrations = async () => {
     try {
@@ -175,6 +182,8 @@ export default function GoHighLevelIntegration() {
       alert('Error saving integration');
     }
   };
+  
+  const testConnection = async (integration: GHLIntegrationType) => {
     setTestingConnection(true);
     try {
       const response = await fetch(`/api/gohighlevel/test-connection/${integration.id}`, {
@@ -443,7 +452,13 @@ export default function GoHighLevelIntegration() {
                             {integration.lastSyncAt ? (
                               <div>
                                 <div className="small">
-                                  {new Date(integration.lastSyncAt?.toDate?.() || integration.lastSyncAt).toLocaleString()}
+                                  {(() => {
+                                    const timestamp = integration.lastSyncAt;
+                                    if (timestamp?.toDate) {
+                                      return timestamp.toDate().toLocaleString();
+                                    }
+                                    return new Date(timestamp as any).toLocaleString();
+                                  })()}
                                 </div>
                                 <span className={`badge badge-sm ${
                                   integration.lastSyncStatus === 'success' ? 'bg-success' :
@@ -527,7 +542,13 @@ export default function GoHighLevelIntegration() {
                         <div className="flex-grow-1">
                           <div className="fw-bold small">{log.syncType} sync</div>
                           <div className="text-muted small">
-                            {new Date(log.startedAt?.toDate?.() || log.startedAt).toLocaleString()}
+                            {(() => {
+                              const timestamp = log.startedAt;
+                              if (timestamp?.toDate) {
+                                return timestamp.toDate().toLocaleString();
+                              }
+                              return new Date(timestamp as any).toLocaleString();
+                            })()}
                           </div>
                           {log.status === 'completed' && log.summary && (
                             <div className="small text-success">
