@@ -1,0 +1,604 @@
+/* Fantasy Football Draft System Styles */
+
+/* Draft Page */
+.draft-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+  padding: 20px;
+}
+
+/* Draft Interface */
+.mobile-draft-interface {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+.draft-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.draft-info h1 {
+  color: #1a365d;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.draft-status {
+  display: flex;
+  gap: 15px;
+  margin-top: 5px;
+}
+
+.draft-status span {
+  font-size: 0.9rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e53e3e;
+}
+
+.status-indicator.connected {
+  background: #38a169;
+}
+
+.status-indicator.connecting {
+  background: #d69e2e;
+  animation: pulse 1s infinite;
+}
+
+.status-indicator.disconnected,
+.status-indicator.error {
+  background: #e53e3e;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Timer Section */
+.timer-section {
+  margin-bottom: 20px;
+}
+
+.draft-timer {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.draft-timer.my-turn {
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+  color: white;
+}
+
+.draft-timer.urgent {
+  animation: urgent-pulse 0.5s infinite alternate;
+}
+
+@keyframes urgent-pulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.02); }
+}
+
+.timer-display {
+  flex: 1;
+}
+
+.time-text {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-label {
+  font-size: 1rem;
+  margin-top: 5px;
+  opacity: 0.9;
+}
+
+.progress-ring {
+  width: 60px;
+  height: 60px;
+}
+
+/* Current Team Section */
+.current-team-section {
+  margin-bottom: 20px;
+}
+
+.current-team-section h3 {
+  color: white;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.current-team-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.team-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #1a365d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.team-info {
+  flex: 1;
+}
+
+.team-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1a365d;
+  margin: 0;
+}
+
+.team-coach {
+  font-size: 0.9rem;
+  color: #4a5568;
+  margin: 5px 0 0 0;
+}
+
+/* Search Section */
+.search-section {
+  margin-bottom: 20px;
+}
+
+.player-search {
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.95);
+  font-size: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.player-search:focus {
+  outline: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Player Grid */
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* Player Cards */
+.player-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.player-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.player-card.available:hover {
+  border: 2px solid #38a169;
+}
+
+.player-card.selected {
+  border: 3px solid #3182ce;
+  background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+}
+
+.player-card.drafted {
+  opacity: 0.6;
+  filter: grayscale(50%);
+}
+
+.player-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.player-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 1.1rem;
+  overflow: hidden;
+}
+
+.player-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.player-info {
+  flex: 1;
+}
+
+.player-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a365d;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.player-details {
+  display: flex;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #4a5568;
+}
+
+.position {
+  background: #e6fffa;
+  color: #065f46;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.jersey {
+  background: #fef5e7;
+  color: #92400e;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.player-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.stat {
+  text-align: center;
+  padding: 8px;
+  background: #f7fafc;
+  border-radius: 8px;
+}
+
+.stat .label {
+  font-size: 0.75rem;
+  color: #718096;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.stat .value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a365d;
+}
+
+.drafted-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.drafted-text {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.selection-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #3182ce;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.checkmark {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* Recent Picks */
+.recent-picks-section {
+  margin-bottom: 20px;
+}
+
+.recent-picks-section h3 {
+  color: white;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.recent-picks-list {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.recent-pick-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.recent-pick-item:last-child {
+  border-bottom: none;
+}
+
+.pick-info {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.round-pick {
+  background: #1a365d;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.team-name {
+  font-weight: 600;
+  color: #1a365d;
+}
+
+.player-name {
+  color: #4a5568;
+}
+
+/* Action Buttons */
+.action-buttons {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  gap: 15px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.confirm-pick-btn,
+.cancel-pick-btn {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirm-pick-btn {
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+  color: white;
+}
+
+.confirm-pick-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(56, 161, 105, 0.3);
+}
+
+.cancel-pick-btn {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.cancel-pick-btn:hover {
+  background: #cbd5e0;
+}
+
+/* Modal Styles */
+.player-details-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.close-modal {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #4a5568;
+}
+
+/* Loading and Error States */
+.draft-loading,
+.draft-error,
+.draft-not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  color: white;
+}
+
+.draft-loading .spinner-border,
+.draft-error .error-icon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 20px;
+}
+
+.draft-error .error-icon {
+  font-size: 3rem;
+}
+
+/* Draft Management Styles */
+.draft-management {
+  color: #1a365d;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mobile-draft-interface {
+    padding: 10px;
+  }
+
+  .draft-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .player-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .player-card {
+    padding: 12px;
+  }
+
+  .timer-display {
+    text-align: center;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .recent-pick-item {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .pick-info {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .draft-timer {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .time-text {
+    font-size: 2rem;
+  }
+
+  .current-team-card {
+    padding: 15px;
+  }
+
+  .team-name {
+    font-size: 1rem;
+  }
+}

@@ -999,16 +999,56 @@ export interface PricingPlan extends BaseDocument {
 
 // Collection names for Firestore
 export const COLLECTIONS = {
+  // User Management
+  USERS: 'users',
+  ADMINS: 'admins',
   PLAYERS: 'players',
   COACHES: 'coaches',
-  USER_PROFILES: 'user_profiles',
-  TEAMS: 'teams',
-  GAMES: 'games',
-  SEASONS: 'seasons',
+  COMMISSIONERS: 'commissioners',
+
+  // Organization
   LEAGUES: 'leagues',
+  SEASONS: 'seasons',
+  TEAMS: 'teams',
+  DIVISIONS: 'divisions',
+
+  // Content & Business
+  PRODUCTS: 'products',
   PAYMENTS: 'payments',
-  REFUNDS: 'refunds',
-  DISPUTES: 'disputes',
+  COUPONS: 'coupons',
+  MEAL_PLANS: 'meal_plans',
+  QR_CODES: 'qr_codes',
+
+  // Events & Scheduling
+  GAMES: 'games',
+  PRACTICES: 'practices',
+  TOURNAMENTS: 'tournaments',
+  EVENTS: 'events',
+
+  // Communications
+  SMS_OPT_INS: 'sms_opt_ins',
+  COMMUNICATION_LOGS: 'communication_logs',
+  NOTIFICATIONS: 'notifications',
+  EMAILS: 'emails',
+
+  // Draft System
+  DRAFTS: 'drafts',
+  DRAFT_PICKS: 'draft_picks',
+  DRAFT_QUEUES: 'draft_queues',
+  DRAFT_TRADES: 'draft_trades',
+  DRAFT_ANALYTICS: 'draft_analytics',
+
+  // Integrations
+  GOHIGHLEVEL_INTEGRATIONS: 'gohighlevel_integrations',
+  GOHIGHLEVEL_SYNC_LOGS: 'gohighlevel_sync_logs',
+  FACEBOOK_LINKS: 'facebook_links',
+
+  // Configuration
+  CONFIGURATION: 'configuration',
+  SETTINGS: 'settings',
+
+  // Legacy collections (keeping for backward compatibility)
+  USER_PROFILES: 'user_profiles',
   CHECKOUT_SESSIONS: 'checkout_sessions',
   PLAN_SELECTIONS: 'plan_selections',
   SUBSCRIPTIONS: 'subscriptions',
@@ -1016,18 +1056,10 @@ export const COLLECTIONS = {
   MARKETING_FUNNELS: 'marketing_funnels',
   FUNNEL_STEPS: 'funnel_steps',
   PLAYER_FUNNEL_STATUS: 'player_funnel_status',
-  QR_CODES: 'qr_codes',
-  NOTIFICATIONS: 'notifications',
   DRAFT_HISTORY: 'draft-history',
   SYSTEM_SETTINGS: 'system-settings',
   AUDIT_LOGS: 'audit-logs',
-  COUPONS: 'coupons',
-  SMS_OPT_INS: 'sms_opt_ins',
-  MEAL_PLANS: 'meal_plans',
-  MEAL_PLAN_ORDERS: 'meal_plan_orders',
-  MEAL_PLAN_CATEGORIES: 'meal_plan_categories',
   PRICING: 'pricing',
-  // Enhanced Flag Football League Collections
   LEADS: 'leads',
   ENHANCED_TEAMS: 'enhanced_teams',
   ENHANCED_PLAYERS: 'enhanced_players',
@@ -1041,7 +1073,8 @@ export const COLLECTIONS = {
   ENHANCED_EVENTS: 'enhanced_events',
   ANALYTICS: 'analytics',
   CONSENT_RECORDS: 'consent_records',
-  FACEBOOK_LINKS: 'facebook_links'
+  REFUNDS: 'refunds',
+  DISPUTES: 'disputes'
 } as const;
 
 // Subcollections
@@ -2270,36 +2303,149 @@ export interface CommunicationLog extends BaseDocument {
   recipientType: 'player' | 'coach' | 'team' | 'all_players' | 'paid_players' | 'custom_list';
   recipientIds: string[];
   recipientCount: number;
-  
+
   // Message Details
   subject?: string;
   message: string;
   messageType: 'email' | 'sms' | 'push' | 'in_app';
-  
+
   // Campaign Information
   campaignName?: string;
   purpose: 'update' | 'reminder' | 'announcement' | 'marketing' | 'emergency' | 'payment_reminder';
-  
+
   // Delivery Status
   status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed';
   scheduledFor?: Timestamp;
   sentAt?: Timestamp;
-  
+
   // Delivery Statistics
   totalSent: number;
   delivered: number;
   failed: number;
   opened?: number;
   clicked?: number;
-  
+
   // Sender Information
   sentBy: string;
   senderName: string;
-  
+
   // Related Records
   eventId?: string;
   practiceId?: string;
-  
+
   // Notes
   notes?: string;
+}
+
+// Fantasy Football-Style Draft System Interfaces
+export interface DraftSession extends BaseDocument {
+  // Draft Configuration
+  leagueId: string;
+  seasonId: string;
+  name: string;
+  totalRounds: number;
+  pickTimerSeconds: number;
+
+  // Draft State
+  status: 'scheduled' | 'active' | 'paused' | 'completed' | 'cancelled';
+  currentRound: number;
+  currentPick: number;
+  draftOrder: string[]; // Array of team IDs in draft order
+  currentTeamId: string;
+  timerExpiresAt: Timestamp;
+
+  // Draft Rules
+  pickType: 'snake' | 'linear' | 'custom';
+  autoPickEnabled: boolean;
+  allowTrades: boolean;
+
+  // Metadata
+  createdBy: string;
+  startedAt?: Timestamp;
+  completedAt?: Timestamp;
+  totalPicks: number;
+  durationMinutes?: number;
+}
+
+export interface DraftPick extends BaseDocument {
+  // Pick Information
+  sessionId: string;
+  round: number;
+  pickNumber: number;
+  overallPick: number; // Calculated overall pick number
+
+  // Participants
+  teamId: string;
+  playerId: string;
+
+  // Pick Details
+  pickType: 'auto' | 'manual' | 'trade' | 'forced';
+  pickDurationSeconds: number;
+  pickedBy: string; // User ID who made the pick
+
+  // Related Data
+  tradeId?: string; // If this pick was acquired via trade
+  originalTeamId?: string; // Original owner if traded
+}
+
+export interface DraftQueue extends BaseDocument {
+  // Queue Information
+  sessionId: string;
+  teamId: string;
+  playerQueue: string[]; // Array of player IDs in priority order
+
+  // Metadata
+  updatedBy: string;
+  isActive: boolean;
+}
+
+// Draft Analytics and Reporting
+export interface DraftAnalytics extends BaseDocument {
+  sessionId: string;
+
+  // Pick Statistics
+  totalPicks: number;
+  averagePickTime: number;
+  longestPick: number;
+  shortestPick: number;
+
+  // Session Information
+  teamsParticipating: number;
+  playersDrafted: number;
+  completionTime: number; // Total time for draft in minutes
+
+  // Performance Metrics
+  autoPicksUsed: number;
+  tradesExecuted: number;
+  pickEfficiency: number; // Percentage of optimal picks made
+}
+
+// Draft Trade System
+export interface DraftTrade extends BaseDocument {
+  // Trade Information
+  sessionId: string;
+  status: 'proposed' | 'accepted' | 'rejected' | 'executed' | 'cancelled';
+
+  // Trade Parties
+  proposingTeamId: string;
+  receivingTeamId: string;
+  proposedBy: string; // User ID
+
+  // Trade Assets
+  proposingTeamPicks: Array<{
+    round: number;
+    pickNumber: number;
+    year?: number; // For future draft picks
+  }>;
+  receivingTeamPicks: Array<{
+    round: number;
+    pickNumber: number;
+    year?: number; // For future draft picks
+  }>;
+
+  // Trade Details
+  notes?: string;
+  proposedAt: Timestamp;
+  respondedAt?: Timestamp;
+  executedAt?: Timestamp;
 }

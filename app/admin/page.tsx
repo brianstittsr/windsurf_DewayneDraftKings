@@ -26,6 +26,8 @@ import CommissionerManagement from '@/components/CommissionerManagement';
 import SMSManagement from '@/components/SMSManagement';
 import NotificationManagement from '@/components/NotificationManagement';
 import TournamentManagement from '@/components/TournamentManagement';
+import APIKeysManagement from '@/components/APIKeysManagement';
+import DraftManagement from '@/components/draft/DraftManagement';
 
 // Dashboard with live stats
 function StatsOverview() {
@@ -641,6 +643,13 @@ function AdminPageContent() {
         return (
           <div className="fade-in">
             <PlayerSwapManagement />
+          </div>
+        );
+
+      case 'draft-management':
+        return (
+          <div className="fade-in">
+            <DraftManagement />
           </div>
         );
 

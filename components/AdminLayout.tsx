@@ -240,6 +240,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <i className="fas fa-random fa-sm fa-fw mr-2 text-info"></i>
                   Player Swaps
                 </Link>
+                <Link className={`collapse-item ${isActive('draft-management') ? 'active' : ''}`} href="/admin?tab=draft-management">
+                  <i className="fas fa-gavel fa-sm fa-fw mr-2 text-warning"></i>
+                  Draft Management
+                </Link>
                 <div className="dropdown-divider"></div>
                 <h6 className="collapse-header">Scheduling:</h6>
                 <Link className={`collapse-item ${isActive('games') ? 'active' : ''}`} href="/admin?tab=games">

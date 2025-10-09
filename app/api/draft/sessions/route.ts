@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { DraftSession, CreateDraftSessionRequest } from '@/lib/draft-types';
+import { COLLECTIONS } from '@/lib/firestore-schema';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
       }, { status: 503 });
     }
 
-    const sessionsRef = collection(db, 'draft_sessions');
+    const sessionsRef = collection(db, COLLECTIONS.DRAFTS);
     let q = query(sessionsRef, orderBy('createdAt', 'desc'), limit(limitParam));
 
     // Apply filters
