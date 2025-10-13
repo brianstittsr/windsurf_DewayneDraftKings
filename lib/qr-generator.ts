@@ -94,6 +94,48 @@ export class QRCodeGenerator {
       errorCorrectionLevel: 'M'
     });
   }
+
+  static async generateJerseyQR(
+    playerId: string,
+    jerseyNumber: number,
+    teamName: string,
+    baseUrl: string = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  ): Promise<string> {
+    const jerseyUrl = `${baseUrl}/jersey/${playerId}/${jerseyNumber}`;
+
+    // Create a more compact QR code for jerseys
+    return this.generateQRCode(jerseyUrl, {
+      width: 200,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      },
+      errorCorrectionLevel: 'H' // High error correction for jerseys
+    });
+  }
+
+  static async generateJerseyQRWithData(
+    playerId: string,
+    jerseyNumber: number,
+    teamName: string,
+    playerName: string,
+    baseUrl: string = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  ): Promise<{ qrCode: string; url: string; data: any }> {
+    const qrCode = await this.generateJerseyQR(playerId, jerseyNumber, teamName, baseUrl);
+    const url = `${baseUrl}/jersey/${playerId}/${jerseyNumber}`;
+
+    const data = {
+      type: 'jersey',
+      playerId,
+      jerseyNumber,
+      teamName,
+      playerName,
+      generatedAt: new Date().toISOString()
+    };
+
+    return { qrCode, url, data };
+  }
 }
 
 // Utility functions
@@ -111,4 +153,13 @@ export async function generateContactQRCode(
   email?: string
 ): Promise<string> {
   return QRCodeGenerator.generateContactQR(firstName, lastName, phone, email);
+}
+
+export async function generateJerseyQRCode(
+  playerId: string,
+  jerseyNumber: number,
+  teamName: string,
+  baseUrl?: string
+): Promise<string> {
+  return QRCodeGenerator.generateJerseyQR(playerId, jerseyNumber, teamName, baseUrl);
 }
