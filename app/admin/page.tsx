@@ -376,6 +376,26 @@ function AdminPageContent() {
           </div>
         );
 
+      case 'coupons':
+        return (
+          <div className="fade-in">
+            <div className="d-sm-flex align-items-center justify-content-between mb-4">
+              <h1 className="h3 mb-0 text-gray-800">Coupon Management</h1>
+            </div>
+            <CouponManagement />
+          </div>
+        );
+
+      case 'pricing':
+        return (
+          <div className="fade-in">
+            <div className="d-sm-flex align-items-center justify-content-between mb-4">
+              <h1 className="h3 mb-0 text-gray-800">Pricing Plans</h1>
+            </div>
+            <PricingManagement />
+          </div>
+        );
+
       case 'analytics':
         return (
           <div className="fade-in">
