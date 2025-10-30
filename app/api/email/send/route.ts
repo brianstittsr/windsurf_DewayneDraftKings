@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getActiveEmailRecipients } from '@/lib/email-config';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { to, subject, html, text, attachments } = await request.json();
+    const { to, subject, html, text, attachments, isRegistrationEmail = false } = await request.json();
 
     if (!to || !subject || (!html && !text)) {
       return NextResponse.json(
@@ -40,10 +41,25 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Get additional recipients for registration emails
+    let recipients = [to];
+    let ccRecipients: string[] = [];
+    
+    if (isRegistrationEmail) {
+      try {
+        ccRecipients = await getActiveEmailRecipients();
+        console.log('Adding CC recipients to registration email:', ccRecipients);
+      } catch (error) {
+        console.error('Error getting additional recipients:', error);
+        // Continue with original recipient only
+      }
+    }
+
     // Prepare mail options
     const mailOptions: any = {
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-      to,
+      to: recipients.join(', '),
+      cc: ccRecipients.length > 0 ? ccRecipients.join(', ') : undefined,
       subject,
       html,
       text: text || undefined,
@@ -63,11 +79,15 @@ export async function POST(request: NextRequest) {
     const info = await transporter.sendMail(mailOptions);
 
     console.log('Email sent successfully:', info.messageId);
+    if (ccRecipients.length > 0) {
+      console.log('CC recipients included:', ccRecipients);
+    }
 
     return NextResponse.json({
       success: true,
       messageId: info.messageId,
-      message: 'Email sent successfully'
+      message: 'Email sent successfully',
+      ccRecipients: ccRecipients.length > 0 ? ccRecipients : undefined
     });
 
   } catch (error) {

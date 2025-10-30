@@ -28,6 +28,13 @@ import NotificationManagement from '@/components/NotificationManagement';
 import TournamentManagement from '@/components/TournamentManagement';
 import APIKeysManagement from '@/components/APIKeysManagement';
 import DraftManagement from '@/components/draft/DraftManagement';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the EmailRecipientsManager component
+const EmailRecipientsManager = dynamic(() => import('@/components/EmailRecipientsManager'), {
+  ssr: false,
+  loading: () => <div className="text-center p-4">Loading email recipients manager...</div>
+});
 
 // Dashboard with live stats
 function StatsOverview() {
@@ -508,6 +515,8 @@ function AdminPageContent() {
                 <i className="fas fa-plus fa-sm text-white-50"></i> Create Template
               </button>
             </div>
+            
+            {/* Email Templates */}
             <div className="card shadow mb-4">
               <div className="card-header py-3">
                 <h6 className="m-0 font-weight-bold text-primary">Email Template Management</h6>
@@ -522,6 +531,19 @@ function AdminPageContent() {
                     Create Email Template
                   </button>
                 </div>
+              </div>
+            </div>
+            
+            {/* Email Recipients */}
+            <div className="card shadow mb-4">
+              <div className="card-header py-3">
+                <h6 className="m-0 font-weight-bold text-primary">Registration Email Recipients</h6>
+              </div>
+              <div className="card-body">
+                <p className="text-muted mb-4">
+                  Configure who receives copies of registration confirmation emails. These recipients will be CC'd on all registration confirmation emails sent to registrants.
+                </p>
+                <EmailRecipientsManager />
               </div>
             </div>
           </div>

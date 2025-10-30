@@ -3,6 +3,13 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the EmailRecipientsManager component
+const EmailRecipientsManager = dynamic(() => import('@/components/EmailRecipientsManager'), {
+  ssr: false,
+  loading: () => <div className="text-center p-4">Loading email recipients manager...</div>
+});
 
 interface RegistrationDetails {
   sessionId?: string;
@@ -343,6 +350,17 @@ function RegistrationSuccessContent() {
                 </div>
               </div>
             </div>
+            
+            {/* Email Recipients Manager - Only shown to admins */}
+            {registrationDetails.role === 'admin' && (
+              <div className="mt-5">
+                <h4 className="mb-3">Email Notification Settings</h4>
+                <p className="text-muted mb-4">
+                  Manage who receives copies of registration confirmation emails.
+                </p>
+                <EmailRecipientsManager />
+              </div>
+            )}
 
           </div>
         </div>

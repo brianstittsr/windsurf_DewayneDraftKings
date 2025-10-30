@@ -350,6 +350,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <i className="fas fa-envelope fa-sm fa-fw mr-2 text-gray-400"></i>
                   Email Templates
                 </Link>
+                <Link className={`collapse-item ${pathname === '/admin/email-settings' ? 'active' : ''}`} href="/admin/email-settings">
+                  <i className="fas fa-envelope-open-text fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Email Recipients
+                </Link>
                 <div className="dropdown-divider"></div>
                 <h6 className="collapse-header">Integrations:</h6>
                 <Link className={`collapse-item ${isActive('gohighlevel') ? 'active' : ''}`} href="/admin?tab=gohighlevel">

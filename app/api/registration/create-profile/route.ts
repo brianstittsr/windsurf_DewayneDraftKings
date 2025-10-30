@@ -282,6 +282,7 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           to: email,
           subject: 'Welcome to All Pro Sports NC - Registration Confirmation',
+          isRegistrationEmail: true, // Flag to include additional recipients
           ...(pdfData && pdfFileName && {
             attachments: [{
               filename: pdfFileName,
