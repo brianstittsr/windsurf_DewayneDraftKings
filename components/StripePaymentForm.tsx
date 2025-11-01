@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { CardElement, PaymentRequestButtonElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import type { StripeCardElementChangeEvent } from '@stripe/stripe-js';
+
+type PaymentMethod = 'card' | 'klarna' | 'affirm' | 'cashapp' | 'apple_pay' | 'google_pay' | 'amazon_pay';
 
 interface BillingInfo {
   name: string;
@@ -35,6 +37,7 @@ interface StripePaymentFormProps {
     value: number;
     discount: number;
   } | null;
+  selectedPaymentMethod: PaymentMethod;
 }
 
 export default function StripePaymentForm({
@@ -43,13 +46,16 @@ export default function StripePaymentForm({
   onPaymentSuccess,
   onPaymentError,
   appliedCoupon = null,
+  selectedPaymentMethod,
 }: StripePaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
   const [cardComplete, setCardComplete] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  
+  const [isCashAppProcessing, setIsCashAppProcessing] = useState(false);
+  const [paymentRequest, setPaymentRequest] = useState(null);
+
   // Billing information state with validation
   const [billingInfo, setBillingInfo] = useState<BillingInfo>({
     name: `${customerInfo.firstName} ${customerInfo.lastName}`.trim(),
@@ -64,6 +70,69 @@ export default function StripePaymentForm({
       country: 'US'
     }
   });
+
+  useEffect(() => {
+    if (!stripe) return;
+
+    if (selectedPaymentMethod === 'apple_pay' || selectedPaymentMethod === 'google_pay') {
+      const pr = stripe.paymentRequest({
+        country: 'US',
+        currency: 'usd',
+        total: {
+          label: planData?.title || 'Total',
+          amount: Math.round((planData?.pricing?.total || 0) * 100),
+        },
+        requestPayerName: true,
+        requestPayerEmail: true,
+      });
+
+      pr.canMakePayment().then(result => {
+        if (result) {
+          setPaymentRequest(pr);
+        } else {
+          setPaymentRequest(null); // Explicitly set to null if not available
+        }
+      });
+
+      pr.on('paymentmethod', async (ev) => {
+        try {
+          const response = await fetch('/api/payments/create-payment-intent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              amount: Math.round((planData?.pricing?.total || 0) * 100),
+              currency: 'usd',
+              payment_method_types: [ev.paymentMethod.type],
+            }),
+          });
+          const { clientSecret, error: backendError } = await response.json();
+          if (backendError) throw new Error(backendError);
+
+          const { error, paymentIntent } = await stripe.confirmCardPayment(
+            clientSecret,
+            { payment_method: ev.paymentMethod.id },
+            { handleActions: false }
+          );
+
+          if (error) {
+            ev.complete('fail');
+            throw error;
+          }
+
+          ev.complete('success');
+          if (paymentIntent.status === 'requires_action') {
+            const { error: error3d } = await stripe.confirmCardPayment(clientSecret);
+            if (error3d) throw error3d;
+          }
+          onPaymentSuccess(paymentIntent);
+        } catch (err) {
+          onPaymentError(err.message);
+        }
+      });
+    } else {
+        setPaymentRequest(null); // Clear payment request when switching away
+    }
+  }, [stripe, selectedPaymentMethod, planData]);
 
   // US States for dropdown
   const usStates = [
@@ -182,12 +251,62 @@ export default function StripePaymentForm({
       errors.postal_code = 'Please enter a valid ZIP code';
     }
 
-    if (!cardComplete) {
+    if (selectedPaymentMethod === 'card' && !cardComplete) {
       errors.card = 'Please enter valid card details';
     }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  const handleCashAppPayment = async () => {
+    if (!stripe) {
+      onPaymentError('Stripe is not initialized.');
+      return;
+    }
+
+    setIsCashAppProcessing(true);
+    onPaymentError('');
+
+    try {
+      const response = await fetch('/api/payments/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: Math.round((planData?.pricing?.total || 0) * 100),
+          currency: 'usd',
+          payment_method_types: ['cashapp'],
+          metadata: { 
+            planId: planData?.id,
+            customerName: `${customerInfo.firstName} ${customerInfo.lastName}`
+          }
+        }),
+      });
+
+      const { clientSecret, error: backendError } = await response.json();
+
+      if (backendError) {
+        throw new Error(backendError);
+      }
+
+      const { error } = await stripe.confirmCashappPayment(clientSecret, {
+        payment_method: {
+          billing_details: {
+            name: `${customerInfo.firstName} ${customerInfo.lastName}`,
+            email: customerInfo.email,
+          },
+        },
+        return_url: `${window.location.origin}/registration-success`,
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (err) {
+      onPaymentError(err.message || 'An unexpected error occurred with Cash App.');
+    } finally {
+      setIsCashAppProcessing(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -340,6 +459,47 @@ export default function StripePaymentForm({
       setProcessing(false);
     }
   };
+
+  if (selectedPaymentMethod === 'klarna') {
+    return <div className="alert alert-info">Klarna integration is processing. Please select another payment method.</div>;
+  }
+
+  if (selectedPaymentMethod === 'affirm') {
+    return <div className="alert alert-info">Affirm integration is processing. Please select another payment method.</div>;
+  }
+
+  if (selectedPaymentMethod === 'apple_pay' || selectedPaymentMethod === 'google_pay') {
+    if (paymentRequest) {
+      return <PaymentRequestButtonElement options={{ paymentRequest }} />;
+    }
+    return <div className="alert alert-warning">Apple Pay / Google Pay is not available on this device or browser.</div>;
+  }
+
+  if (selectedPaymentMethod === 'amazon_pay') {
+    return <div className="alert alert-info">Amazon Pay integration is not yet available.</div>;
+  }
+
+  if (selectedPaymentMethod === 'cashapp') {
+    return (
+      <div className="d-grid">
+        <button
+          type="button"
+          className="btn btn-success btn-lg py-3"
+          onClick={handleCashAppPayment}
+          disabled={isCashAppProcessing}
+        >
+          {isCashAppProcessing ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Processing...
+            </>
+          ) : (
+            `Pay with Cash App`
+          )}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="stripe-payment-form">

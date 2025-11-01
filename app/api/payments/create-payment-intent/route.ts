@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
       customerEmail, 
       customerName,
       appliedCoupon,
+      payment_method_types,
       metadata = {}
     } = body;
 
@@ -37,8 +38,8 @@ export async function POST(request: NextRequest) {
 
     try {
       // Create payment intent
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount), // Amount in cents
+      const paymentIntentPayload: any = {
+        amount: Math.round(amount),
         currency,
         description: description || 'All Pro Sports Registration',
         metadata: {
@@ -47,10 +48,15 @@ export async function POST(request: NextRequest) {
           appliedCoupon: appliedCoupon || '',
           ...metadata
         },
-        automatic_payment_methods: {
-          enabled: true,
-        },
-      });
+      };
+
+      if (payment_method_types) {
+        paymentIntentPayload.payment_method_types = payment_method_types;
+      } else {
+        paymentIntentPayload.automatic_payment_methods = { enabled: true };
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create(paymentIntentPayload);
 
       return NextResponse.json({
         success: true,
