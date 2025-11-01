@@ -109,6 +109,63 @@ export default function PaymentCheckout({
   // Handle payment method change
   const handlePaymentMethodChange = (method: PaymentMethod) => {
     setSelectedPaymentMethod(method);
+    // Reset any existing payment form state when changing methods
+    setLoading(false);
+    setCouponError('');
+  };
+
+  // Handle BNPL account status change
+  const handleBnplAccountCheck = (provider: 'klarna' | 'affirm', hasAccount: boolean) => {
+    setBnplAccountStatus(prev => ({
+      ...prev,
+      [provider]: hasAccount
+    }));
+  };
+
+  // Handle coupon form submission
+  const handleCouponSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (couponCode.trim()) {
+      await validateCoupon(couponCode);
+    }
+  };
+
+  // Render payment method card with selection state
+  const renderPaymentMethodCard = (
+    method: PaymentMethod,
+    icon: string,
+    title: string,
+    description: string,
+    color: string
+  ) => {
+    const isSelected = selectedPaymentMethod === method;
+    return (
+      <div 
+        className={`card payment-method-card ${isSelected ? 'border-primary shadow-sm' : 'border-light'}`}
+        onClick={() => handlePaymentMethodChange(method)}
+        style={{
+          cursor: 'pointer',
+          transition: 'all 0.2s ease-in-out',
+          borderWidth: isSelected ? '2px' : '1px',
+          backgroundColor: isSelected ? 'rgba(13, 110, 253, 0.05)' : 'white'
+        }}
+      >
+        <div className="card-body text-center">
+          <div className={`icon-xxl mb-3 ${isSelected ? `text-${color}` : 'text-muted'}`}>
+            <i className={`${icon} fa-2x`}></i>
+          </div>
+          <h5 className={`mb-1 ${isSelected ? 'text-primary fw-bold' : ''}`}>{title}</h5>
+          <p className="mb-0 text-muted">{description}</p>
+          {isSelected && (
+            <div className="mt-2">
+              <span className="badge bg-primary">
+                <i className="fas fa-check-circle me-1"></i> Selected
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   // Check if Stripe is configured
@@ -305,67 +362,93 @@ export default function PaymentCheckout({
       }
     } catch (error) {
       console.error('Payment error:', error);
-      onPaymentError(error instanceof Error ? error.message : 'Payment setup failed');
+      onPaymentError(error instanceof Error ? error.message : 'An error occurred during payment');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleBnplAccountCheck = (provider: 'klarna' | 'affirm', hasAccount: boolean) => {
-    setBnplAccountStatus(prev => ({
-      ...prev,
-      [provider]: hasAccount
-    }));
-  };
-
-  const renderPaymentMethodCard = (
-    method,
-    icon,
-    title,
-    description,
-    color
-  ) => {
-    const isSelected = selectedPaymentMethod === method;
-    const isDisabled = loading;
-
-    return (
-      <div
-        key={method}
-        className={`payment-method-card ${isSelected ? 'selected' : ''} ${
-          isDisabled ? 'disabled' : ''
-        }`}
-        onClick={() => !isDisabled && handlePaymentMethodChange(method)}
-        style={{
-          border: `2px solid ${isSelected ? color : '#e2e8f0'}`,
-          backgroundColor: isSelected ? `${color}0D` : '#fff',
-          cursor: isDisabled ? 'not-allowed' : 'pointer',
-          opacity: isDisabled ? 0.7 : 1,
-          transition: 'all 0.2s ease',
-        }}
-      >
-        <div className="d-flex align-items-center">
-          <div className="payment-method-icon me-3" style={{ color }}>
-            <i className={icon} style={{ fontSize: '2rem' }} />
+  return (
+    <div className="payment-checkout">
+      {/* Payment Method Selection */}
+      <div className="mb-4">
+        <h6 className="fw-semibold mb-3">Select Payment Method</h6>
+        <div className="row g-3">
+          <div className="col-md-4">
+            {renderPaymentMethodCard(
+              'card',
+              'fas fa-credit-card',
+              'Credit/Debit Card',
+              'Pay with Visa, Mastercard, or American Express',
+              'primary'
+            )}
           </div>
-          <div>
-            <h5 className="mb-1">{title}</h5>
-            <p className="mb-0 text-muted">{description}</p>
+          <div className="col-md-4">
+            {renderPaymentMethodCard(
+              'klarna',
+              'fab fa-klarna',
+              'Klarna',
+              'Pay in 4 interest-free installments',
+              'warning'
+            )}
+          </div>
+          <div className="col-md-4">
+            {renderPaymentMethodCard(
+              'affirm',
+              'fas fa-calendar-check',
+              'Affirm',
+              'Flexible payment plans with transparent terms',
+              'info'
+            )}
           </div>
         </div>
       </div>
-    );
-  };
 
-  // Handle coupon form submission
-  const handleCouponSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (couponCode.trim()) {
-      await validateCoupon(couponCode);
-    }
-  };
+      {/* Selected Payment Method Form */}
+      {selectedPaymentMethod && (
+        <div className="card mb-4">
+          <div className="card-header">
+            <h5 className="mb-0">
+              {selectedPaymentMethod === 'card' && <><i className="fas fa-credit-card me-2"></i>Credit/Debit Card</>}
+              {selectedPaymentMethod === 'klarna' && <><i className="fab fa-klarna me-2"></i>Klarna</>}
+              {selectedPaymentMethod === 'affirm' && <><i className="fas fa-calendar-check me-2"></i>Affirm</>}
+            </h5>
+          </div>
+          <div className="card-body">
+            <Elements 
+              stripe={stripePromise}
+              options={{
+                mode: 'payment',
+                amount: planData?.pricing?.total ? Math.round(planData.pricing.total * 100) : 0,
+                currency: 'usd',
+                paymentMethodTypes: [selectedPaymentMethod]
+              }}
+            >
+              <StripePaymentForm
+                planData={planData}
+                customerData={customerData}
+                onPaymentSuccess={onPaymentSuccess}
+                onPaymentError={onPaymentError}
+                appliedCoupon={appliedCouponState}
+                selectedPaymentMethod={selectedPaymentMethod}
+                onPaymentMethodChange={handlePaymentMethodChange}
+                loading={loading}
+                setLoading={setLoading}
+                couponCode={couponCode}
+                setCouponCode={setCouponCode}
+                couponLoading={couponLoading}
+                setCouponLoading={setCouponLoading}
+                couponError={couponError}
+                setCouponError={setCouponError}
+                setAppliedCoupon={setAppliedCouponState}
+                bnplAccountStatus={bnplAccountStatus}
+                setBnplAccountStatus={setBnplAccountStatus}
+              />
+            </Elements>
+          </div>
+        </div>
+      )}
 
-  return (
-    <div className="payment-checkout">
       {/* Coupon Section */}
       <div className="mb-4">
         <h6 className="fw-semibold mb-3">Apply Coupon</h6>
@@ -504,29 +587,61 @@ export default function PaymentCheckout({
         </div>
       </div>
 
-      {/* Payment Form */}
-      <Elements stripe={stripePromise}>
-        <StripePaymentForm
-          planData={planData}
-          customerData={customerData}
-          onPaymentSuccess={onPaymentSuccess}
-          onPaymentError={onPaymentError}
-          appliedCoupon={appliedCouponState}
-          selectedPaymentMethod={selectedPaymentMethod}
-          onPaymentMethodChange={handlePaymentMethodChange}
-          loading={loading}
-          setLoading={setLoading}
-          couponCode={couponCode}
-          setCouponCode={setCouponCode}
-          couponLoading={couponLoading}
-          setCouponLoading={setCouponLoading}
-          couponError={couponError}
-          setCouponError={setCouponError}
-          setAppliedCoupon={setAppliedCouponState}
-          bnplAccountStatus={bnplAccountStatus}
-          setBnplAccountStatus={setBnplAccountStatus}
-        />
-      </Elements>
+      {/* Payment Form - Only show when a payment method is selected */}
+      {selectedPaymentMethod && (
+        <div className="mt-4">
+          <div className="card">
+            <div className="card-header">
+              <h5 className="mb-0">
+                {selectedPaymentMethod === 'card' && <><i className="fas fa-credit-card me-2"></i>Credit/Debit Card</>}
+                {selectedPaymentMethod === 'google_pay' && <><i className="fab fa-google-pay me-2"></i>Google Pay</>}
+                {selectedPaymentMethod === 'apple_pay' && <><i className="fab fa-apple-pay me-2"></i>Apple Pay</>}
+                {selectedPaymentMethod === 'cashapp' && <><i className="fas fa-dollar-sign me-2"></i>Cash App</>}
+                {selectedPaymentMethod === 'amazon_pay' && <><i className="fab fa-amazon-pay me-2"></i>Amazon Pay</>}
+                {selectedPaymentMethod === 'klarna' && <><i className="fab fa-klarna me-2"></i>Klarna</>}
+                {selectedPaymentMethod === 'affirm' && <><i className="fas fa-calendar-check me-2"></i>Affirm</>}
+              </h5>
+            </div>
+            <div className="card-body">
+              <Elements 
+                stripe={stripePromise}
+                options={{
+                  mode: 'payment',
+                  amount: planData?.pricing?.total ? Math.round(planData.pricing.total * 100) : 0,
+                  currency: 'usd',
+                  paymentMethodTypes: [selectedPaymentMethod],
+                  // Add any additional options based on the selected payment method
+                  ...(selectedPaymentMethod === 'klarna' && {
+                    paymentMethodOptions: {
+                      klarna: {
+                        preferred_locale: 'en-US',
+                      },
+                    },
+                  }),
+                }}
+              >
+                <StripePaymentForm
+                  planData={planData}
+                  customerData={customerData}
+                  onPaymentSuccess={onPaymentSuccess}
+                  onPaymentError={onPaymentError}
+                  appliedCoupon={appliedCouponState}
+                  selectedPaymentMethod={selectedPaymentMethod}
+                  onPaymentMethodChange={handlePaymentMethodChange}
+                  loading={loading}
+                  setLoading={setLoading}
+                  couponCode={couponCode}
+                  couponLoading={couponLoading}
+                  couponError={couponError}
+                  setAppliedCoupon={setAppliedCouponState}
+                  bnplAccountStatus={bnplAccountStatus}
+                  setBnplAccountStatus={setBnplAccountStatus}
+                />
+              </Elements>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Plan Summary */}
       {planData && (
