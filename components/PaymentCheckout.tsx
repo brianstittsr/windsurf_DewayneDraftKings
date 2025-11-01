@@ -1,16 +1,65 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import dynamic from 'next/dynamic';
+
+type CouponData = {
+  code: string;
+  type: string;
+  value: number;
+  discount: number;
+  isValid?: boolean;
+};
+
+type PaymentMethod = 'card' | 'klarna' | 'affirm' | 'google_pay' | 'apple_pay' | 'cashapp' | 'amazon_pay';
+
+interface BnplAccountStatus {
+  klarna: boolean | null;
+  affirm: boolean | null;
+}
+
+interface StripePaymentFormProps {
+  planData: any;
+  customerData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    playerId?: string;
+  };
+  onPaymentSuccess: (paymentIntent?: any) => void;
+  onPaymentError: (error: string) => void;
+  appliedCoupon: CouponData | null;
+  selectedPaymentMethod: PaymentMethod;
+  onPaymentMethodChange: (method: PaymentMethod) => void;
+  loading: boolean;
+  setLoading: (loading: boolean) => void;
+  couponCode: string;
+  setCouponCode: (code: string) => void;
+  couponLoading: boolean;
+  setCouponLoading: (loading: boolean) => void;
+  couponError: string;
+  setCouponError: (error: string) => void;
+  setAppliedCoupon: (coupon: CouponData | null) => void;
+  bnplAccountStatus: BnplAccountStatus;
+  setBnplAccountStatus: (status: BnplAccountStatus) => void;
+}
 
 // Initialize Stripe
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-  : Promise.resolve(null);
+  : null;
 
 // Check if Stripe is configured
 const isStripeConfigured = !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+// Dynamically import StripePaymentForm to avoid SSR issues
+const StripePaymentForm = dynamic<StripePaymentFormProps>(
+  () => import('./StripePaymentForm') as any,
+  { ssr: false }
+);
 
 interface PaymentCheckoutProps {
   planData: any;
@@ -21,314 +70,47 @@ interface PaymentCheckoutProps {
     phone: string;
     playerId?: string;
   };
-  onPaymentSuccess: () => void;
+  onPaymentSuccess: (paymentIntent?: any) => void;
   onPaymentError: (error: string) => void;
+  appliedCoupon?: CouponData | null;
 }
 
-interface CouponData {
-  code: string;
-  type: 'percentage' | 'fixed_amount' | 'set_price';
-  value: number;
-  discount: number;
-  isValid: boolean;
-}
-
-// Credit Card Form Component
-function CreditCardForm({ onPaymentSuccess, onPaymentError, planData, customerData, appliedCoupon }: {
-  onPaymentSuccess: () => void;
-  onPaymentError: (error: string) => void;
-  planData: any;
-  customerData: any;
-  appliedCoupon: CouponData | null;
-}) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [processing, setProcessing] = useState(false);
-  
-  // Billing information state
-  const [billingInfo, setBillingInfo] = useState({
-    name: `${customerData.firstName} ${customerData.lastName}`,
-    email: customerData.email,
-    phone: customerData.phone,
-    address: {
-      line1: '',
-      line2: '',
-      city: '',
-      state: '',
-      postal_code: '',
-      country: 'US'
-    }
+export default function PaymentCheckout({
+  planData,
+  customerData,
+  onPaymentSuccess,
+  onPaymentError,
+  appliedCoupon = null,
+}: PaymentCheckoutProps) {
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('card');
+  const [loading, setLoading] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCouponState, setAppliedCouponState] = useState<CouponData | null>(appliedCoupon);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+  const [stripeLoaded, setStripeLoaded] = useState(false);
+  const [bnplAccountStatus, setBnplAccountStatus] = useState<BnplAccountStatus>({
+    klarna: null,
+    affirm: null
   });
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    if (!stripe || !elements) {
-      return;
+  // Initialize component
+  useEffect(() => {
+    if (stripePromise) {
+      stripePromise.then(() => setStripeLoaded(true));
     }
+  }, []);
 
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) {
-      return;
-    }
+  // Update applied coupon when prop changes
+  useEffect(() => {
+    setAppliedCouponState(appliedCoupon);
+  }, [appliedCoupon]);
 
-    setProcessing(true);
-
-    try {
-      // Create payment intent
-      // Ensure service fee is included even if pricing.total is not present
-      const computedTotal =
-        (planData?.pricing?.total ?? ((planData?.price || 0) + (planData?.serviceFee || 0)));
-      const amount = Math.round(computedTotal * 100);
-      
-      const response = await fetch('/api/payments/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount,
-          currency: 'usd',
-          description: `All Pro Sports - ${planData?.title || 'Registration'}`,
-          customerEmail: customerData.email,
-          customerName: `${customerData.firstName} ${customerData.lastName}`,
-          appliedCoupon: appliedCoupon?.code || null,
-          metadata: {
-            planTitle: planData?.title,
-            planType: planData?.itemType,
-            customerPhone: customerData.phone
-          }
-        })
-      });
-
-      const { clientSecret, error } = await response.json();
-
-      if (error) {
-        throw new Error(error);
-      }
-
-      // Confirm payment
-      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: cardElement,
-          billing_details: {
-            name: billingInfo.name,
-            email: billingInfo.email,
-            phone: billingInfo.phone,
-            address: {
-              line1: billingInfo.address.line1,
-              line2: billingInfo.address.line2 || undefined,
-              city: billingInfo.address.city,
-              state: billingInfo.address.state,
-              postal_code: billingInfo.address.postal_code,
-              country: billingInfo.address.country
-            }
-          }
-        }
-      });
-
-      if (confirmError) {
-        throw new Error(confirmError.message);
-      }
-
-      if (paymentIntent?.status === 'succeeded') {
-        onPaymentSuccess();
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
-      onPaymentError(error instanceof Error ? error.message : 'Payment failed');
-    } finally {
-      setProcessing(false);
-    }
+  // Handle payment method change
+  const handlePaymentMethodChange = (method: PaymentMethod) => {
+    setSelectedPaymentMethod(method);
   };
 
-  return (
-    <form onSubmit={handleSubmit}>
-      {/* Billing Information */}
-      <div className="card border-light mb-4">
-        <div className="card-header bg-light">
-          <h6 className="mb-0 fw-semibold">
-            <i className="fas fa-user me-2"></i>
-            Billing Information
-          </h6>
-        </div>
-        <div className="card-body">
-          <div className="row">
-            <div className="col-md-6 mb-3">
-              <label className="form-label">Full Name *</label>
-              <input
-                type="text"
-                className="form-control"
-                value={billingInfo.name}
-                onChange={(e) => setBillingInfo(prev => ({ ...prev, name: e.target.value }))}
-                required
-              />
-            </div>
-            <div className="col-md-6 mb-3">
-              <label className="form-label">Email Address *</label>
-              <input
-                type="email"
-                className="form-control"
-                value={billingInfo.email}
-                onChange={(e) => setBillingInfo(prev => ({ ...prev, email: e.target.value }))}
-                required
-              />
-            </div>
-            <div className="col-md-6 mb-3">
-              <label className="form-label">Phone Number</label>
-              <input
-                type="tel"
-                className="form-control"
-                value={billingInfo.phone}
-                onChange={(e) => setBillingInfo(prev => ({ ...prev, phone: e.target.value }))}
-              />
-            </div>
-            <div className="col-md-6 mb-3">
-              <label className="form-label">Address Line 1 *</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Street address"
-                value={billingInfo.address.line1}
-                onChange={(e) => setBillingInfo(prev => ({ 
-                  ...prev, 
-                  address: { ...prev.address, line1: e.target.value }
-                }))}
-                required
-              />
-            </div>
-            <div className="col-md-6 mb-3">
-              <label className="form-label">Address Line 2</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Apartment, suite, etc. (optional)"
-                value={billingInfo.address.line2}
-                onChange={(e) => setBillingInfo(prev => ({ 
-                  ...prev, 
-                  address: { ...prev.address, line2: e.target.value }
-                }))}
-              />
-            </div>
-            <div className="col-md-4 mb-3">
-              <label className="form-label">City *</label>
-              <input
-                type="text"
-                className="form-control"
-                value={billingInfo.address.city}
-                onChange={(e) => setBillingInfo(prev => ({ 
-                  ...prev, 
-                  address: { ...prev.address, city: e.target.value }
-                }))}
-                required
-              />
-            </div>
-            <div className="col-md-4 mb-3">
-              <label className="form-label">State *</label>
-              <select
-                className="form-select"
-                value={billingInfo.address.state}
-                onChange={(e) => setBillingInfo(prev => ({ 
-                  ...prev, 
-                  address: { ...prev.address, state: e.target.value }
-                }))}
-                required
-              >
-                <option value="">Select State</option>
-                <option value="NC">North Carolina</option>
-                <option value="SC">South Carolina</option>
-                <option value="VA">Virginia</option>
-                <option value="TN">Tennessee</option>
-                <option value="GA">Georgia</option>
-                <option value="FL">Florida</option>
-                <option value="AL">Alabama</option>
-                <option value="MS">Mississippi</option>
-                <option value="KY">Kentucky</option>
-                <option value="WV">West Virginia</option>
-              </select>
-            </div>
-            <div className="col-md-4 mb-3">
-              <label className="form-label">ZIP Code *</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="12345"
-                value={billingInfo.address.postal_code}
-                onChange={(e) => setBillingInfo(prev => ({ 
-                  ...prev, 
-                  address: { ...prev.address, postal_code: e.target.value }
-                }))}
-                required
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Credit Card Information */}
-      <div className="card border-light mb-4">
-        <div className="card-header bg-light">
-          <h6 className="mb-0 fw-semibold">
-            <i className="fas fa-credit-card me-2"></i>
-            Credit Card Information
-          </h6>
-        </div>
-        <div className="card-body">
-          <div className="mb-3">
-            <label className="form-label">Card Details *</label>
-            <div className="p-3 border rounded" style={{ backgroundColor: '#f8f9fa' }}>
-              <CardElement
-                options={{
-                  style: {
-                    base: {
-                      fontSize: '16px',
-                      color: '#424770',
-                      '::placeholder': {
-                        color: '#aab7c4',
-                      },
-                    },
-                  },
-                }}
-              />
-            </div>
-            <small className="form-text text-muted">
-              <i className="fas fa-lock me-1"></i>
-              Your card information is encrypted and secure
-            </small>
-          </div>
-        </div>
-      </div>
-      
-      <div className="d-grid">
-        <button
-          type="submit"
-          className="btn btn-success btn-lg py-3"
-          disabled={!stripe || processing}
-        >
-          {processing ? (
-            <>
-              <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
-              Processing Payment...
-            </>
-          ) : (
-            <>
-              <i className="fas fa-lock me-2"></i>
-              {(() => {
-                const btnTotal = (planData?.pricing?.total ?? ((planData?.price || 0) + (planData?.serviceFee || 0)));
-                return `Pay $${btnTotal.toFixed(2)} Securely`;
-              })()}
-            </>
-          )}
-        </button>
-      </div>
-    </form>
-  );
-}
-
-function PaymentCheckoutForm({ 
-  planData, 
-  customerData, 
-  onPaymentSuccess, 
-  onPaymentError 
-}: PaymentCheckoutProps) {
   // Check if Stripe is configured
   if (!isStripeConfigured) {
     const currentKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'Not set';
@@ -336,107 +118,73 @@ function PaymentCheckoutForm({
     const isVercel = process.env.VERCEL === '1';
     
     return (
-      <div className="alert alert-danger" role="alert">
-        <div className="d-flex align-items-center">
-          <i className="fas fa-exclamation-triangle me-3" style={{ fontSize: '2rem' }}></i>
-          <div>
-            <h5 className="alert-heading">Stripe Configuration Missing</h5>
-            <p className="mb-2">
-              <strong>Environment:</strong> {isProduction ? 'Production' : 'Development'} 
-              {isVercel && ' (Vercel)'}
-            </p>
-            <p className="mb-2">
-              <strong>Current key status:</strong> <code>{currentKey}</code>
-            </p>
-            
-            {isVercel ? (
-              <div className="alert alert-warning mt-2">
-                <strong>Vercel Deployment Issue:</strong>
-                <p className="mb-2">The environment variable is not set in Vercel. Please:</p>
-                <ol className="mb-0">
-                  <li>Go to your Vercel project dashboard</li>
-                  <li>Navigate to <strong>Settings → Environment Variables</strong></li>
-                  <li>Add: <code>NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code></li>
-                  <li>Set value to your live Stripe publishable key (pk_live_...)</li>
-                  <li>Redeploy your application</li>
-                </ol>
-              </div>
-            ) : (
-              <div className="alert alert-info mt-2">
-                <strong>Local Development:</strong>
-                <p className="mb-2">Add to your .env.local file:</p>
-                <code className="d-block bg-light p-2 rounded mb-2">
-                  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_live_your_live_key_here"
-                </code>
-                <ol className="mb-0 mt-2">
-                  <li>Update your .env.local file</li>
-                  <li>Stop your server (Ctrl+C)</li>
-                  <li>Run <code>npm run dev</code> again</li>
-                </ol>
-              </div>
-            )}
+      <div className="container py-5">
+        <div className="alert alert-danger" role="alert">
+          <div className="d-flex align-items-center">
+            <i className="fas fa-exclamation-triangle me-3" style={{ fontSize: '2rem' }}></i>
+            <div>
+              <h5 className="alert-heading">Stripe Configuration Missing</h5>
+              <p className="mb-2">
+                <strong>Environment:</strong> {isProduction ? 'Production' : 'Development'} 
+                {isVercel && ' (Vercel)'}
+              </p>
+              <p className="mb-2">
+                <strong>Stripe Key:</strong> {currentKey}
+              </p>
+              
+              {isProduction ? (
+                <div className="alert alert-warning mt-3">
+                  <strong>Production Setup Required:</strong>
+                  <ol className="mb-0 mt-2">
+                    <li>Add Stripe publishable key to your environment variables</li>
+                    <li>Redeploy your application</li>
+                  </ol>
+                </div>
+              ) : (
+                <div className="alert alert-info mt-3">
+                  <strong>Local Development Setup:</strong>
+                  <p className="mb-2 mt-2">Add to your <code>.env.local</code> file:</p>
+                  <code className="d-block bg-light p-2 rounded mb-2">
+                    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="your_test_key_here"
+                  </code>
+                  <ol className="mb-0 mt-2">
+                    <li>Update your <code>.env.local</code> file with your test key</li>
+                    <li>Stop your development server (Ctrl+C)</li>
+                    <li>Run <code>npm run dev</code> again</li>
+                  </ol>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'klarna' | 'affirm' | 'google_pay' | 'apple_pay' | 'cashapp' | 'amazon_pay'>('card');
-  const [loading, setLoading] = useState(false);
-  const [bnplAccountStatus, setBnplAccountStatus] = useState<{
-    klarna: boolean | null;
-    affirm: boolean | null;
-  }>({
-    klarna: null,
-    affirm: null
-  });
-  
-  // Coupon state
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
-  const [couponLoading, setCouponLoading] = useState(false);
-  const [couponError, setCouponError] = useState('');
-  const [originalPlanData, setOriginalPlanData] = useState(planData);
-  const [stripeLoaded, setStripeLoaded] = useState(false);
-
-  useEffect(() => {
-    setOriginalPlanData(planData);
-    
-    // Check if Stripe is properly loaded
-    stripePromise.then((stripe) => {
-      if (stripe) {
-        setStripeLoaded(true);
-        console.log('Stripe loaded successfully');
-      } else {
-        console.error('Failed to load Stripe. Check NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY');
-      }
-    });
-  }, []);
-
-  // Coupon validation function
-  const validateCoupon = async () => {
-    if (!couponCode.trim()) {
+  const validateCoupon = async (code: string) => {
+    if (!code.trim()) {
       setCouponError('Please enter a coupon code');
-      return;
+      return null;
     }
-
-    setCouponLoading(true);
-    setCouponError('');
-
+    
     try {
-      const response = await fetch('/api/coupons/validate', {
+      setCouponLoading(true);
+      setCouponError('');
+      
+      const response = await fetch('/api/validate-coupon', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          code: couponCode.trim().toUpperCase(),
-          orderAmount: originalPlanData?.pricing?.subtotal || originalPlanData?.price || 0,
-          applicableItems: [originalPlanData?.itemType || 'registration']
+          code: code.trim().toUpperCase(),
+          orderAmount: planData?.pricing?.subtotal || planData?.price || 0,
+          applicableItems: [planData?.itemType || 'registration']
         })
       });
 
       const result = await response.json();
       
-      // Handle both success and graceful failure responses
       if (response.ok && result.success && result.coupon) {
         const couponData: CouponData = {
           code: result.coupon.code,
@@ -445,59 +193,41 @@ function PaymentCheckoutForm({
           discount: result.discount,
           isValid: true
         };
-        
-        setAppliedCoupon(couponData);
-        
-        // For set_price coupons, the final amount should be the coupon value plus service fee
-        // For other coupon types, apply discount to subtotal then add service fee
-        let newTotal;
-        if (couponData.type === 'set_price') {
-          newTotal = result.finalAmount + (originalPlanData.serviceFee || 0);
-        } else {
-          newTotal = Math.max(0, result.finalAmount + (originalPlanData.serviceFee || 0));
-        }
-        
-        // Update plan data with discount
-        const updatedPlanData = {
-          ...originalPlanData,
-          pricing: {
-            ...originalPlanData.pricing,
-            discount: result.discount,
-            total: newTotal
-          },
-          appliedCoupon: couponData
-        };
-        
-        // Update parent component with new pricing
-        Object.assign(planData, updatedPlanData);
-        
-        setCouponCode('');
+        setAppliedCouponState(couponData);
+        return couponData;
       } else {
-        setCouponError(result.error || 'Invalid coupon code');
+        throw new Error(result.message || 'Invalid coupon code');
       }
     } catch (error) {
-      setCouponError('Failed to validate coupon. Please try again.');
+      console.error('Error validating coupon:', error);
+      setCouponError(error instanceof Error ? error.message : 'An error occurred while validating the coupon');
+      return null;
     } finally {
       setCouponLoading(false);
     }
   };
 
   const removeCoupon = () => {
-    setAppliedCoupon(null);
+    setAppliedCouponState(null);
     setCouponError('');
     
-    // Restore original pricing
-    const restoredPlanData = {
-      ...originalPlanData,
-      pricing: {
-        ...originalPlanData.pricing,
-        discount: 0,
-        total: (originalPlanData.pricing?.subtotal || originalPlanData.price) + (originalPlanData.serviceFee || 0)
-      },
-      appliedCoupon: null
-    };
-    
-    Object.assign(planData, restoredPlanData);
+    // Restore original pricing if needed
+    // Note: originalPlanData is not defined in the current scope
+    // You might want to add it to the component state if needed
+    if (planData?.pricing) {
+      const restoredPlanData = {
+        ...planData,
+        pricing: {
+          ...planData.pricing,
+          discount: 0,
+          total: (planData.pricing.subtotal || planData.price || 0) + (planData.serviceFee || 0)
+        }
+      };
+      
+      // Update the plan data if needed
+      // Note: This might need to be handled differently based on your state management
+      Object.assign(planData, restoredPlanData);
+    }
   };
 
   // Handle free registration with REGISTER coupon
@@ -511,7 +241,7 @@ function PaymentCheckoutForm({
         body: JSON.stringify({
           customerData,
           planData,
-          couponCode: appliedCoupon?.code
+          couponCode: appliedCouponState?.code
         })
       });
 
@@ -589,172 +319,120 @@ function PaymentCheckoutForm({
   };
 
   const renderPaymentMethodCard = (
-    method: 'card' | 'klarna' | 'affirm' | 'google_pay' | 'apple_pay' | 'cashapp' | 'amazon_pay',
-    icon: string,
-    title: string,
-    description: string,
-    color: string
-  ) => (
-    <div
-      className={`card h-100 border-2 position-relative ${
-        selectedPaymentMethod === method ? `border-${color} bg-${color} bg-opacity-5` : 'border-light'
-      }`}
-      style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
-      onClick={() => setSelectedPaymentMethod(method)}
-    >
-      {selectedPaymentMethod === method && (
-        <div className="position-absolute top-0 end-0 m-2">
-          <i className={`fas fa-check-circle text-${color}`}></i>
+    method,
+    icon,
+    title,
+    description,
+    color
+  ) => {
+    const isSelected = selectedPaymentMethod === method;
+    const isDisabled = loading;
+
+    return (
+      <div
+        key={method}
+        className={`payment-method-card ${isSelected ? 'selected' : ''} ${
+          isDisabled ? 'disabled' : ''
+        }`}
+        onClick={() => !isDisabled && handlePaymentMethodChange(method)}
+        style={{
+          border: `2px solid ${isSelected ? color : '#e2e8f0'}`,
+          backgroundColor: isSelected ? `${color}0D` : '#fff',
+          cursor: isDisabled ? 'not-allowed' : 'pointer',
+          opacity: isDisabled ? 0.7 : 1,
+          transition: 'all 0.2s ease',
+        }}
+      >
+        <div className="d-flex align-items-center">
+          <div className="payment-method-icon me-3" style={{ color }}>
+            <i className={icon} style={{ fontSize: '2rem' }} />
+          </div>
+          <div>
+            <h5 className="mb-1">{title}</h5>
+            <p className="mb-0 text-muted">{description}</p>
+          </div>
         </div>
-      )}
-      <div className="card-body text-center p-4">
-        <div className={`bg-${color} bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3`} style={{width: '60px', height: '60px'}}>
-          <i className={`${icon} fa-lg text-${color}`}></i>
-        </div>
-        <h6 className="fw-bold mb-2">{title}</h6>
-        <p className="text-muted small mb-0">{description}</p>
       </div>
-    </div>
-  );
+    );
+  };
+
+  // Handle coupon form submission
+  const handleCouponSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (couponCode.trim()) {
+      await validateCoupon(couponCode);
+    }
+  };
 
   return (
-    <div>
-      {/* Coupon Code Section */}
-      <div className="card border-info mb-4">
-        <div className="card-header bg-info bg-opacity-10">
-          <h6 className="mb-0 fw-semibold text-info">
-            <i className="fas fa-tag me-2"></i>
-            Coupon Code
-          </h6>
-        </div>
-        <div className="card-body">
-          {!appliedCoupon ? (
-            <div className="row g-2">
-              <div className="col">
-                <input
-                  type="text"
-                  className={`form-control ${couponError ? 'is-invalid' : ''}`}
-                  placeholder="Enter coupon code"
-                  value={couponCode}
-                  onChange={(e) => {
-                    setCouponCode(e.target.value.toUpperCase());
-                    setCouponError('');
-                  }}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      validateCoupon();
-                    }
-                  }}
-                  disabled={couponLoading}
-                />
-                {couponError && (
-                  <div className="invalid-feedback">
-                    {couponError}
-                  </div>
-                )}
-              </div>
-              <div className="col-auto">
-                <button
-                  type="button"
-                  className="btn btn-info"
-                  onClick={validateCoupon}
-                  disabled={couponLoading || !couponCode.trim()}
-                >
-                  {couponLoading ? (
-                    <>
-                      <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
-                      Validating...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-check me-2"></i>
-                      Apply
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="d-flex justify-content-between align-items-center p-3 bg-success bg-opacity-10 rounded">
-              <div>
-                <div className="fw-bold text-success">
-                  <i className="fas fa-check-circle me-2"></i>
-                  Coupon Applied: {appliedCoupon.code}
+    <div className="payment-checkout">
+      {/* Coupon Section */}
+      <div className="mb-4">
+        <h6 className="fw-semibold mb-3">Apply Coupon</h6>
+        {!appliedCouponState ? (
+          <form onSubmit={handleCouponSubmit} className="row g-2">
+            <div className="col">
+              <input
+                type="text"
+                className={`form-control ${couponError ? 'is-invalid' : ''}`}
+                placeholder="Enter coupon code"
+                value={couponCode}
+                onChange={(e) => {
+                  setCouponCode(e.target.value);
+                  if (couponError) setCouponError('');
+                }}
+                disabled={couponLoading}
+              />
+              {couponError && (
+                <div className="invalid-feedback">
+                  {couponError}
                 </div>
-                <small className="text-muted">
-                  {appliedCoupon.type === 'percentage' && `${appliedCoupon.value}% discount`}
-                  {appliedCoupon.type === 'fixed_amount' && `$${appliedCoupon.value} off`}
-                  {appliedCoupon.type === 'set_price' && `Set price: $${appliedCoupon.value}`}
-                  {' - '}You save ${appliedCoupon.discount.toFixed(2)}
-                </small>
-              </div>
+              )}
+            </div>
+            <div className="col-auto">
               <button
-                type="button"
-                className="btn btn-outline-danger btn-sm"
-                onClick={removeCoupon}
+                type="submit"
+                className="btn btn-info"
+                disabled={couponLoading || !couponCode.trim()}
               >
-                <i className="fas fa-times"></i>
+                {couponLoading ? (
+                  <>
+                    <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                    Validating...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-check me-2"></i>
+                    Apply
+                  </>
+                )}
               </button>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Plan Summary */}
-      {planData && (
-        <div className="card border-primary mb-4">
-          <div className="card-header bg-primary text-white">
-            <h6 className="mb-0 fw-semibold">
-              <i className="fas fa-receipt me-2"></i>
-              Payment Summary
-            </h6>
-          </div>
-          <div className="card-body">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <div>
-                <h6 className="fw-bold mb-1">{planData.title}</h6>
-                <p className="text-muted mb-0">{planData.subtitle}</p>
+          </form>
+        ) : (
+          <div className="d-flex justify-content-between align-items-center p-3 bg-success bg-opacity-10 rounded">
+            <div>
+              <div className="fw-bold text-success">
+                <i className="fas fa-check-circle me-2"></i>
+                Coupon Applied: {appliedCouponState.code}
               </div>
-              <div className="text-end">
-                <div className="h5 mb-0 text-success">
-                  ${planData.pricing?.total?.toFixed(2) || planData.price?.toFixed(2)}
-                </div>
-                {planData.appliedCoupon && (
-                  <small className="text-success">
-                    <i className="fas fa-tag me-1"></i>
-                    {planData.appliedCoupon.code} applied
-                  </small>
-                )}
-              </div>
+              <small className="text-muted">
+                {appliedCouponState.type === 'percentage' && `${appliedCouponState.value}% discount`}
+                {appliedCouponState.type === 'fixed_amount' && `$${appliedCouponState.value} off`}
+                {appliedCouponState.type === 'set_price' && `Set price: $${appliedCouponState.value}`}
+                {' - '}You save ${appliedCouponState.discount.toFixed(2)}
+              </small>
             </div>
-            
-            {planData.pricing && (
-              <div className="border-top pt-3">
-                <div className="d-flex justify-content-between text-muted small">
-                  <span>Subtotal:</span>
-                  <span>${planData.pricing.subtotal?.toFixed(2)}</span>
-                </div>
-                <div className="d-flex justify-content-between text-muted small">
-                  <span>Service Fee:</span>
-                  <span>${planData.serviceFee?.toFixed(2)}</span>
-                </div>
-                {planData.pricing.discount > 0 && (
-                  <div className="d-flex justify-content-between text-success small">
-                    <span>Discount:</span>
-                    <span>-${planData.pricing.discount?.toFixed(2)}</span>
-                  </div>
-                )}
-                <hr className="my-2" />
-                <div className="d-flex justify-content-between fw-bold">
-                  <span>Total:</span>
-                  <span className="text-success">${planData.pricing.total?.toFixed(2)}</span>
-                </div>
-              </div>
-            )}
+            <button
+              type="button"
+              className="btn btn-outline-danger btn-sm"
+              onClick={removeCoupon}
+            >
+              <i className="fas fa-times"></i>
+            </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Payment Method Selection */}
       <div className="mb-4">
@@ -826,45 +504,82 @@ function PaymentCheckoutForm({
         </div>
       </div>
 
-      {/* Credit Card Form */}
-      {selectedPaymentMethod === 'card' && appliedCoupon?.code !== 'REGISTER' && (
-        <div>
-          {!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? (
-            <div className="card border-danger mb-4">
-              <div className="card-body text-center py-4">
-                <i className="fas fa-exclamation-triangle fa-2x text-danger mb-3"></i>
-                <h6 className="text-danger">Stripe Configuration Missing</h6>
-                <p className="text-muted mb-3">
-                  Please add your Stripe publishable key to <code>.env.local</code>:
-                </p>
-                <code className="bg-light p-2 rounded d-block">
-                  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
-                </code>
-                <small className="text-muted mt-2 d-block">
-                  Restart the server after adding the key
-                </small>
+      {/* Payment Form */}
+      <Elements stripe={stripePromise}>
+        <StripePaymentForm
+          planData={planData}
+          customerData={customerData}
+          onPaymentSuccess={onPaymentSuccess}
+          onPaymentError={onPaymentError}
+          appliedCoupon={appliedCouponState}
+          selectedPaymentMethod={selectedPaymentMethod}
+          onPaymentMethodChange={handlePaymentMethodChange}
+          loading={loading}
+          setLoading={setLoading}
+          couponCode={couponCode}
+          setCouponCode={setCouponCode}
+          couponLoading={couponLoading}
+          setCouponLoading={setCouponLoading}
+          couponError={couponError}
+          setCouponError={setCouponError}
+          setAppliedCoupon={setAppliedCouponState}
+          bnplAccountStatus={bnplAccountStatus}
+          setBnplAccountStatus={setBnplAccountStatus}
+        />
+      </Elements>
+
+      {/* Plan Summary */}
+      {planData && (
+        <div className="card border-primary mb-4">
+          <div className="card-header bg-primary text-white">
+            <h6 className="mb-0 fw-semibold">
+              <i className="fas fa-receipt me-2"></i>
+              Payment Summary
+            </h6>
+          </div>
+          <div className="card-body">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h6 className="fw-bold mb-1">{planData.title}</h6>
+                <p className="text-muted mb-0">{planData.subtitle}</p>
               </div>
-            </div>
-          ) : !stripeLoaded ? (
-            <div className="card border-light mb-4">
-              <div className="card-body text-center py-4">
-                <div className="spinner-border text-primary mb-3" role="status">
-                  <span className="visually-hidden">Loading...</span>
+              <div className="text-end">
+                <div className="h5 mb-0 text-success">
+                  ${planData.pricing?.total?.toFixed(2) || planData.price?.toFixed(2)}
                 </div>
-                <p className="text-muted">Loading secure payment form...</p>
+                {planData.appliedCoupon && (
+                  <small className="text-success">
+                    <i className="fas fa-tag me-1"></i>
+                    {planData.appliedCoupon.code} applied
+                  </small>
+                )}
               </div>
             </div>
-          ) : (
-            <Elements stripe={stripePromise}>
-              <CreditCardForm
-                onPaymentSuccess={onPaymentSuccess}
-                onPaymentError={onPaymentError}
-                planData={planData}
-                customerData={customerData}
-                appliedCoupon={appliedCoupon}
-              />
-            </Elements>
-          )}
+            
+            {planData.pricing && (
+              <div className="border-top pt-3">
+                <div className="d-flex justify-content-between text-muted small">
+                  <span>Subtotal:</span>
+                  <span>${planData.pricing.subtotal?.toFixed(2)}</span>
+                </div>
+                <div className="d-flex justify-content-between text-muted small">
+                  <span>Service Fee:</span>
+                  <span>${planData.serviceFee?.toFixed(2)}</span>
+                </div>
+                {planData.pricing.discount > 0 && (
+                  <div className="d-flex justify-content-between text-success small">
+                    <span>Discount:</span>
+                    <span>-${planData.pricing.discount?.toFixed(2)}</span>
+                  </div>
+                )}
+                <hr className="my-2" />
+                <div className="d-flex justify-content-between fw-bold">
+                  <span>Total:</span>
+                  <span className="text-success">${planData.pricing.total?.toFixed(2)}</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -1036,14 +751,5 @@ function PaymentCheckoutForm({
         </small>
       </div>
     </div>
-  );
-}
-
-// Main component with Stripe Elements wrapper
-export default function PaymentCheckout(props: PaymentCheckoutProps) {
-  return (
-    <Elements stripe={stripePromise}>
-      <PaymentCheckoutForm {...props} />
-    </Elements>
   );
 }
