@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, type StripeElementsOptions } from '@stripe/stripe-js';
 import dynamic from 'next/dynamic';
 
 type CouponData = {
@@ -86,6 +86,7 @@ export default function PaymentCheckout({
   const [loading, setLoading] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCouponState, setAppliedCouponState] = useState<CouponData | null>(appliedCoupon);
+  const [originalPlanData, setOriginalPlanData] = useState(planData);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
   const [stripeLoaded, setStripeLoaded] = useState(false);
@@ -96,6 +97,9 @@ export default function PaymentCheckout({
 
   // Initialize component
   useEffect(() => {
+    // Store the original plan data when component mounts
+    setOriginalPlanData(planData);
+    
     if (stripePromise) {
       stripePromise.then(() => setStripeLoaded(true));
     }
@@ -415,15 +419,28 @@ export default function PaymentCheckout({
             </h5>
           </div>
           <div className="card-body">
-            <Elements 
-              stripe={stripePromise}
-              options={{
-                mode: 'payment',
-                amount: planData?.pricing?.total ? Math.round(planData.pricing.total * 100) : 0,
-                currency: 'usd',
-                paymentMethodTypes: [selectedPaymentMethod]
-              }}
-            >
+            {!planData?.pricing?.total || planData.pricing.total <= 0 ? (
+              <div className="alert alert-warning">
+                <i className="fas fa-exclamation-triangle me-2"></i>
+                Unable to process payment: Invalid or missing amount. Please check your plan details.
+              </div>
+            ) : (
+              <Elements 
+                stripe={stripePromise}
+                options={{
+                  mode: 'payment',
+                  amount: Math.round(planData.pricing.total * 100),
+                  currency: 'usd',
+                  paymentMethodTypes: [selectedPaymentMethod],
+                  ...(selectedPaymentMethod === 'klarna' ? {
+                    paymentMethodOptions: {
+                      klarna: {
+                        preferred_locale: 'en-US',
+                      }
+                    }
+                  } : {})
+                } as any}
+              >
               <StripePaymentForm
                 planData={planData}
                 customerData={customerData}
@@ -445,6 +462,7 @@ export default function PaymentCheckout({
                 setBnplAccountStatus={setBnplAccountStatus}
               />
             </Elements>
+            )}
           </div>
         </div>
       )}
