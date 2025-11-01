@@ -960,20 +960,28 @@ function PaymentCheckoutForm({
             </p>
             <div className="d-grid">
               <button
-                className="btn btn-success btn-lg py-3"
-                onClick={handleFreeRegistration}
-                disabled={loading}
+                className="btn btn-primary w-100 btn-lg"
+                onClick={handlePayment}
+                disabled={loading || !stripeLoaded}
               >
                 {loading ? (
                   <>
-                    <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
-                    Completing Registration...
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Processing...
                   </>
                 ) : (
-                  <>
-                    <i className="fas fa-user-check me-2"></i>
-                    Complete Free Registration
-                  </>
+                  (() => {
+                    const paymentMethodMap = {
+                      'card': 'Credit/Debit Card',
+                      'klarna': 'Klarna',
+                      'affirm': 'Affirm',
+                      'cashapp': 'Cash App Pay',
+                      'google_pay': 'Google Pay',
+                      'apple_pay': 'Apple Pay',
+                      'amazon_pay': 'Amazon Pay'
+                    };
+                    return `Pay with ${paymentMethodMap[selectedPaymentMethod as keyof typeof paymentMethodMap] || 'Card'}`;
+                  })()
                 )}
               </button>
             </div>
@@ -985,7 +993,7 @@ function PaymentCheckoutForm({
       {selectedPaymentMethod !== 'card' && appliedCoupon?.code !== 'REGISTER' && (
         <div className="d-grid">
           <button
-            className="btn btn-success btn-lg py-3"
+            className="btn btn-primary w-100 btn-lg"
             onClick={handlePayment}
             disabled={
               loading || 
@@ -1002,7 +1010,17 @@ function PaymentCheckoutForm({
                 <i className="fas fa-lock me-2"></i>
                 {(() => {
                   const btnTotal = (planData?.pricing?.total ?? ((planData?.price || 0) + (planData?.serviceFee || 0)));
-                  return `Pay $${btnTotal.toFixed(2)} with ${selectedPaymentMethod === 'klarna' ? 'Klarna' : 'Affirm'}`;
+                  const paymentMethodNames = {
+                    'klarna': 'Klarna',
+                    'affirm': 'Affirm',
+                    'cashapp': 'Cash App Pay',
+                    'google_pay': 'Google Pay',
+                    'apple_pay': 'Apple Pay',
+                    'amazon_pay': 'Amazon Pay',
+                    'card': 'Credit/Debit Card'
+                  };
+                  const displayName = paymentMethodNames[selectedPaymentMethod as keyof typeof paymentMethodNames] || 'Card';
+                  return `Pay $${btnTotal.toFixed(2)} with ${displayName}`;
                 })()}
               </>
             )}

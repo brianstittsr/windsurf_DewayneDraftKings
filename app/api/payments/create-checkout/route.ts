@@ -1,12 +1,82 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
 
 // Force this route to be dynamic
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
+// Define types for the request body
+interface CheckoutRequest {
+  amount: number;
+  currency?: string;
+  description?: string;
+  customerEmail: string;
+  customerName: string;
+  paymentMethod?: string;
+  appliedCoupon?: string;
+  couponDiscount?: number;
+  originalAmount?: number;
+  metadata?: Record<string, any>;
+  paymentMethods?: Stripe.Checkout.SessionCreateParams.PaymentMethodType[];
+  successUrl?: string;
+  cancelUrl?: string;
+}
+
+// Define supported payment methods
+const SUPPORTED_PAYMENT_METHODS: Array<Stripe.Checkout.SessionCreateParams.PaymentMethodType> = [
+  'card',
+  'acss_debit',
+  'affirm',
+  'afterpay_clearpay',
+  'alipay',
+  'au_becs_debit',
+  'bacs_debit',
+  'bancontact',
+  'boleto',
+  'cashapp',
+  'customer_balance',
+  'eps',
+  'fpx',
+  'giropay',
+  'grabpay',
+  'ideal',
+  'klarna',
+  'konbini',
+  'link',
+  'oxxo',
+  'p24',
+  'paynow',
+  'pix',
+  'promptpay',
+  'sepa_debit',
+  'sofort',
+  'us_bank_account',
+  'wechat_pay',
+] as const;
+
+// Helper function to get payment method configurations
+const getPaymentMethodOptions = (method: Stripe.Checkout.SessionCreateParams.PaymentMethodType): Stripe.Checkout.SessionCreateParams.PaymentMethodOptions => {
+  const baseConfig: Record<string, any> = {
+    card: {},
+    klarna: { preferred_locale: 'en-US' },
+    affirm: { preferred_locale: 'en-US' },
+    paypal: { preferred_locale: 'en-US', flow: 'checkout' },
+    cashapp: { setup_future_usage: 'on_session' },
+    link: { setup_future_usage: 'on_session' },
+    alipay: { setup_future_usage: 'off_session' },
+    wechat_pay: { client: 'web' },
+    afterpay_clearpay: { reference: `ORDER-${Math.random().toString(36).substr(2, 9).toUpperCase()}` },
+    boleto: { expires_after_days: 3 },
+    oxxo: { expires_after_days: 1 },
+  };
+
+  const config = baseConfig[method];
+  return config ? { [method]: config } : {};
+};
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     console.log('Create checkout endpoint called');
-    const data = await request.json();
+    const data: CheckoutRequest = await request.json();
     console.log('Checkout request data:', Object.keys(data));
 
     const {
@@ -53,19 +123,27 @@ export async function POST(request: NextRequest) {
       console.log('Creating Stripe checkout session...');
 
       // Create checkout session
-      // Add 'cashapp' to the payment methods if not already included
-      const paymentMethodsWithCashApp = (() => {
-        if (Array.isArray(paymentMethods)) {
-          // Use a Set to ensure no duplicates, then convert back to array
-          const methods = new Set([...paymentMethods, 'cashapp']);
-          return Array.from(methods);
-        }
-        return ['card', 'cashapp'];
-      })();
+      // Filter and validate payment methods
+      const enabledPaymentMethods = (Array.isArray(paymentMethods) 
+        ? paymentMethods.filter((method): method is Stripe.Checkout.SessionCreateParams.PaymentMethodType =>
+            SUPPORTED_PAYMENT_METHODS.includes(method as any)
+          )
+        : ['card']
+      ).slice(0, 10) as Stripe.Checkout.SessionCreateParams.PaymentMethodType[]; // Ensure we don't exceed Stripe's limit
 
-      // Create checkout session
+      // Build payment method options
+      const paymentMethodOptions = enabledPaymentMethods.reduce<Stripe.Checkout.SessionCreateParams.PaymentMethodOptions>(
+        (acc, method) => {
+          const options = getPaymentMethodOptions(method);
+          return { ...acc, ...options };
+        },
+        {}
+      );
+
+      // Create checkout session with all supported payment methods
       const session = await stripe.checkout.sessions.create({
-        payment_method_types: paymentMethodsWithCashApp,
+        payment_method_types: enabledPaymentMethods,
+        payment_method_options: paymentMethodOptions,
         line_items: [
           {
             price_data: {
@@ -79,16 +157,28 @@ export async function POST(request: NextRequest) {
             quantity: 1,
           },
         ],
-        mode: 'payment',
-        customer_email: customerEmail,
+        mode: 'payment' as const,
+        payment_intent_data: {
+          setup_future_usage: 'off_session',
+          metadata: {
+            customer_name: customerName,
+            customer_email: customerEmail,
+            ...(appliedCoupon ? { coupon_code: appliedCoupon } : {}),
+            ...metadata
+          },
+        },
+        shipping_address_collection: {
+          allowed_countries: ['US', 'CA', 'GB', 'DE', 'FR', 'ES', 'IT', 'AU', 'JP'],
+        },
+        customer_email: customerEmail.toLowerCase().trim(),
         metadata: {
-          ...metadata,
-          customerName,
-          customerEmail,
-          appliedCoupon: appliedCoupon || '',
-          couponDiscount: couponDiscount ? String(couponDiscount) : '',
-          originalAmount: originalAmount ? String(originalAmount) : '',
-          paymentMethod
+          customer_name: customerName,
+          customer_email: customerEmail,
+          ...(appliedCoupon && { applied_coupon: appliedCoupon }),
+          ...(couponDiscount && { coupon_discount: String(couponDiscount) }),
+          ...(originalAmount && { original_amount: String(originalAmount) }),
+          payment_method: paymentMethod || 'card',
+          ...metadata
         },
         success_url: successUrl || `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/registration-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: cancelUrl || `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/register?cancelled=true`,
