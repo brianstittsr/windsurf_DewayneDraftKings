@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import TournamentBracket from './TournamentBracket';
+import { TournamentMatch } from '@/lib/firestore-schema';
 
 interface Tournament {
   id: string;
@@ -14,7 +15,7 @@ interface Tournament {
   startDate: string;
   endDate: string;
   teams: any[];
-  matches: any[];
+  matches: TournamentMatch[];
   createdAt: string;
 }
 

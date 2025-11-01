@@ -10,7 +10,7 @@ interface ScheduleFormData {
   gameDate: string;
   gameTime: string;
   duration: number;
-  venue: string;
+  location: string;
   field: string;
   address: string;
   week?: number;
@@ -30,7 +30,7 @@ const initialFormData: ScheduleFormData = {
   gameDate: '',
   gameTime: '18:00',
   duration: 60,
-  venue: 'All Pro Sports Complex',
+  location: 'All Pro Sports Complex',
   field: '',
   address: '',
   week: 1,
@@ -138,10 +138,10 @@ export default function ScheduleManagement() {
       homeTeamId: schedule.homeTeamId,
       awayTeamId: schedule.awayTeamId,
       leagueId: schedule.leagueId,
-      gameDate: new Date(schedule.gameDate.toDate()).toISOString().split('T')[0],
+      gameDate: schedule.gameDate ? schedule.gameDate.split('T')[0] : '',
       gameTime: schedule.gameTime,
       duration: schedule.duration,
-      venue: schedule.venue,
+      location: schedule.location,
       field: schedule.field || '',
       address: schedule.address || '',
       week: schedule.week,
@@ -227,7 +227,7 @@ export default function ScheduleManagement() {
     const awayTeamName = getTeamName(schedule.awayTeamId);
     const matchesSearch = homeTeamName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          awayTeamName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         schedule.venue.toLowerCase().includes(searchTerm.toLowerCase());
+                         schedule.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLeague = leagueFilter === 'all' || schedule.leagueId === leagueFilter;
     const matchesStatus = statusFilter === 'all' || schedule.status === statusFilter;
     const matchesWeek = weekFilter === 'all' || schedule.week?.toString() === weekFilter;
@@ -330,7 +330,7 @@ export default function ScheduleManagement() {
                     <th>Date/Time</th>
                     <th>Matchup</th>
                     <th>League</th>
-                    <th>Venue</th>
+                    <th>Location</th>
                     <th>Week</th>
                     <th>Type</th>
                     <th>Status</th>
@@ -344,7 +344,7 @@ export default function ScheduleManagement() {
                       <td>
                         <div>
                           <div className="fw-bold">
-                            {new Date(schedule.gameDate.toDate()).toLocaleDateString()}
+                            {new Date(schedule.gameDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}
                           </div>
                           <small className="text-muted">{schedule.gameTime}</small>
                         </div>
@@ -362,7 +362,7 @@ export default function ScheduleManagement() {
                       </td>
                       <td>
                         <div>
-                          <div className="fw-bold">{schedule.venue}</div>
+                          <div className="fw-bold">{schedule.location}</div>
                           {schedule.field && (
                             <small className="text-muted">{schedule.field}</small>
                           )}
@@ -472,14 +472,14 @@ export default function ScheduleManagement() {
                       <p><strong>Home Team:</strong> {getTeamName(selectedSchedule.homeTeamId)}</p>
                       <p><strong>Away Team:</strong> {getTeamName(selectedSchedule.awayTeamId)}</p>
                       <p><strong>League:</strong> {getLeagueName(selectedSchedule.leagueId)}</p>
-                      <p><strong>Date:</strong> {new Date(selectedSchedule.gameDate.toDate()).toLocaleDateString()}</p>
+                      <p><strong>Date:</strong> {new Date(selectedSchedule.gameDate).toLocaleDateString()}</p>
                       <p><strong>Time:</strong> {selectedSchedule.gameTime}</p>
                       <p><strong>Duration:</strong> {selectedSchedule.duration} minutes</p>
                       <p><strong>Type:</strong> {selectedSchedule.gameType}</p>
                     </div>
                     <div className="col-md-6">
-                      <h6 className="text-success mb-3">Venue & Details</h6>
-                      <p><strong>Venue:</strong> {selectedSchedule.venue}</p>
+                      <h6 className="text-success mb-3">Location & Details</h6>
+                      <p><strong>Location:</strong> {selectedSchedule.location}</p>
                       {selectedSchedule.field && <p><strong>Field:</strong> {selectedSchedule.field}</p>}
                       {selectedSchedule.address && <p><strong>Address:</strong> {selectedSchedule.address}</p>}
                       {selectedSchedule.week && <p><strong>Week:</strong> {selectedSchedule.week}</p>}
@@ -581,18 +581,18 @@ export default function ScheduleManagement() {
                         </div>
                       </div>
 
-                      {/* Venue Information */}
+                      {/* Location Information */}
                       <div className="col-12">
-                        <h6 className="text-info mb-3 mt-4">Venue Information</h6>
+                        <h6 className="text-info mb-3 mt-4">Location Information</h6>
                       </div>
                       <div className="col-md-6">
                         <div className="mb-3">
-                          <label className="form-label">Venue *</label>
+                          <label className="form-label">Location *</label>
                           <input
                             type="text"
                             className="form-control"
-                            value={formData.venue}
-                            onChange={(e) => setFormData(prev => ({ ...prev, venue: e.target.value }))}
+                            value={formData.location}
+                            onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                             required
                           />
                         </div>

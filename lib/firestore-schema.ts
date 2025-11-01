@@ -243,6 +243,41 @@ export interface Team extends BaseDocument {
   logoUrl?: string;
 }
 
+export interface TournamentMatch {
+  id: string;
+  round: number;
+  matchNumber: number;
+  team1Id?: string;
+  team2Id?: string;
+  winnerId?: string;
+  date?: string;
+  time?: string;
+  location?: string;
+  status: 'pending' | 'active' | 'completed';
+}
+
+export interface Schedule extends BaseDocument {
+  homeTeamId: string;
+  awayTeamId: string;
+  leagueId: string;
+  gameDate: string;
+  gameTime: string;
+  duration: number;
+  location: string;
+  field?: string;
+  address?: string;
+  week?: number;
+  round?: number;
+  gameType: 'regular' | 'playoff' | 'championship' | 'friendly';
+  weather?: string;
+  temperature?: number;
+  fieldConditions?: string;
+  notes?: string;
+  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled' | 'postponed';
+  homeScore?: number;
+  awayScore?: number;
+}
+
 export interface Game extends BaseDocument {
   // Game Identification
   gameNumber: number;
@@ -257,9 +292,10 @@ export interface Game extends BaseDocument {
   awayTeamName: string;
   
   // Scheduling
-  scheduledDate: Timestamp;
+  gameDate: string;
+  time: string; // e.g., "18:00"
+  location: string;
   actualDate?: Timestamp;
-  venue: string;
   
   // Game Status
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'postponed';
@@ -1921,7 +1957,7 @@ export interface Schedule extends BaseDocument {
   leagueId: string;
   
   // Game Details
-  gameDate: Timestamp;
+  gameDate: string;
   gameTime: string; // Format: "HH:MM"
   duration: number; // in minutes
   

@@ -45,10 +45,14 @@ export async function GET(request: NextRequest) {
     }
 
     const snapshot = await getDocs(schedulesQuery);
-    let schedules = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    let schedules = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        gameDate: data.gameDate.toDate().toISOString(),
+      };
+    });
 
     // Filter by team if specified (since Firestore doesn't support OR queries)
     if (teamId) {
@@ -109,7 +113,7 @@ export async function POST(request: NextRequest) {
       duration: data.duration || 60,
       
       // Location
-      venue: data.venue || 'All Pro Sports Complex',
+      location: data.location || 'All Pro Sports Complex',
       field: data.field || '',
       address: data.address || '',
       

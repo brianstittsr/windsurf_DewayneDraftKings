@@ -53,8 +53,19 @@ export async function POST(request: NextRequest) {
       console.log('Creating Stripe checkout session...');
 
       // Create checkout session
+      // Add 'cashapp' to the payment methods if not already included
+      const paymentMethodsWithCashApp = (() => {
+        if (Array.isArray(paymentMethods)) {
+          // Use a Set to ensure no duplicates, then convert back to array
+          const methods = new Set([...paymentMethods, 'cashapp']);
+          return Array.from(methods);
+        }
+        return ['card', 'cashapp'];
+      })();
+
+      // Create checkout session
       const session = await stripe.checkout.sessions.create({
-        payment_method_types: paymentMethods,
+        payment_method_types: paymentMethodsWithCashApp,
         line_items: [
           {
             price_data: {
