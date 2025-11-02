@@ -207,45 +207,6 @@ export default function PaymentCheckout({
           </div>
         </div>
 
-        {/* Apple Pay Method */}
-        <div className="col-md-4">
-          <div 
-            className={`card payment-method-card ${selectedPaymentMethod === 'apple_pay' ? 'border-primary shadow-sm' : 'border-light'}`}
-            onClick={() => handlePaymentMethodChange('apple_pay')}
-          >
-            <div className="card-body text-center">
-                <i className="fab fa-apple-pay fa-2x mb-2"></i>
-                <h6 className="mb-0">Apple Pay</h6>
-            </div>
-          </div>
-        </div>
-
-        {/* Google Pay Method */}
-        <div className="col-md-4">
-          <div 
-            className={`card payment-method-card ${selectedPaymentMethod === 'google_pay' ? 'border-primary shadow-sm' : 'border-light'}`}
-            onClick={() => handlePaymentMethodChange('google_pay')}
-          >
-            <div className="card-body text-center">
-                <i className="fab fa-google-pay fa-2x mb-2"></i>
-                <h6 className="mb-0">Google Pay</h6>
-            </div>
-          </div>
-        </div>
-
-        {/* Amazon Pay Method */}
-        <div className="col-md-4">
-          <div 
-            className={`card payment-method-card ${selectedPaymentMethod === 'amazon_pay' ? 'border-primary shadow-sm' : 'border-light'}`}
-            onClick={() => handlePaymentMethodChange('amazon_pay')}
-          >
-            <div className="card-body text-center">
-                <i className="fab fa-amazon-pay fa-2x mb-2"></i>
-                <h6 className="mb-0">Amazon Pay</h6>
-            </div>
-          </div>
-        </div>
-
         {/* Affirm Payment Method */}
         <div className="col-md-4">
           <div 

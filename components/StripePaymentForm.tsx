@@ -467,12 +467,94 @@ export default function StripePaymentForm({
     }
   };
 
-  if (selectedPaymentMethod === 'klarna') {
-    return <div className="alert alert-info">Klarna integration is processing. Please select another payment method.</div>;
-  }
+  if (selectedPaymentMethod === 'klarna' || selectedPaymentMethod === 'affirm') {
+    const methodName = selectedPaymentMethod === 'klarna' ? 'Klarna' : 'Affirm';
+    
+    const handleBNPLCheckout = async () => {
+      setProcessing(true);
+      onPaymentError('');
 
-  if (selectedPaymentMethod === 'affirm') {
-    return <div className="alert alert-info">Affirm integration is processing. Please select another payment method.</div>;
+      try {
+        const computedTotal = planData?.pricing?.total ?? ((planData?.price || 0) + (planData?.serviceFee || 0));
+        const amount = Math.round(computedTotal * 100);
+
+        const response = await fetch('/api/payments/create-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount,
+            currency: 'usd',
+            description: `All Pro Sports - ${planData?.title || 'Registration'}`,
+            customerEmail: customerInfo.email,
+            customerName: `${customerInfo.firstName} ${customerInfo.lastName}`,
+            paymentMethod: selectedPaymentMethod,
+            appliedCoupon: appliedCoupon?.code,
+            couponDiscount: appliedCoupon?.discount,
+            metadata: {
+              planId: planData?.id || '',
+              planTitle: planData?.title || '',
+              planType: planData?.itemType || '',
+              playerId: customerInfo?.playerId || '',
+            },
+            successUrl: `${window.location.origin}/registration-success?session_id={CHECKOUT_SESSION_ID}`,
+            cancelUrl: `${window.location.origin}/checkout`,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || `Failed to create ${methodName} checkout`);
+        }
+
+        // Redirect to Stripe Checkout
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error('No checkout URL received');
+        }
+      } catch (err: any) {
+        console.error(`${methodName} checkout error:`, err);
+        onPaymentError(err?.message || `An error occurred with ${methodName}.`);
+        setProcessing(false);
+      }
+    };
+
+    return (
+      <div>
+        <div className="alert alert-info mb-3">
+          <h6 className="alert-heading">
+            <i className={`${selectedPaymentMethod === 'klarna' ? 'fab fa-klarna' : 'fas fa-hand-holding-usd'} me-2`}></i>
+            Pay with {methodName}
+          </h6>
+          <p className="mb-0">
+            {selectedPaymentMethod === 'klarna' 
+              ? 'Split your payment into 4 interest-free installments with Klarna.'
+              : 'Pay over time with flexible payment plans from Affirm.'}
+          </p>
+        </div>
+        <div className="d-grid">
+          <button
+            type="button"
+            className="btn btn-primary btn-lg py-3"
+            onClick={handleBNPLCheckout}
+            disabled={processing}
+          >
+            {processing ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Processing...
+              </>
+            ) : (
+              <>
+                <i className={`${selectedPaymentMethod === 'klarna' ? 'fab fa-klarna' : 'fas fa-hand-holding-usd'} me-2`}></i>
+                Continue with {methodName}
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (selectedPaymentMethod === 'apple_pay' || selectedPaymentMethod === 'google_pay') {
