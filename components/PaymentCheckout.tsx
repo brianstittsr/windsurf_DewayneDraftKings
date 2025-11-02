@@ -200,8 +200,9 @@ export default function PaymentCheckout({
             onClick={() => handlePaymentMethodChange('cashapp')}
           >
             <div className="card-body text-center">
-                <i className="fas fa-dollar-sign fa-2x mb-2"></i>
+                <i className="fas fa-dollar-sign fa-2x mb-2 text-success"></i>
                 <h6 className="mb-0">Cash App</h6>
+                <small className="text-muted">Pay via phone</small>
             </div>
           </div>
         </div>

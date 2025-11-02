@@ -3,7 +3,9 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
-import AdminAuthWrapper from '@/components/AdminAuthWrapper';
+import AdminAuthWrapper, { useAdminAuth } from '@/components/AdminAuthWrapper';
+import PlayerDashboard from '@/components/dashboards/PlayerDashboard';
+import CoachDashboard from '@/components/dashboards/CoachDashboard';
 import UserProfileSearch from '@/components/UserProfileSearch';
 import AdminUserManagement from '@/components/AdminUserManagement';
 import TeamManagement from '@/components/TeamManagement';
@@ -288,6 +290,7 @@ function CallToAction({ onTabChange }: { onTabChange: (tab: string) => void }) {
 
 
 function AdminPageContent() {
+  const { user } = useAdminAuth();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -301,23 +304,23 @@ function AdminPageContent() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'dashboard':
+        if (user?.role === 'coach') {
+          return <CoachDashboard />;
+        }
+        if (user?.role === 'player') {
+          return <PlayerDashboard />;
+        }
+        // Default to admin dashboard
         return (
           <div className="fade-in">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
-              <h1 className="h3 mb-0 text-gray-800">Dashboard</h1>
+              <h1 className="h3 mb-0 text-gray-800">Admin Dashboard</h1>
             </div>
-
-            {/* Stats Overview */}
             <StatsOverview />
-
-            {/* Content Row */}
             <div className="row mt-4">
-              {/* Recent Activity */}
               <div className="col-lg-8 mb-4">
                 <RecentActivity />
               </div>
-
-              {/* Call to Action */}
               <div className="col-lg-4 mb-4">
                 <CallToAction onTabChange={setActiveTab} />
               </div>

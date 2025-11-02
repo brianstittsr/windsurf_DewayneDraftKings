@@ -260,51 +260,53 @@ export default function StripePaymentForm({
   };
 
   const handleCashAppPayment = async () => {
-    if (!stripe) {
-      onPaymentError('Stripe is not initialized.');
-      return;
-    }
-
     setIsCashAppProcessing(true);
     onPaymentError('');
 
     try {
-      const response = await fetch('/api/payments/create-payment-intent', {
+      // For manual Cash App payment, we just save the registration as pending
+      const totalAmount = planData?.pricing?.total || 0;
+      const paymentReference = `REF-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      
+      console.log('Creating pending Cash App payment:', { totalAmount, paymentReference });
+      
+      // Create pending payment record
+      const response = await fetch('/api/payments/create-pending', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: Math.round((planData?.pricing?.total || 0) * 100),
-          currency: 'usd',
-          payment_method_types: ['cashapp'],
-          metadata: { 
-            planId: planData?.id,
-            customerName: `${customerInfo.firstName} ${customerInfo.lastName}`
-          }
+          amount: totalAmount,
+          planId: planData?.id,
+          planName: planData?.title || 'Registration',
+          customerEmail: customerInfo.email,
+          customerName: `${customerInfo.firstName} ${customerInfo.lastName}`,
+          customerPhone: customerInfo.phone,
+          playerId: customerInfo.playerId,
+          paymentMethod: 'cashapp',
+          paymentReference,
+          appliedCoupon: appliedCoupon?.code || null,
+          couponDiscount: appliedCoupon?.discount || 0,
         }),
       });
 
-      const { clientSecret, error: backendError } = await response.json();
+      const data = await response.json();
+      
+      console.log('Pending payment response:', data);
 
-      if (backendError) {
-        throw new Error(backendError);
+      if (!response.ok || data.error) {
+        throw new Error(data.error || 'Failed to create pending payment');
       }
 
-      const { error } = await stripe.confirmCashappPayment(clientSecret, {
-        payment_method: {
-          billing_details: {
-            name: `${customerInfo.firstName} ${customerInfo.lastName}`,
-            email: customerInfo.email,
-          },
-        },
-        return_url: `${window.location.origin}/registration-success`,
-      });
-
-      if (error) {
-        throw error;
+      // Redirect to payment instructions page
+      if (data.paymentId) {
+        window.location.href = `/payment-pending?paymentId=${data.paymentId}&ref=${paymentReference}`;
+      } else {
+        throw new Error('No payment ID received');
       }
-    } catch (err) {
-      onPaymentError(err.message || 'An unexpected error occurred with Cash App.');
-    } finally {
+    } catch (err: any) {
+      console.error('Cash App payment error details:', err);
+      const errorMessage = err?.message || 'An unexpected error occurred with Cash App.';
+      onPaymentError(errorMessage);
       setIsCashAppProcessing(false);
     }
   };
@@ -494,9 +496,22 @@ export default function StripePaymentForm({
               Processing...
             </>
           ) : (
-            `Pay with Cash App`
+            <>
+              <i className="fas fa-dollar-sign me-2"></i>
+              Continue with Cash App
+            </>
           )}
         </button>
+        <div className="alert alert-info mt-3 mb-0">
+          <i className="fas fa-info-circle me-2"></i>
+          <strong>How it works:</strong>
+          <ol className="mb-0 mt-2 ps-3">
+            <li>Click "Continue with Cash App"</li>
+            <li>We'll save your registration and send payment instructions</li>
+            <li>Complete payment via Cash App on your phone</li>
+            <li>Your registration will be confirmed once payment is received</li>
+          </ol>
+        </div>
       </div>
     );
   }

@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
+import { useAdminAuth } from './AdminAuthWrapper';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import '../app/admin/admin.css';
@@ -10,6 +11,7 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
+  const { user } = useAdminAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [sidebarToggled, setSidebarToggled] = useState(false);
@@ -103,274 +105,324 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </Link>
           </li>
 
-          {/* Divider */}
-          <hr className="sidebar-divider" />
+          {user?.role === 'admin' && (
+            <>
+              {/* Divider */}
+              <hr className="sidebar-divider" />
 
-          {/* Heading */}
-          <div className="sidebar-heading">
-            User Management
-          </div>
-
-          {/* Nav Item - User Management */}
-          <li className="nav-item">
-            <button 
-              className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['user-profiles', 'players', 'coaches']) ? 'active' : ''}`}
-              onClick={() => toggleSection('users')}
-              aria-expanded={isSectionExpanded('users')}
-            >
-              <i className="fas fa-fw fa-users"></i>
-              <span>User Management</span>
-              <i className={`fas fa-chevron-${isSectionExpanded('users') ? 'up' : 'down'} float-right mt-1`}></i>
-            </button>
-            <div className={`collapse ${isSectionExpanded('users') ? 'show' : ''}`}>
-              <div className="py-2 collapse-inner rounded">
-                <h6 className="collapse-header">User Profiles:</h6>
-                <Link className={`collapse-item ${isActive('user-profiles') ? 'active' : ''}`} href="/admin?tab=user-profiles">
-                  <i className="fas fa-users fa-sm fa-fw mr-2 text-gray-400"></i>
-                  All Users
-                </Link>
-                <Link className={`collapse-item ${isActive('players') ? 'active' : ''}`} href="/admin?tab=players">
-                  <i className="fas fa-running fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Players
-                </Link>
-                <Link className={`collapse-item ${isActive('coaches') ? 'active' : ''}`} href="/admin?tab=coaches">
-                  <i className="fas fa-whistle fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Coaches
-                </Link>
-                <div className="dropdown-divider"></div>
-                <h6 className="collapse-header">Administration:</h6>
-                <Link className={`collapse-item ${isActive('commissioners') ? 'active' : ''}`} href="/admin?tab=commissioners">
-                  <i className="fas fa-user-tie fa-sm fa-fw mr-2 text-warning"></i>
-                  Commissioners
-                </Link>
+              {/* Heading */}
+              <div className="sidebar-heading">
+                User Management
               </div>
-            </div>
-          </li>
-          {/* Divider */}
-          <hr className="sidebar-divider" />
 
-          {/* Heading */}
-          <div className="sidebar-heading">
-            Business Operations
-          </div>
+              {/* Nav Item - User Management */}
+              <li className="nav-item">
+                <button 
+                  className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['user-profiles', 'players', 'coaches']) ? 'active' : ''}`}
+                  onClick={() => toggleSection('users')}
+                  aria-expanded={isSectionExpanded('users')}
+                >
+                  <i className="fas fa-fw fa-users"></i>
+                  <span>User Management</span>
+                  <i className={`fas fa-chevron-${isSectionExpanded('users') ? 'up' : 'down'} float-right mt-1`}></i>
+                </button>
+                <div className={`collapse ${isSectionExpanded('users') ? 'show' : ''}`}>
+                  <div className="py-2 collapse-inner rounded">
+                    <h6 className="collapse-header">User Profiles:</h6>
+                    <Link className={`collapse-item ${isActive('user-profiles') ? 'active' : ''}`} href="/admin?tab=user-profiles">
+                      <i className="fas fa-users fa-sm fa-fw mr-2 text-gray-400"></i>
+                      All Users
+                    </Link>
+                    <Link className={`collapse-item ${isActive('players') ? 'active' : ''}`} href="/admin?tab=players">
+                      <i className="fas fa-running fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Players
+                    </Link>
+                    <Link className={`collapse-item ${isActive('coaches') ? 'active' : ''}`} href="/admin?tab=coaches">
+                      <i className="fas fa-whistle fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Coaches
+                    </Link>
+                    <div className="dropdown-divider"></div>
+                    <h6 className="collapse-header">Administration:</h6>
+                    <Link className={`collapse-item ${isActive('commissioners') ? 'active' : ''}`} href="/admin?tab=commissioners">
+                      <i className="fas fa-user-tie fa-sm fa-fw mr-2 text-warning"></i>
+                      Commissioners
+                    </Link>
+                  </div>
+                </div>
+              </li>
+            </>
+          )}
 
-          {/* Nav Item - Financial Management */}
-          <li className="nav-item">
-            <button 
-              className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['payments', 'pricing', 'coupons', 'analytics']) ? 'active' : ''}`}
-              onClick={() => toggleSection('finance')}
-              aria-expanded={isSectionExpanded('finance')}
-            >
-              <i className="fas fa-fw fa-dollar-sign"></i>
-              <span>Financial Management</span>
-              <i className={`fas fa-chevron-${isSectionExpanded('finance') ? 'up' : 'down'} float-right mt-1`}></i>
-            </button>
-            <div className={`collapse ${isSectionExpanded('finance') ? 'show' : ''}`}>
-              <div className="py-2 collapse-inner rounded">
-                <h6 className="collapse-header">Revenue & Pricing:</h6>
-                <Link className={`collapse-item ${isActive('payments') ? 'active' : ''}`} href="/admin?tab=payments">
-                  <i className="fas fa-credit-card fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Payments
-                </Link>
-                <Link className={`collapse-item ${isActive('pricing') ? 'active' : ''}`} href="/admin?tab=pricing">
-                  <i className="fas fa-tags fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Pricing Plans
-                </Link>
-                <Link className={`collapse-item ${isActive('coupons') ? 'active' : ''}`} href="/admin?tab=coupons">
-                  <i className="fas fa-percentage fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Coupons & Discounts
-                </Link>
-                <div className="dropdown-divider"></div>
-                <h6 className="collapse-header">Analytics:</h6>
-                <Link className={`collapse-item ${isActive('analytics') ? 'active' : ''}`} href="/admin?tab=analytics">
-                  <i className="fas fa-chart-area fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Analytics & Reports
-                </Link>
+          {(user?.role === 'admin' || user?.role === 'coach') && (
+            <>
+              <hr className="sidebar-divider" />
+              <div className="sidebar-heading">
+                Team & League
               </div>
-            </div>
-          </li>
+              <li className="nav-item">
+                <Link href="/admin?tab=teams" className={`nav-link ${isActive('teams') ? 'active' : ''}`}>
+                  <i className="fas fa-fw fa-users"></i>
+                  <span>My Team</span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link href="/admin?tab=games" className={`nav-link ${isActive('games') ? 'active' : ''}`}>
+                  <i className="fas fa-fw fa-calendar"></i>
+                  <span>Schedule</span>
+                </Link>
+              </li>
+            </>
+          )}
 
-          {/* Divider */}
-          <hr className="sidebar-divider" />
-
-          {/* Heading */}
-          <div className="sidebar-heading">
-            League Operations
-          </div>
-
-          {/* Nav Item - League Management */}
-          <li className="nav-item">
-            <button 
-              className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['teams', 'leagues', 'seasons', 'games']) ? 'active' : ''}`}
-              onClick={() => toggleSection('league')}
-              aria-expanded={isSectionExpanded('league')}
-            >
-              <i className="fas fa-fw fa-futbol"></i>
-              <span>League Management</span>
-              <i className={`fas fa-chevron-${isSectionExpanded('league') ? 'up' : 'down'} float-right mt-1`}></i>
-            </button>
-            <div className={`collapse ${isSectionExpanded('league') ? 'show' : ''}`}>
-              <div className="py-2 collapse-inner rounded">
-                <h6 className="collapse-header">Organization:</h6>
-                <Link className={`collapse-item ${isActive('leagues') ? 'active' : ''}`} href="/admin?tab=leagues">
-                  <i className="fas fa-trophy fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Leagues
-                </Link>
-                <Link className={`collapse-item ${isActive('seasons') ? 'active' : ''}`} href="/admin?tab=seasons">
-                  <i className="fas fa-calendar-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Seasons
-                </Link>
-                <Link className={`collapse-item ${isActive('season-config') ? 'active' : ''}`} href="/admin?tab=season-config">
-                  <i className="fas fa-cog fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Season Configuration
-                </Link>
-                <Link className={`collapse-item ${isActive('teams') ? 'active' : ''}`} href="/admin?tab=teams">
-                  <i className="fas fa-users fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Teams
-                </Link>
-                <Link className={`collapse-item ${isActive('tournaments') ? 'active' : ''}`} href="/admin?tab=tournaments">
-                  <i className="fas fa-trophy fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Tournaments
-                </Link>
-                <Link className={`collapse-item ${isActive('player-transfers') ? 'active' : ''}`} href="/admin?tab=player-transfers">
-                  <i className="fas fa-exchange-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Player Transfers
-                </Link>
-                <Link className={`collapse-item ${isActive('player-swaps') ? 'active' : ''}`} href="/admin?tab=player-swaps">
-                  <i className="fas fa-random fa-sm fa-fw mr-2 text-info"></i>
-                  Player Swaps
-                </Link>
-                <Link className={`collapse-item ${isActive('draft-management') ? 'active' : ''}`} href="/admin?tab=draft-management">
-                  <i className="fas fa-gavel fa-sm fa-fw mr-2 text-warning"></i>
-                  Draft Management
-                </Link>
-                <div className="dropdown-divider"></div>
-                <h6 className="collapse-header">Scheduling:</h6>
-                <Link className={`collapse-item ${isActive('games') ? 'active' : ''}`} href="/admin?tab=games">
-                  <i className="fas fa-calendar fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Games & Schedules
-                </Link>
+          {user?.role === 'player' && (
+            <>
+              <hr className="sidebar-divider" />
+              <div className="sidebar-heading">
+                My Player Info
               </div>
-            </div>
-          </li>
+              <li className="nav-item">
+                <Link href="/admin?tab=my-stats" className={`nav-link ${isActive('my-stats') ? 'active' : ''}`}>
+                  <i className="fas fa-fw fa-chart-bar"></i>
+                  <span>My Stats</span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link href="/admin?tab=my-team" className={`nav-link ${isActive('my-team') ? 'active' : ''}`}>
+                  <i className="fas fa-fw fa-users"></i>
+                  <span>My Team</span>
+                </Link>
+              </li>
+            </>
+          )}
+          {user?.role === 'admin' && (
+            <>
+              {/* Divider */}
+              <hr className="sidebar-divider" />
 
-          {/* Nav Item - Content Management */}
-          <li className="nav-item">
-            <button 
-              className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['meal-plans', 'qr-codes']) ? 'active' : ''}`}
-              onClick={() => toggleSection('content')}
-              aria-expanded={isSectionExpanded('content')}
-            >
-              <i className="fas fa-fw fa-cogs"></i>
-              <span>Content & Tools</span>
-              <i className={`fas fa-chevron-${isSectionExpanded('content') ? 'up' : 'down'} float-right mt-1`}></i>
-            </button>
-            <div className={`collapse ${isSectionExpanded('content') ? 'show' : ''}`}>
-              <div className="py-2 collapse-inner rounded">
-                <h6 className="collapse-header">Management Tools:</h6>
-                <Link className={`collapse-item ${isActive('meal-plans') ? 'active' : ''}`} href="/admin?tab=meal-plans">
-                  <i className="fas fa-utensils fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Meal Plans
-                </Link>
-                <Link className={`collapse-item ${isActive('qr-codes') ? 'active' : ''}`} href="/admin?tab=qr-codes">
-                  <i className="fas fa-qrcode fa-sm fa-fw mr-2 text-gray-400"></i>
-                  QR Codes
-                </Link>
+              {/* Heading */}
+              <div className="sidebar-heading">
+                Business Operations
               </div>
-            </div>
-          </li>
 
-          {/* Nav Item - Coach Tools */}
-          <li className="nav-item">
-            <button 
-              className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['practice-plans', 'playbooks', 'drills', 'coach-resources']) ? 'active' : ''}`}
-              onClick={() => toggleSection('coach-tools')}
-              aria-expanded={isSectionExpanded('coach-tools')}
-            >
-              <i className="fas fa-fw fa-clipboard-list"></i>
-              <span>Coach Tools</span>
-              <i className={`fas fa-chevron-${isSectionExpanded('coach-tools') ? 'up' : 'down'} float-right mt-1`}></i>
-            </button>
-            <div className={`collapse ${isSectionExpanded('coach-tools') ? 'show' : ''}`}>
-              <div className="py-2 collapse-inner rounded">
-                <h6 className="collapse-header">Planning:</h6>
-                <Link className={`collapse-item ${isActive('practice-plans') ? 'active' : ''}`} href="/admin?tab=practice-plans">
-                  <i className="fas fa-calendar-check fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Practice Plans
-                </Link>
-                <Link className={`collapse-item ${isActive('playbooks') ? 'active' : ''}`} href="/admin?tab=playbooks">
-                  <i className="fas fa-book fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Playbooks
-                </Link>
-                <Link className={`collapse-item ${isActive('drills') ? 'active' : ''}`} href="/admin?tab=drills">
-                  <i className="fas fa-running fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Drills Library
-                </Link>
-                <div className="dropdown-divider"></div>
-                <h6 className="collapse-header">Resources:</h6>
-                <Link className={`collapse-item ${isActive('coach-resources') ? 'active' : ''}`} href="/admin?tab=coach-resources">
-                  <i className="fas fa-file-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Coach Resources
-                </Link>
-                <Link className={`collapse-item ${isActive('attendance') ? 'active' : ''}`} href="/admin?tab=attendance">
-                  <i className="fas fa-user-check fa-sm fa-fw mr-2 text-success"></i>
-                  Attendance Tracking
-                </Link>
-                <Link className={`collapse-item ${isActive('player-evaluations') ? 'active' : ''}`} href="/admin?tab=player-evaluations">
-                  <i className="fas fa-star fa-sm fa-fw mr-2 text-warning"></i>
-                  Player Evaluations
-                </Link>
-              </div>
-            </div>
-          </li>
+              {/* Nav Item - Financial Management */}
+              <li className="nav-item">
+                <button 
+                  className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['payments', 'pricing', 'coupons', 'analytics']) ? 'active' : ''}`}
+                  onClick={() => toggleSection('finance')}
+                  aria-expanded={isSectionExpanded('finance')}
+                >
+                  <i className="fas fa-fw fa-dollar-sign"></i>
+                  <span>Financial Management</span>
+                  <i className={`fas fa-chevron-${isSectionExpanded('finance') ? 'up' : 'down'} float-right mt-1`}></i>
+                </button>
+                <div className={`collapse ${isSectionExpanded('finance') ? 'show' : ''}`}>
+                  <div className="py-2 collapse-inner rounded">
+                    <h6 className="collapse-header">Revenue & Pricing:</h6>
+                    <Link className={`collapse-item ${isActive('payments') ? 'active' : ''}`} href="/admin?tab=payments">
+                      <i className="fas fa-credit-card fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Payments
+                    </Link>
+                    <Link className={`collapse-item ${isActive('pricing') ? 'active' : ''}`} href="/admin?tab=pricing">
+                      <i className="fas fa-tags fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Pricing Plans
+                    </Link>
+                    <Link className={`collapse-item ${isActive('coupons') ? 'active' : ''}`} href="/admin?tab=coupons">
+                      <i className="fas fa-percentage fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Coupons & Discounts
+                    </Link>
+                    <div className="dropdown-divider"></div>
+                    <h6 className="collapse-header">Analytics:</h6>
+                    <Link className={`collapse-item ${isActive('analytics') ? 'active' : ''}`} href="/admin?tab=analytics">
+                      <i className="fas fa-chart-area fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Analytics & Reports
+                    </Link>
+                  </div>
+                </div>
+              </li>
 
-          {/* Nav Item - Communication */}
-          <li className="nav-item">
-            <button 
-              className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['sms', 'notifications', 'emails', 'gohighlevel']) ? 'active' : ''}`}
-              onClick={() => toggleSection('comms')}
-              aria-expanded={isSectionExpanded('comms')}
-            >
-              <i className="fas fa-fw fa-comments"></i>
-              <span>Communication</span>
-              <i className={`fas fa-chevron-${isSectionExpanded('comms') ? 'up' : 'down'} float-right mt-1`}></i>
-            </button>
-            <div className={`collapse ${isSectionExpanded('comms') ? 'show' : ''}`}>
-              <div className="py-2 collapse-inner rounded">
-                <h6 className="collapse-header">Messaging:</h6>
-                <Link className={`collapse-item ${isActive('sms') ? 'active' : ''}`} href="/admin?tab=sms">
-                  <i className="fas fa-sms fa-sm fa-fw mr-2 text-gray-400"></i>
-                  SMS Management
-                </Link>
-                <Link className={`collapse-item ${isActive('notifications') ? 'active' : ''}`} href="/admin?tab=notifications">
-                  <i className="fas fa-bell fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Notifications
-                </Link>
-                <Link className={`collapse-item ${isActive('emails') ? 'active' : ''}`} href="/admin?tab=emails">
-                  <i className="fas fa-envelope fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Email Templates
-                </Link>
-                <Link className={`collapse-item ${pathname === '/admin/email-settings' ? 'active' : ''}`} href="/admin/email-settings">
-                  <i className="fas fa-envelope-open-text fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Email Recipients
-                </Link>
-                <div className="dropdown-divider"></div>
-                <h6 className="collapse-header">Integrations:</h6>
-                <Link className={`collapse-item ${isActive('gohighlevel') ? 'active' : ''}`} href="/admin?tab=gohighlevel">
-                  <i className="fas fa-plug fa-sm fa-fw mr-2 text-gray-400"></i>
-                  GoHighLevel
-                </Link>
-                <Link className={`collapse-item ${isActive('workflows') ? 'active' : ''}`} href="/admin?tab=workflows">
-                  <i className="fas fa-robot fa-sm fa-fw mr-2 text-info"></i>
-                  AI Workflow Builder
-                </Link>
-                <Link className={`collapse-item ${isActive('facebook-links') ? 'active' : ''}`} href="/admin?tab=facebook-links">
-                  <i className="fab fa-facebook fa-sm fa-fw mr-2 text-primary"></i>
-                  Facebook Links
-                </Link>
+              {/* Divider */}
+              <hr className="sidebar-divider" />
+
+              {/* Heading */}
+              <div className="sidebar-heading">
+                League Operations
               </div>
-            </div>
-          </li>
+
+              {/* Nav Item - League Management */}
+              <li className="nav-item">
+                <button 
+                  className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['teams', 'leagues', 'seasons', 'games']) ? 'active' : ''}`}
+                  onClick={() => toggleSection('league')}
+                  aria-expanded={isSectionExpanded('league')}
+                >
+                  <i className="fas fa-fw fa-futbol"></i>
+                  <span>League Management</span>
+                  <i className={`fas fa-chevron-${isSectionExpanded('league') ? 'up' : 'down'} float-right mt-1`}></i>
+                </button>
+                <div className={`collapse ${isSectionExpanded('league') ? 'show' : ''}`}>
+                  <div className="py-2 collapse-inner rounded">
+                    <h6 className="collapse-header">Organization:</h6>
+                    <Link className={`collapse-item ${isActive('leagues') ? 'active' : ''}`} href="/admin?tab=leagues">
+                      <i className="fas fa-trophy fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Leagues
+                    </Link>
+                    <Link className={`collapse-item ${isActive('seasons') ? 'active' : ''}`} href="/admin?tab=seasons">
+                      <i className="fas fa-calendar-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Seasons
+                    </Link>
+                    <Link className={`collapse-item ${isActive('season-config') ? 'active' : ''}`} href="/admin?tab=season-config">
+                      <i className="fas fa-cog fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Season Configuration
+                    </Link>
+                    <Link className={`collapse-item ${isActive('teams') ? 'active' : ''}`} href="/admin?tab=teams">
+                      <i className="fas fa-users fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Teams
+                    </Link>
+                    <Link className={`collapse-item ${isActive('tournaments') ? 'active' : ''}`} href="/admin?tab=tournaments">
+                      <i className="fas fa-trophy fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Tournaments
+                    </Link>
+                    <Link className={`collapse-item ${isActive('player-transfers') ? 'active' : ''}`} href="/admin?tab=player-transfers">
+                      <i className="fas fa-exchange-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Player Transfers
+                    </Link>
+                    <Link className={`collapse-item ${isActive('player-swaps') ? 'active' : ''}`} href="/admin?tab=player-swaps">
+                      <i className="fas fa-random fa-sm fa-fw mr-2 text-info"></i>
+                      Player Swaps
+                    </Link>
+                    <Link className={`collapse-item ${isActive('draft-management') ? 'active' : ''}`} href="/admin?tab=draft-management">
+                      <i className="fas fa-gavel fa-sm fa-fw mr-2 text-warning"></i>
+                      Draft Management
+                    </Link>
+                    <div className="dropdown-divider"></div>
+                    <h6 className="collapse-header">Scheduling:</h6>
+                    <Link className={`collapse-item ${isActive('games') ? 'active' : ''}`} href="/admin?tab=games">
+                      <i className="fas fa-calendar fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Games & Schedules
+                    </Link>
+                  </div>
+                </div>
+              </li>
+
+              {/* Nav Item - Content Management */}
+              <li className="nav-item">
+                <button 
+                  className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['meal-plans', 'qr-codes']) ? 'active' : ''}`}
+                  onClick={() => toggleSection('content')}
+                  aria-expanded={isSectionExpanded('content')}
+                >
+                  <i className="fas fa-fw fa-cogs"></i>
+                  <span>Content & Tools</span>
+                  <i className={`fas fa-chevron-${isSectionExpanded('content') ? 'up' : 'down'} float-right mt-1`}></i>
+                </button>
+                <div className={`collapse ${isSectionExpanded('content') ? 'show' : ''}`}>
+                  <div className="py-2 collapse-inner rounded">
+                    <h6 className="collapse-header">Management Tools:</h6>
+                    <Link className={`collapse-item ${isActive('meal-plans') ? 'active' : ''}`} href="/admin?tab=meal-plans">
+                      <i className="fas fa-utensils fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Meal Plans
+                    </Link>
+                    <Link className={`collapse-item ${isActive('qr-codes') ? 'active' : ''}`} href="/admin?tab=qr-codes">
+                      <i className="fas fa-qrcode fa-sm fa-fw mr-2 text-gray-400"></i>
+                      QR Codes
+                    </Link>
+                  </div>
+                </div>
+              </li>
+
+              {/* Nav Item - Coach Tools */}
+              <li className="nav-item">
+                <button 
+                  className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['practice-plans', 'playbooks', 'drills', 'coach-resources']) ? 'active' : ''}`}
+                  onClick={() => toggleSection('coach-tools')}
+                  aria-expanded={isSectionExpanded('coach-tools')}
+                >
+                  <i className="fas fa-fw fa-clipboard-list"></i>
+                  <span>Coach Tools</span>
+                  <i className={`fas fa-chevron-${isSectionExpanded('coach-tools') ? 'up' : 'down'} float-right mt-1`}></i>
+                </button>
+                <div className={`collapse ${isSectionExpanded('coach-tools') ? 'show' : ''}`}>
+                  <div className="py-2 collapse-inner rounded">
+                    <h6 className="collapse-header">Planning:</h6>
+                    <Link className={`collapse-item ${isActive('practice-plans') ? 'active' : ''}`} href="/admin?tab=practice-plans">
+                      <i className="fas fa-calendar-check fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Practice Plans
+                    </Link>
+                    <Link className={`collapse-item ${isActive('playbooks') ? 'active' : ''}`} href="/admin?tab=playbooks">
+                      <i className="fas fa-book fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Playbooks
+                    </Link>
+                    <Link className={`collapse-item ${isActive('drills') ? 'active' : ''}`} href="/admin?tab=drills">
+                      <i className="fas fa-running fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Drills Library
+                    </Link>
+                    <div className="dropdown-divider"></div>
+                    <h6 className="collapse-header">Resources:</h6>
+                    <Link className={`collapse-item ${isActive('coach-resources') ? 'active' : ''}`} href="/admin?tab=coach-resources">
+                      <i className="fas fa-file-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Coach Resources
+                    </Link>
+                    <Link className={`collapse-item ${isActive('attendance') ? 'active' : ''}`} href="/admin?tab=attendance">
+                      <i className="fas fa-user-check fa-sm fa-fw mr-2 text-success"></i>
+                      Attendance Tracking
+                    </Link>
+                    <Link className={`collapse-item ${isActive('player-evaluations') ? 'active' : ''}`} href="/admin?tab=player-evaluations">
+                      <i className="fas fa-star fa-sm fa-fw mr-2 text-warning"></i>
+                      Player Evaluations
+                    </Link>
+                  </div>
+                </div>
+              </li>
+
+              {/* Nav Item - Communication */}
+              <li className="nav-item">
+                <button 
+                  className={`nav-link w-100 text-left border-0 bg-transparent ${isSectionActive(['sms', 'notifications', 'emails', 'gohighlevel']) ? 'active' : ''}`}
+                  onClick={() => toggleSection('comms')}
+                  aria-expanded={isSectionExpanded('comms')}
+                >
+                  <i className="fas fa-fw fa-comments"></i>
+                  <span>Communication</span>
+                  <i className={`fas fa-chevron-${isSectionExpanded('comms') ? 'up' : 'down'} float-right mt-1`}></i>
+                </button>
+                <div className={`collapse ${isSectionExpanded('comms') ? 'show' : ''}`}>
+                  <div className="py-2 collapse-inner rounded">
+                    <h6 className="collapse-header">Messaging:</h6>
+                    <Link className={`collapse-item ${isActive('sms') ? 'active' : ''}`} href="/admin?tab=sms">
+                      <i className="fas fa-sms fa-sm fa-fw mr-2 text-gray-400"></i>
+                      SMS Management
+                    </Link>
+                    <Link className={`collapse-item ${isActive('notifications') ? 'active' : ''}`} href="/admin?tab=notifications">
+                      <i className="fas fa-bell fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Notifications
+                    </Link>
+                    <Link className={`collapse-item ${isActive('emails') ? 'active' : ''}`} href="/admin?tab=emails">
+                      <i className="fas fa-envelope fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Email Templates
+                    </Link>
+                    <Link className={`collapse-item ${pathname === '/admin/email-settings' ? 'active' : ''}`} href="/admin/email-settings">
+                      <i className="fas fa-envelope-open-text fa-sm fa-fw mr-2 text-gray-400"></i>
+                      Email Recipients
+                    </Link>
+                    <div className="dropdown-divider"></div>
+                    <h6 className="collapse-header">Integrations:</h6>
+                    <Link className={`collapse-item ${isActive('gohighlevel') ? 'active' : ''}`} href="/admin?tab=gohighlevel">
+                      <i className="fas fa-plug fa-sm fa-fw mr-2 text-gray-400"></i>
+                      GoHighLevel
+                    </Link>
+                    <Link className={`collapse-item ${isActive('workflows') ? 'active' : ''}`} href="/admin?tab=workflows">
+                      <i className="fas fa-robot fa-sm fa-fw mr-2 text-info"></i>
+                      AI Workflow Builder
+                    </Link>
+                    <Link className={`collapse-item ${isActive('facebook-links') ? 'active' : ''}`} href="/admin?tab=facebook-links">
+                      <i className="fab fa-facebook fa-sm fa-fw mr-2 text-primary"></i>
+                      Facebook Links
+                    </Link>
+                  </div>
+                </div>
+              </li>
+            </>
+          )}
 
           {/* Divider */}
           <hr className="sidebar-divider d-none d-md-block" />

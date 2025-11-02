@@ -32,7 +32,7 @@ const SUPPORTED_PAYMENT_METHODS: Array<Stripe.Checkout.SessionCreateParams.Payme
   'bacs_debit',
   'bancontact',
   'boleto',
-  'cashapp',
+  'paypal', // PayPal for smooth checkout experience
   'customer_balance',
   'eps',
   'fpx',
@@ -59,8 +59,7 @@ const getPaymentMethodOptions = (method: Stripe.Checkout.SessionCreateParams.Pay
     card: {},
     klarna: { preferred_locale: 'en-US' },
     affirm: { preferred_locale: 'en-US' },
-    paypal: { preferred_locale: 'en-US', flow: 'checkout' },
-    cashapp: { setup_future_usage: 'on_session' },
+    paypal: { preferred_locale: 'en-US' }, // Removed invalid 'flow' parameter
     link: { setup_future_usage: 'on_session' },
     alipay: { setup_future_usage: 'off_session' },
     wechat_pay: { client: 'web' },
@@ -77,7 +76,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     console.log('Create checkout endpoint called');
     const data: CheckoutRequest = await request.json();
-    console.log('Checkout request data:', Object.keys(data));
+    console.log('Checkout request data:', JSON.stringify(data, null, 2));
 
     const {
       amount,
@@ -94,6 +93,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       successUrl,
       cancelUrl
     } = data;
+    
+    console.log('Parsed payment method:', paymentMethod);
+    console.log('Amount in cents:', amount);
 
     // Validate required fields
     if (!amount || !customerEmail || !customerName) {
@@ -124,12 +126,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       // Create checkout session
       // Filter and validate payment methods
-      const enabledPaymentMethods = (Array.isArray(paymentMethods) 
-        ? paymentMethods.filter((method): method is Stripe.Checkout.SessionCreateParams.PaymentMethodType =>
-            SUPPORTED_PAYMENT_METHODS.includes(method as any)
-          )
-        : ['card']
-      ).slice(0, 10) as Stripe.Checkout.SessionCreateParams.PaymentMethodType[]; // Ensure we don't exceed Stripe's limit
+      // If paymentMethod is specified, use it, otherwise use paymentMethods array
+      const methodsToEnable = paymentMethod === 'paypal' 
+        ? ['paypal'] 
+        : (Array.isArray(paymentMethods) 
+            ? paymentMethods 
+            : paymentMethod === 'klarna'
+              ? ['klarna']
+              : paymentMethod === 'affirm'
+                ? ['affirm']
+                : ['card']);
+      
+      const enabledPaymentMethods = methodsToEnable
+        .filter((method): method is Stripe.Checkout.SessionCreateParams.PaymentMethodType =>
+          SUPPORTED_PAYMENT_METHODS.includes(method as any)
+        )
+        .slice(0, 10) as Stripe.Checkout.SessionCreateParams.PaymentMethodType[]; // Ensure we don't exceed Stripe's limit
+
+      console.log('Enabled payment methods:', enabledPaymentMethods);
 
       // Build payment method options
       const paymentMethodOptions = enabledPaymentMethods.reduce<Stripe.Checkout.SessionCreateParams.PaymentMethodOptions>(
@@ -139,6 +153,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         },
         {}
       );
+      
+      console.log('Payment method options:', JSON.stringify(paymentMethodOptions, null, 2));
 
       // Create checkout session with all supported payment methods
       const session = await stripe.checkout.sessions.create({
@@ -200,12 +216,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         message: 'Checkout session created successfully'
       });
 
-    } catch (stripeError) {
+    } catch (stripeError: any) {
       console.error('Stripe error:', stripeError);
+      console.error('Stripe error details:', {
+        message: stripeError?.message,
+        type: stripeError?.type,
+        code: stripeError?.code,
+        param: stripeError?.param,
+        raw: stripeError?.raw
+      });
       return NextResponse.json({
         success: false,
         error: 'Failed to create payment session',
-        details: stripeError instanceof Error ? stripeError.message : 'Stripe error'
+        details: stripeError?.message || 'Stripe error',
+        stripeError: {
+          type: stripeError?.type,
+          code: stripeError?.code,
+          param: stripeError?.param
+        }
       }, { status: 500 });
     }
 

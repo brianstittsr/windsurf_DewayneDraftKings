@@ -589,7 +589,7 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
             </div>
             
             <div className="col-12 mt-3">
-              <div className="form-check">
+              <div className="form-check py-3">
                 <input
                   className="form-check-input"
                   type="checkbox"
@@ -597,30 +597,32 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
                   checked={formData.disclosureRead}
                   onChange={handleInputChange}
                   required
+                  style={{ width: '24px', height: '24px', marginTop: '0.15rem' }}
                 />
-                <label className="form-check-label">
+                <label className="form-check-label ms-2" style={{ fontSize: '1.05rem', lineHeight: '1.5', cursor: 'pointer' }}>
                   <strong>I have read and understand the above disclosure information. *</strong>
                 </label>
               </div>
             </div>
             
             <div className="col-12 mt-3">
-              <div className="form-check">
+              <div className="form-check py-3">
                 <input
                   className="form-check-input"
                   type="checkbox"
                   name="marketingConsent"
                   checked={formData.marketingConsent}
                   onChange={handleInputChange}
+                  style={{ width: '24px', height: '24px', marginTop: '0.15rem' }}
                 />
-                <label className="form-check-label">
+                <label className="form-check-label ms-2" style={{ fontSize: '1.05rem', lineHeight: '1.5', cursor: 'pointer' }}>
                   I would like to receive promotional emails and updates about All Pro Sports events and programs.
                 </label>
               </div>
             </div>
             
             <div className="col-12">
-              <div className="form-check">
+              <div className="form-check py-3">
                 <input
                   className="form-check-input"
                   type="checkbox"
@@ -628,15 +630,16 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
                   checked={formData.waiverAccepted}
                   onChange={handleInputChange}
                   required
+                  style={{ width: '24px', height: '24px', marginTop: '0.15rem' }}
                 />
-                <label className="form-check-label">
+                <label className="form-check-label ms-2" style={{ fontSize: '1.05rem', lineHeight: '1.5', cursor: 'pointer' }}>
                   <strong>I acknowledge and accept the liability waiver and release of claims. *</strong>
                 </label>
               </div>
             </div>
             
             <div className="col-12">
-              <div className="form-check">
+              <div className="form-check py-3">
                 <input
                   className="form-check-input"
                   type="checkbox"
@@ -644,8 +647,9 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
                   checked={formData.termsAccepted}
                   onChange={handleInputChange}
                   required
+                  style={{ width: '24px', height: '24px', marginTop: '0.15rem' }}
                 />
-                <label className="form-check-label">
+                <label className="form-check-label ms-2" style={{ fontSize: '1.05rem', lineHeight: '1.5', cursor: 'pointer' }}>
                   <strong>I agree to the Terms and Conditions and Privacy Policy. *</strong>
                 </label>
               </div>
@@ -791,10 +795,11 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
               {/* Navigation Buttons */}
               <div className="row mt-4">
                 <div className="col-12">
-                  <div className="d-flex justify-content-between">
+                  <div className="d-flex flex-column flex-sm-row justify-content-between gap-3">
                     <button 
                       type="button" 
-                      className="btn btn-outline-secondary"
+                      className="btn btn-outline-secondary btn-lg px-4 py-3"
+                      style={{ minHeight: '50px', fontSize: '1.1rem', minWidth: '140px' }}
                       onClick={prevStep}
                       disabled={currentStep === 1}
                     >
@@ -804,7 +809,8 @@ export default function RegistrationWizard({ selectedPlan }: RegistrationWizardP
                     
                     <button 
                       type="button" 
-                      className="btn btn-primary"
+                      className="btn btn-primary btn-lg px-4 py-3"
+                      style={{ minHeight: '50px', fontSize: '1.1rem', minWidth: '140px' }}
                       onClick={nextStep}
                     >
                       {currentStep === 6 ? (

@@ -191,9 +191,11 @@ function CheckoutPageContent() {
                   <PaymentCheckout
                     planData={{
                       title: playerProfile.selectedPlan.title,
-                      price: playerProfile.selectedPlan.price,
-                      serviceFee: playerProfile.selectedPlan.serviceFee,
-                      total: playerProfile.selectedPlan.total,
+                      pricing: {
+                        price: playerProfile.selectedPlan.price,
+                        serviceFee: playerProfile.selectedPlan.serviceFee,
+                        total: playerProfile.selectedPlan.total
+                      },
                       itemType: playerProfile.selectedPlan.plan,
                       category: playerProfile.selectedPlan.category
                     }}
@@ -208,7 +210,7 @@ function CheckoutPageContent() {
                       window.location.href = '/registration-success';
                     }}
                     onPaymentError={(error) => {
-                      console.error('Payment error:', error);
+                      console.error('Payment error details:', error);
                       alert('Payment failed: ' + error);
                     }}
                   />

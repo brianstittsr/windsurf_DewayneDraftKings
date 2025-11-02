@@ -12,8 +12,15 @@ export interface AdminUser {
 
 // In production, this should be stored in a secure database
 const ADMIN_USERS = [
+  // Admin users
   { username: 'admin@example.com', password: 'admin123', role: 'admin' as const },
-  { username: 'admin', password: 'AllProSports2024!', role: 'admin' as const }
+  { username: 'admin', password: 'AllProSports2024!', role: 'admin' as const },
+  // Coach users
+  { username: 'coach@example.com', password: 'coach123', role: 'coach' as const },
+  { username: 'coach', password: 'Coach2024!', role: 'coach' as const },
+  // Player users
+  { username: 'player@example.com', password: 'player123', role: 'player' as const },
+  { username: 'player', password: 'Player2024!', role: 'player' as const }
 ];
 
 export async function verifyAdminToken(request: NextRequest): Promise<AdminUser | null> {
