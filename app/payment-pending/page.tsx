@@ -40,7 +40,8 @@ function PaymentPendingContent() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const cashTag = process.env.NEXT_PUBLIC_CASHAPP_CASHTAG || '$YourCashTag';
+  // Get CashTag from payment details or environment variable
+  const cashTag = paymentDetails?.instructions?.cashtag || process.env.NEXT_PUBLIC_CASHAPP_CASHTAG || '$AllProSportsNC';
   const amount = paymentDetails?.amount || 0;
 
   return (

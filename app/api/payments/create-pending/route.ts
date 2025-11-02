@@ -1,7 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+import { initializeApp, getApps } from 'firebase/app';
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
 
 export const dynamic = 'force-dynamic';
+
+// Initialize Firebase client SDK for this API route
+function getFirestoreClient() {
+  const apps = getApps();
+  let app;
+  
+  if (apps.length === 0) {
+    app = initializeApp({
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    });
+  } else {
+    app = apps[0];
+  }
+  
+  return getFirestore(app);
+}
 
 interface PendingPaymentRequest {
   amount: number;
@@ -46,30 +68,37 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     try {
       // Create payment record in Firebase
-      const paymentData = {
+      // Filter out undefined values to avoid Firestore errors
+      const paymentData: any = {
         amount,
         status: 'pending',
         paymentMethod,
         paymentReference,
         customerEmail,
         customerName,
-        customerPhone,
-        planId,
-        planName,
-        playerId: playerId || null,
-        appliedCoupon: appliedCoupon || null,
-        couponDiscount: couponDiscount || 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         instructions: {
-          cashtag: process.env.CASHAPP_CASHTAG || '$YourCashTag',
-          message: `Please send $${amount.toFixed(2)} to ${process.env.CASHAPP_CASHTAG || '$YourCashTag'} with reference: ${paymentReference}`,
+          cashtag: process.env.CASHAPP_CASHTAG || '$AllProSportsNC',
+          message: `Please send $${amount.toFixed(2)} to ${process.env.CASHAPP_CASHTAG || '$AllProSportsNC'} with reference: ${paymentReference}`,
         },
       };
 
-      const paymentRef = await adminDb.collection('payments').add(paymentData);
+      // Only add optional fields if they have values
+      if (customerPhone) paymentData.customerPhone = customerPhone;
+      if (planId) paymentData.planId = planId;
+      if (planName) paymentData.planName = planName;
+      if (playerId) paymentData.playerId = playerId;
+      if (appliedCoupon) paymentData.appliedCoupon = appliedCoupon;
+      if (couponDiscount) paymentData.couponDiscount = couponDiscount;
+
+      const db = getFirestoreClient();
       
-      console.log('Pending payment created:', paymentRef.id);
+      console.log('About to save payment data:', JSON.stringify(paymentData, null, 2));
+      
+      const paymentRef = await addDoc(collection(db, 'payments'), paymentData);
+      
+      console.log('Pending payment created successfully:', paymentRef.id);
 
       // Send email with payment instructions
       try {
@@ -98,10 +127,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     } catch (firebaseError) {
       console.error('Firebase error:', firebaseError);
+      console.error('Firebase error stack:', firebaseError instanceof Error ? firebaseError.stack : 'No stack trace');
+      console.error('Firebase error details:', JSON.stringify(firebaseError, null, 2));
       return NextResponse.json({
         success: false,
         error: 'Failed to save payment record',
-        details: firebaseError instanceof Error ? firebaseError.message : 'Firebase error'
+        details: firebaseError instanceof Error ? firebaseError.message : String(firebaseError)
       }, { status: 500 });
     }
 

@@ -1,8 +1,11 @@
 'use client';
 
 import { Suspense } from 'react';
-import AdminLayout from '@/components/AdminLayout';
-import UserProfileSearch from '@/components/UserProfileSearch';
+import dynamic from 'next/dynamic';
+
+// Dynamically import components that use auth context to prevent SSR issues
+const AdminLayout = dynamic(() => import('@/components/AdminLayout'), { ssr: false });
+const UserProfileSearch = dynamic(() => import('@/components/UserProfileSearch'), { ssr: false });
 
 function UserProfilesPageContent() {
   return (

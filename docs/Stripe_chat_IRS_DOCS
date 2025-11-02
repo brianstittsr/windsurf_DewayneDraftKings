@@ -1,0 +1,100 @@
+Hi, I'm Stripe Assistant.
+What do you need help with? Select a topic or type your question below.
+How do I add a new tax ID document to unpause the account?
+To add a new tax ID document and unpause your Stripe account, follow these steps:
+
+Access the Dashboard: Go to the Customers page in your Stripe Dashboard.
+
+Select the Customer: Choose the customer for whom you need to add the tax ID.
+
+Edit Details: Click the pencil icon next to Details on the right side of the page.
+
+Add Tax ID: Scroll down to the Tax Status and Tax ID fields. Click Add another ID to add a new tax ID. Select the ID type and enter the value.
+
+Submit the Document: Ensure that the document is in the correct format (PDF, JPEG, or PNG) and is not expired. Upload the document as required.
+
+Verification: Stripe will verify the authenticity of the document. This process may involve checking the document against a database of fraudulent templates and ensuring the information matches third-party databases.
+
+Once the document is verified, your account should be unpaused. If you encounter any issues during this process, ensure that the document meets all the requirements, such as being legible and not expired.
+
+View 5 sources
+How do I fix this:
+Payouts paused while we review your information
+We received the required information on 1 Nov and your account is in review. This typically takes 2-3 days.
+When your payouts are paused due to an account review, and you've already submitted the required information, the best course of action is to wait for the review process to complete. This typically takes 2–3 business days. Here are a few steps you can take in the meantime:
+
+Check for Updates: Regularly check your email and the Stripe Dashboard for any updates or additional requests for information from Stripe.
+
+Ensure Information is Complete: Double-check that all submitted information is complete and accurate. If there are any discrepancies, it might delay the review process.
+
+Contact Support: If the review takes longer than the typical timeframe, or if you have any urgent concerns, you can reach out to Stripe support through the Dashboard for further assistance.
+
+Once the review is complete, and if everything is in order, your payouts should resume automatically.
+
+what is the contact number for support?
+Let's get you connected to a Stripe support agent.
+Is this issue related to your current Platform account, or associated connected accounts?
+Connected accounts
+Please enter all related connected account IDs below so that our agents can help you faster.
+Connected account support
+No accounts found.
+Please ensure the connected account IDs are in this format: "acct_1ABC2D3eFgh"
+Invalid accounts
+These were ignored
+acct_1S4oYSC64KTe6iDU
+Contact an agent
+So we can provide the best support experience, select the category that best describes your issue.
+
+Verification
+Got it. You can contact a member of the support team, who can address your specific problem.
+How would you like to contact support? Wait times are estimates.
+Chat with us · 7m
+Hang on, we're connecting you to a support agent.
+Je, Stripe support agent, has joined the chat.
+Hi, thanks for reaching out to Stripe Support. My name is Je and I'll be assisting you today.
+Hi!
+I need to get this account "acct_1S4oYSC64KTe6iDU" unpaused immediately!
+I understand your concern about removing the paused on your account related to adding your tax information. I'd be happy to assist you with this.
+Allow me the check on the account for 3-5 minutes. Please stay online.
+thank you!
+Thanks for patiently waiting.
+I have checked the document you've submitted and see that it got rejected because it was not a type of document we can accept.
+File upload
+569 kB
+IVe6a7022e7075429bbcff52de504a3d7b.pdf
+is that one better?
+Please note that we can only accept one of these IRS issued documents to verify your company tax ID as follows:
+​
+-IRS Letter 147C
+-IRS SS-4 confirmation letter
+-IRS Fax Transmission Letter
+-EIN Assistance Letter
+I am afraid that the document you just sent is also not an acceptable document.
+To proceed with this business verification, please provide a clear photo or scan of one of the documents listed above.
+where can I get this document?
+these are not familiar
+Those documents can be issued by the IRS. Just to confirm your business type is "company", right?
+corporation
+Incorporated
+You mean the business structure is a corporation under a company business type.
+yes
+Okay, thanks for confirming. In that case, in order for you to gather the acceptable documents to validate your company tax ID, you would need to reach out to IRS to get any of the documents listed above.
+Once I get the document, how can upload it?
+You may go to this link to upload the document: https://dashboard.stripe.com/acct_1S4oYSC64KTe6iDU/settings/taxation
+when I click the link, it redirects me back to the dashboard. I am the developer for the account, am I not able to see the page?
+Do you see a read banner on top of the dashboard?
+I did. when I click it, there's no way for me to upload a document
+it says I do not have permission to view the page
+Alright, let me check on the account further. Please stay online for 3-5 minutes.
+ok
+I uploaded the initial documents
+on behalf of the my client
+Yes, I can see the documents you uploaded, however, it shows that those documents cannot be used to verify your company tax ID.
+Since you mentioned that you do not have the permission to view the page, you may gather the correct document first from the IRS. Then you may have the account owner to access their dashboard and upload the correct document.
+I can do that. I can walk him through it.
+That's great. In that case, you may have the account owner, go to Settings > Business > Business Details > Click the Edit.
+Thanks for your help. I will work with the owner to locate one of the documents. You have been helpful.
+You're very much welcome. It's my pleasure assisting you today.
+Is there anything else I can help you with?
+No. Thanks for everythin
+If you need anything else, just let us know. Thanks for chatting with me. Goodbye for now.

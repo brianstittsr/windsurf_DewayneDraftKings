@@ -346,6 +346,11 @@ export default function StripePaymentForm({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
+    // Cash App payments are handled separately, not through this form submit
+    if (selectedPaymentMethod === 'cashapp') {
+      return;
+    }
+    
     if (!validateForm()) {
       return;
     }

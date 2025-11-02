@@ -15,6 +15,7 @@ export function getAdminApp() {
     const existingApps = getApps();
     if (existingApps.length > 0) {
       adminApp = existingApps[0];
+      console.log('Using existing Firebase Admin app');
       return adminApp;
     }
 
@@ -23,18 +24,23 @@ export function getAdminApp() {
     const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
     
     if (!projectId) {
+      console.error('NEXT_PUBLIC_FIREBASE_PROJECT_ID not found in environment');
       throw new Error('Firebase Project ID not found');
     }
 
+    console.log('Initializing Firebase Admin with projectId:', projectId);
+
     // Initialize with minimal config for server-side operations
+    // Don't use a name to avoid conflicts
     adminApp = initializeApp({
       projectId: projectId,
-    }, 'admin');
+    });
 
     console.log('Firebase Admin initialized successfully');
     return adminApp;
   } catch (error) {
     console.error('Error initializing Firebase Admin:', error);
+    console.error('Error details:', error instanceof Error ? error.message : error);
     return null;
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +15,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     try {
+      const adminDb = getAdminDb();
+      if (!adminDb) {
+        throw new Error('Failed to initialize Firebase Admin');
+      }
+      
       const paymentRef = adminDb.collection('payments').doc(paymentId);
       const paymentDoc = await paymentRef.get();
 
